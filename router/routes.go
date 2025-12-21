@@ -37,7 +37,8 @@ func NotAuthMiddleware(c *fiber.Ctx) error {
 	}
 
 	allowedOrigins := map[string]bool{
-		"https://shopsphereafrica.com": true,
+		"https://business-connect-eta.vercel.app/": true,
+		"https://payuee.shop":                      true,
 	}
 
 	allowedIPs := map[string]bool{
@@ -47,7 +48,7 @@ func NotAuthMiddleware(c *fiber.Ctx) error {
 	}
 
 	origin := c.Get("Origin")
-	apiKey := c.Get("X-SHOPSHERE-APP-API-KEY")
+	apiKey := c.Get("X-BUSCONNECT-APP-API-KEY")
 	ip := c.IP() // Extract the IP address of the request
 
 	// fmt.Println("this is the origin: ", origin)
@@ -89,13 +90,13 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	if envErr != nil {
 		fmt.Printf("Failed to load .env file: %v\n", envErr)
 	}
-
 	allowedOrigins := map[string]bool{
-		"https://shopsphereafrica.com": true,
+		"https://business-connect-eta.vercel.app/": true,
+		"https://payuee.shop":                      true,
 	}
 
 	origin := c.Get("Origin")
-	apiKey := c.Get("X-SHOPSHERE-APP-API-KEY")
+	apiKey := c.Get("X-BUSCONNECT-APP-API-KEY")
 	fmt.Println("AuthMiddleware invoked")
 	fmt.Println("this is the origin: ", origin)
 	fmt.Println("this is the apiKey: ", apiKey)
@@ -177,7 +178,7 @@ func Routers() *fiber.App {
 	// Configure CORS.
 	CORSconfig := cors.Config{
 		// AllowOrigins:     "*", // Use a single string, not an array
-		AllowOrigins:     `https://business-connect-eta.vercel.app/`,
+		AllowOrigins:     `https://business-connect-eta.vercel.app/, https://payuee.shop`,
 		AllowCredentials: true,
 		AllowMethods:     "GET, POST, PUT, DELETE",
 		// AllowHeaders:     "Content-Type, X-DORNG-APP-API-KEY",
@@ -299,7 +300,7 @@ func Routers() *fiber.App {
 	router.Get("/get-dorng-order/:orderID", NotAuthMiddleware, order.GetBusinessConnectOrder)
 	router.Get("/get-orders/:orderLimit", NotAuthMiddleware, order.GetBusinessConnectOrdersByLimit)
 
-	router.Get("/send-sms/:phone", NotAuthMiddleware, order.SendSmsBusinessConnect)
+	// router.Get("/send-sms/:phone", NotAuthMiddleware, order.SendSmsBusinessConnect)
 
 	// check if user is authenticated
 	router.Get("/auth-status", mid.WebRequireAuth, profile.CheckAuthStatus)

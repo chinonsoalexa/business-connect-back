@@ -4,14 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strings"
+	// "strings"
 
 	// "fmt"
 	"math"
 	"net/http"
 	"strconv"
 
-	SMS "business-connect/controllers/authentication"
+	// SMS "business-connect/controllers/authentication"
 	dbFunc "business-connect/database/dbHelpFunc"
 	Data "business-connect/models"
 	initTrans "business-connect/paystack/initTransactionForPaystack"
@@ -506,45 +506,45 @@ func GetFieldNamesFromInterface(data interface{}) []string {
 	return fieldNames
 }
 
-func formatPhoneNumber(phone string) string {
-	if strings.HasPrefix(phone, "0") {
-		return "234" + phone[1:]
-	}
-	return phone
-}
+// func formatPhoneNumber(phone string) string {
+// 	if strings.HasPrefix(phone, "0") {
+// 		return "234" + phone[1:]
+// 	}
+// 	return phone
+// }
 
-func SendSmsBusinessConnect(ctx *fiber.Ctx) error {
-    phone := ctx.Params("phone") // or ctx.Query("phone")
-    if phone == "" {
-        return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
-            "error": "Phone number is required",
-        })
-    }
+// func SendSmsBusinessConnect(ctx *fiber.Ctx) error {
+//     phone := ctx.Params("phone") // or ctx.Query("phone")
+//     if phone == "" {
+//         return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+//             "error": "Phone number is required",
+//         })
+//     }
 
-    formatted := formatPhoneNumber(phone)
+//     formatted := formatPhoneNumber(phone)
 
-    sms := Data.SendSMSRequest{
-        Sender:             "BusConnect",
-        Recipient:          formatted,
-        Content:            "BC-104387 is your Business Connect verification code. Do not share your code with anyone.",
-        Type:               "transactional",
-        Tag:                "otp",
-        UnicodeEnabled:     true,
-        OrganisationPrefix: "BusConnect",
-    }
+//     sms := Data.SendSMSRequest{
+//         Sender:             "BusConnect",
+//         Recipient:          formatted,
+//         Content:            "BC-104387 is your Business Connect verification code. Do not share your code with anyone.",
+//         Type:               "transactional",
+//         Tag:                "otp",
+//         UnicodeEnabled:     true,
+//         OrganisationPrefix: "BusConnect",
+//     }
 
-	fmt.Println("data to send: ", sms)
+// 	fmt.Println("data to send: ", sms)
 
-    resp, err := SMS.SendTransactionalSMS(sms)
-    if err != nil {
-        return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
-            "error": err.Error(),
-        })
-    }
-	fmt.Println("data response: ", resp)
+//     resp, err := SMS.SendTransactionalSMS(sms)
+//     if err != nil {
+//         return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+//             "error": err.Error(),
+//         })
+//     }
+// 	fmt.Println("data response: ", resp)
 
-    return ctx.Status(http.StatusOK).JSON(fiber.Map{
-        "success": true,
-        "messageID": resp.MessageID,
-    })
-}
+//     return ctx.Status(http.StatusOK).JSON(fiber.Map{
+//         "success": true,
+//         "messageID": resp.MessageID,
+//     })
+// }
