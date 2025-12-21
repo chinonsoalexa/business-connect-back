@@ -3,7 +3,6 @@ package order
 import (
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 	"strings"
 
@@ -515,28 +514,34 @@ func formatPhoneNumber(phone string) string {
 }
 
 func SendSmsBusinessConnect(ctx *fiber.Ctx) error {
+    phone := ctx.Params("phone") // or ctx.Query("phone")
+    if phone == "" {
+        return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+            "error": "Phone number is required",
+        })
+    }
 
-	phone := ctx.Params("phone")
-	formatted := formatPhoneNumber(phone)
-	
-	sms := Data.SendSMSRequest{
-		Sender:             "BusConnect",
-		Recipient:          formatted,
-		Content:            "BC-104387 is your Business Connect verification code. Do not share your code with anyone.",
-		Type:               "transactional",
-		Tag:                "otp",
-		UnicodeEnabled:     true,
-		OrganisationPrefix: "BusConnect",
-	}
+    formatted := formatPhoneNumber(phone)
 
-	resp, err := SMS.SendTransactionalSMS(sms)
-	if err != nil {
-		log.Fatal(err)
-	}
+    sms := Data.SendSMSRequest{
+        Sender:             "BusConnect",
+        Recipient:          formatted,
+        Content:            "BC-104387 is your Business Connect verification code. Do not share your code with anyone.",
+        Type:               "transactional",
+        Tag:                "otp",
+        UnicodeEnabled:     true,
+        OrganisationPrefix: "BusConnect",
+    }
 
-	fmt.Println("SMS sent successfully. Message ID:", resp.MessageID)
+    resp, err := SMS.SendTransactionalSMS(sms)
+    if err != nil {
+        return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+            "error": err.Error(),
+        })
+    }
 
-	return ctx.Status(http.StatusOK).JSON(fiber.Map{
-		"success": resp,
-	})
+    return ctx.Status(http.StatusOK).JSON(fiber.Map{
+        "success": true,
+        "messageID": resp.MessageID,
+    })
 }
