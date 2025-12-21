@@ -28,7 +28,7 @@ type PaginationData struct {
 
 func GetBusinessConnectProductsByLimit(ctx *fiber.Ctx) error {
 	var totalRecords int64
-	var productRecords []Data.Productt
+	var productRecords []Data.Product
 	var err error
 
 	// Parse query params

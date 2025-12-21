@@ -50,20 +50,20 @@ type DatabaseHelper interface {
 	UpdateMaxTry(Email string) (err error)
 	UpdateMaxTryNumber(number string) (err error)
 	UpdateMaxTryToZero(Email string) (err error)
-	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Productt, int64, error)
-	GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Productt, int64, error)
-	GetProductsByCategory(category string, limit, offset int, sortField, sortOrder string) ([]Data.Productt, int64, error)
-	GetBusinessConnectAdminProductsByLimit( /*userID uint64, */ limit, offset int) ([]Data.Productt, int64, error)
-	// GetBusinessConnectRecommendedProductsByLimit( /*userID uint64, */ category string, limit int) ([]Data.Productt, int64, error)
-	GetBusinessConnectRecommendedProductsByLimit(currentProductID uint64, category string, limit int) ([]Data.Productt, int64, error)
+	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Product, int64, error)
+	GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Product, int64, error)
+	GetProductsByCategory(category string, limit, offset int, sortField, sortOrder string) ([]Data.Product, int64, error)
+	GetBusinessConnectAdminProductsByLimit( /*userID uint64, */ limit, offset int) ([]Data.Product, int64, error)
+	// GetBusinessConnectRecommendedProductsByLimit( /*userID uint64, */ category string, limit int) ([]Data.Product, int64, error)
+	GetBusinessConnectRecommendedProductsByLimit(currentProductID uint64, category string, limit int) ([]Data.Product, int64, error)
 	GetBusinessConnectBlogByLimit( /*userID uint64, */ limit, offset int) ([]Data.Blog, int64, error)
-	GetBusinessConnectHomeAllProductsByLimit(limit int) ([]Data.Productt, error)
-	GetBusinessConnectHomeFeaturedProductsByLimit(limit int) ([]Data.Productt, error)
-	GetBusinessConnectHomeBestSellingProductsByLimit(limit int) ([]Data.Productt, error)
-	GetBusinessConnectHomeOnSaleProductsByLimit(limit int) ([]Data.Productt, error)
-	GetBusinessConnectProductsByIDs(productIDs []uint64) ([]Data.Productt, error)
-	GetBusinessConnectProductByID(productID uint64) (Data.Productt, error)
-	GetProductByID(productID uint) (Data.Productt, error)
+	GetBusinessConnectHomeAllProductsByLimit(limit int) ([]Data.Product, error)
+	GetBusinessConnectHomeFeaturedProductsByLimit(limit int) ([]Data.Product, error)
+	GetBusinessConnectHomeBestSellingProductsByLimit(limit int) ([]Data.Product, error)
+	GetBusinessConnectHomeOnSaleProductsByLimit(limit int) ([]Data.Product, error)
+	GetBusinessConnectProductsByIDs(productIDs []uint64) ([]Data.Product, error)
+	GetBusinessConnectProductByID(productID uint64) (Data.Product, error)
+	GetProductByID(productID uint) (Data.Product, error)
 	GetNextProductID(currentID uint64) (uint64, error)
 	GetPreviousProductID(currentID uint64) (uint64, error)
 	SearchProductsByTitle(searchTerm string) ([]struct {
@@ -72,15 +72,15 @@ type DatabaseHelper interface {
 		Category     string `json:"category"`
 	}, error)
 	SearchProductsByTitleAndCategory(searchTerm string, categorySlug string) ([]Data.ProductSearchResponse, error)
-	SearchAdminProductsByTitle(searchTerm string) ([]Data.Productt, error)
+	SearchAdminProductsByTitle(searchTerm string) ([]Data.Product, error)
 	SearchAdminOrderByTitle(searchTerm string) ([]Data.OrderHistory, error)
-	GetTransactionsByUserAndDateWithLimit(userID uint, dateString string) ([]Data.Productt, error)
-	GetTransactionHistoryForAi(userID uint64, limit int) ([]Data.Productt, int64, error)
+	GetTransactionsByUserAndDateWithLimit(userID uint, dateString string) ([]Data.Product, error)
+	GetTransactionHistoryForAi(userID uint64, limit int) ([]Data.Product, int64, error)
 	AddEmailSubscriber(Email string) error
 	UpdateSiteVisits() error
 	GetLast12DaysSiteVisits() (map[string]int64, error)
 	UpdateSubscriptionStatus(transactionID uint64) error
-	AddProduct(post Data.Productt, user Data.User) (Data.Productt, error)
+	AddProduct(post Data.Product, user Data.User) (Data.Product, error)
 	AddProductImage(image Data.ProductImage, postID uint) error
 	AddBlog(post Data.Blog, user Data.User) (Data.Blog, error)
 	AddBlogImage(image Data.BlogImage, postID uint) error
@@ -99,7 +99,7 @@ type DatabaseHelper interface {
 	GetBusinessConnectOrdersByLimit(limit, offset int) ([]Data.OrderHistory, int64, error)
 	UpdateOrderStatus(orderID uint, newStatus string) error
 	GetAnalyticsData() (*Data.Analytics, error)
-	UpdateBusinessConnectProduct(Product Data.Productt, ProductID uint) error
+	UpdateBusinessConnectProduct(Product Data.Product, ProductID uint) error
 	UpdateBusinessConnectBlog(Product Data.Blog, BlogID uint) error
 	DeleteBusinessConnectProduct(ProductID uint) error
 	DeleteBusinessConnectBlog(BlogID uint) error
@@ -107,7 +107,7 @@ type DatabaseHelper interface {
 	SaveBusinessConnectSentEmail(sentEmail Data.Email) error
 	GetBusinessConnectUniqueUserFingerPrintHash(fingerprintHash string) (Data.BusinessConnectDeviceFingerprint, error)
 	CreateBusinessConnectDeviceFingerprint(fingerprintHash string) error
-	RecommendProductsForUser(fingerprintHash string, limit, offset int) ([]Data.Productt, error)
+	RecommendProductsForUser(fingerprintHash string, limit, offset int) ([]Data.Product, error)
 	LogUserClickData(fingerprintHash string, productID uint, ActivityType, Category, TitleOrSearchQuery string) error
 }
 
@@ -213,7 +213,7 @@ func (d *DatabaseHelperImpl) FindByPhoneNumber(number string) (user Data.User, e
 }
 
 func (d *DatabaseHelperImpl) CheckIfTransactionIDExist(ID uint) (err error) {
-	var Details Data.Productt
+	var Details Data.Product
 	result := conn.DB.First(&Details, "ID = ?", ID)
 
 	if result.Error != nil {
@@ -780,13 +780,13 @@ func (d *DatabaseHelperImpl) CompareOTPHash(hash string, plainOTP string) error 
 	return nil
 }
 
-func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Productt, int64, error) {
-	var productRecords []Data.Productt
+func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Product, int64, error) {
+	var productRecords []Data.Product
 	var productRecordsCount int64
 
 	// Get the count of transaction records for the user
-	if err := conn.DB.Model(&Data.Productt{}).Count(&productRecordsCount).Error; err != nil {
-		return []Data.Productt{}, 0, err
+	if err := conn.DB.Model(&Data.Product{}).Count(&productRecordsCount).Error; err != nil {
+		return []Data.Product{}, 0, err
 	}
 
 	productRecords, productErr := d.RecommendProductsForUser(fingerprintHash, limit, offset)
@@ -796,10 +796,10 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit2( /*userID uint64
 		if productRecordsErr := conn.DB. /*Where("user_id = ?", userID).*/ Order("created_at desc").Limit(limit).Offset(offset).Find(&productRecords).Error; productRecordsErr != nil {
 			if errors.Is(productRecordsErr, gorm.ErrRecordNotFound) {
 				// The record with the specified UserID was not found
-				return []Data.Productt{}, 0, errors.New("no transaction record found")
+				return []Data.Product{}, 0, errors.New("no transaction record found")
 			} else {
 				// Some other error occurred
-				return []Data.Productt{}, 0, errors.New("error retrieving transaction record")
+				return []Data.Product{}, 0, errors.New("error retrieving transaction record")
 			}
 		}
 	}
@@ -808,11 +808,11 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit2( /*userID uint64
 	return productRecords, productRecordsCount, nil
 }
 
-func (d *DatabaseHelperImpl) GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Productt, int64, error) {
-	var products []Data.Productt
+func (d *DatabaseHelperImpl) GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Product, int64, error) {
+	var products []Data.Product
 	var count int64
 
-	query := conn.DB.Model(&Data.Productt{})
+	query := conn.DB.Model(&Data.Product{})
 
 	if err := query.Count(&count).Error; err != nil {
 		return nil, 0, err
@@ -829,11 +829,11 @@ func (d *DatabaseHelperImpl) GetProductsAll(limit, offset int, sortField, sortOr
 	return products, count, nil
 }
 
-func (d *DatabaseHelperImpl) GetProductsByCategory(category string, limit, offset int, sortField, sortOrder string) ([]Data.Productt, int64, error) {
-	var products []Data.Productt
+func (d *DatabaseHelperImpl) GetProductsByCategory(category string, limit, offset int, sortField, sortOrder string) ([]Data.Product, int64, error) {
+	var products []Data.Product
 	var count int64
 
-	query := conn.DB.Model(&Data.Productt{}).Where("category = ?", category)
+	query := conn.DB.Model(&Data.Product{}).Where("category = ?", category)
 
 	if err := query.Count(&count).Error; err != nil {
 		return nil, 0, err
@@ -850,60 +850,60 @@ func (d *DatabaseHelperImpl) GetProductsByCategory(category string, limit, offse
 	return products, count, nil
 }
 
-func (d *DatabaseHelperImpl) GetBusinessConnectAdminProductsByLimit( /*userID uint64, */ limit, offset int) ([]Data.Productt, int64, error) {
-	var productRecords []Data.Productt
+func (d *DatabaseHelperImpl) GetBusinessConnectAdminProductsByLimit( /*userID uint64, */ limit, offset int) ([]Data.Product, int64, error) {
+	var productRecords []Data.Product
 	var productRecordsCount int64
 
 	// Get the count of transaction records for the user
-	if err := conn.DB.Model(&Data.Productt{}).Count(&productRecordsCount).Error; err != nil {
-		return []Data.Productt{}, 0, err
+	if err := conn.DB.Model(&Data.Product{}).Count(&productRecordsCount).Error; err != nil {
+		return []Data.Product{}, 0, err
 	}
 
 	// Retrieve transaction history for the user with pagination
 	if productRecordsErr := conn.DB. /*Where("user_id = ?", userID).*/ Order("created_at desc").Limit(limit).Offset(offset).Find(&productRecords).Error; productRecordsErr != nil {
 		if errors.Is(productRecordsErr, gorm.ErrRecordNotFound) {
 			// The record with the specified UserID was not found
-			return []Data.Productt{}, 0, errors.New("no transaction record found")
+			return []Data.Product{}, 0, errors.New("no transaction record found")
 		} else {
 			// Some other error occurred
-			return []Data.Productt{}, 0, errors.New("error retrieving transaction record")
+			return []Data.Product{}, 0, errors.New("error retrieving transaction record")
 		}
 	}
 
 	return productRecords, productRecordsCount, nil
 }
 
-// func (d *DatabaseHelperImpl) GetBusinessConnectRecommendedProductsByLimit( /*userID uint64, */ category string, limit int) ([]Data.Productt, int64, error) {
-// 	var productRecords []Data.Productt
+// func (d *DatabaseHelperImpl) GetBusinessConnectRecommendedProductsByLimit( /*userID uint64, */ category string, limit int) ([]Data.Product, int64, error) {
+// 	var productRecords []Data.Product
 // 	var productRecordsCount int64
 
 // 	// Get the count of transaction records for the user
-// 	if err := conn.DB.Model(&Data.Productt{}).Count(&productRecordsCount).Error; err != nil {
-// 		return []Data.Productt{}, 0, err
+// 	if err := conn.DB.Model(&Data.Product{}).Count(&productRecordsCount).Error; err != nil {
+// 		return []Data.Product{}, 0, err
 // 	}
 
 // 	// Retrieve transaction history for the user with pagination
 // 	if productRecordsErr := conn.DB. /*Where("user_id = ?", userID).*/ Where("category = ?", category).Order("created_at desc").Limit(limit).Find(&productRecords).Error; productRecordsErr != nil {
 // 		if errors.Is(productRecordsErr, gorm.ErrRecordNotFound) {
 // 			// The record with the specified UserID was not found
-// 			return []Data.Productt{}, 0, errors.New("no transaction record found")
+// 			return []Data.Product{}, 0, errors.New("no transaction record found")
 // 		} else {
 // 			// Some other error occurred
-// 			return []Data.Productt{}, 0, errors.New("error retrieving transaction record")
+// 			return []Data.Product{}, 0, errors.New("error retrieving transaction record")
 // 		}
 // 	}
 
 // 	return productRecords, productRecordsCount, nil
 // }
 
-func (d *DatabaseHelperImpl) GetBusinessConnectRecommendedProductsByLimit(currentProductID uint64, category string, limit int) ([]Data.Productt, int64, error) {
+func (d *DatabaseHelperImpl) GetBusinessConnectRecommendedProductsByLimit(currentProductID uint64, category string, limit int) ([]Data.Product, int64, error) {
 	var productRecordsCount int64
-	var productRecords []Data.Productt
-	// var fallbackProducts []Data.Productt
-	// var latestProducts []Data.Productt
+	var productRecords []Data.Product
+	// var fallbackProducts []Data.Product
+	// var latestProducts []Data.Product
 
 	// 1. Try to get related products in the same category, excluding current product
-	err := conn.DB.Model(&Data.Productt{}).
+	err := conn.DB.Model(&Data.Product{}).
 		Where("category = ? AND id != ? AND publish_status = ?", category, currentProductID, "publish").
 		Order("created_at DESC").
 		Limit(limit).
@@ -917,9 +917,9 @@ func (d *DatabaseHelperImpl) GetBusinessConnectRecommendedProductsByLimit(curren
 	if len(productRecords) < limit {
 		remaining := limit - len(productRecords)
 
-		var fallbackProducts []Data.Productt
+		var fallbackProducts []Data.Product
 		// This is where you can add custom logic to find "related" categories — for now we do a fuzzy match
-		err = conn.DB.Model(&Data.Productt{}).
+		err = conn.DB.Model(&Data.Product{}).
 			Where("LOWER(category) LIKE ? AND id != ? AND publish_status = ?", "%"+category+"%", currentProductID, "publish").
 			Where("id NOT IN (?)", getProductIDs(productRecords)).
 			Order("created_at DESC").
@@ -937,8 +937,8 @@ func (d *DatabaseHelperImpl) GetBusinessConnectRecommendedProductsByLimit(curren
 	if len(productRecords) < limit {
 		remaining := limit - len(productRecords)
 
-		var latestProducts []Data.Productt
-		err = conn.DB.Model(&Data.Productt{}).
+		var latestProducts []Data.Product
+		err = conn.DB.Model(&Data.Product{}).
 			Where("publish_status = ? AND id != ?", "publish", currentProductID).
 			Where("id NOT IN (?)", getProductIDs(productRecords)).
 			Order("created_at DESC").
@@ -953,7 +953,7 @@ func (d *DatabaseHelperImpl) GetBusinessConnectRecommendedProductsByLimit(curren
 	}
 
 	// Get the count for reference (optional)
-	if countErr := conn.DB.Model(&Data.Productt{}).Where("publish_status = ?", "publish").Count(&productRecordsCount).Error; countErr != nil {
+	if countErr := conn.DB.Model(&Data.Product{}).Where("publish_status = ?", "publish").Count(&productRecordsCount).Error; countErr != nil {
 		return productRecords, 0, countErr
 	}
 
@@ -961,7 +961,7 @@ func (d *DatabaseHelperImpl) GetBusinessConnectRecommendedProductsByLimit(curren
 }
 
 // Helper to extract IDs from slice
-func getProductIDs(products []Data.Productt) []uint64 {
+func getProductIDs(products []Data.Product) []uint64 {
 	ids := make([]uint64, 0, len(products))
 	for _, p := range products {
 		ids = append(ids, uint64(p.ID))
@@ -996,8 +996,8 @@ func (d *DatabaseHelperImpl) GetBusinessConnectBlogByLimit( /*userID uint64, */ 
 	return productRecords, productRecordsCount, nil
 }
 
-func (d *DatabaseHelperImpl) GetBusinessConnectHomeAllProductsByLimit(limit int) ([]Data.Productt, error) {
-	var productRecords []Data.Productt
+func (d *DatabaseHelperImpl) GetBusinessConnectHomeAllProductsByLimit(limit int) ([]Data.Product, error) {
+	var productRecords []Data.Product
 
 	err := conn.DB.
 		Preload("ProductImages").
@@ -1006,14 +1006,14 @@ func (d *DatabaseHelperImpl) GetBusinessConnectHomeAllProductsByLimit(limit int)
 		Find(&productRecords).Error
 
 	if err != nil {
-		return []Data.Productt{}, fmt.Errorf("error retrieving latest products: %w", err)
+		return []Data.Product{}, fmt.Errorf("error retrieving latest products: %w", err)
 	}
 
 	return productRecords, nil
 }
 
-func (d *DatabaseHelperImpl) GetBusinessConnectHomeFeaturedProductsByLimit(limit int) ([]Data.Productt, error) {
-	var featured []Data.Productt
+func (d *DatabaseHelperImpl) GetBusinessConnectHomeFeaturedProductsByLimit(limit int) ([]Data.Product, error) {
+	var featured []Data.Product
 
 	err := conn.DB.
 		Preload("ProductImages").
@@ -1023,7 +1023,7 @@ func (d *DatabaseHelperImpl) GetBusinessConnectHomeFeaturedProductsByLimit(limit
 		Find(&featured).Error
 
 	if err != nil {
-		return []Data.Productt{}, fmt.Errorf("error retrieving featured products: %w", err)
+		return []Data.Product{}, fmt.Errorf("error retrieving featured products: %w", err)
 	}
 
 	remaining := limit - len(featured)
@@ -1033,7 +1033,7 @@ func (d *DatabaseHelperImpl) GetBusinessConnectHomeFeaturedProductsByLimit(limit
 			existingIDs[i] = p.ID
 		}
 
-		var fallback []Data.Productt
+		var fallback []Data.Product
 		fallbackErr := conn.DB.
 			Preload("ProductImages").
 			Where("featured = ?", false).
@@ -1050,8 +1050,8 @@ func (d *DatabaseHelperImpl) GetBusinessConnectHomeFeaturedProductsByLimit(limit
 	return featured, nil
 }
 
-func (d *DatabaseHelperImpl) GetBusinessConnectHomeBestSellingProductsByLimit(limit int) ([]Data.Productt, error) {
-	var bestSelling []Data.Productt
+func (d *DatabaseHelperImpl) GetBusinessConnectHomeBestSellingProductsByLimit(limit int) ([]Data.Product, error) {
+	var bestSelling []Data.Product
 
 	err := conn.DB.
 		Preload("ProductImages").
@@ -1061,7 +1061,7 @@ func (d *DatabaseHelperImpl) GetBusinessConnectHomeBestSellingProductsByLimit(li
 		Find(&bestSelling).Error
 
 	if err != nil {
-		return []Data.Productt{}, fmt.Errorf("error retrieving best-selling products: %w", err)
+		return []Data.Product{}, fmt.Errorf("error retrieving best-selling products: %w", err)
 	}
 
 	remaining := limit - len(bestSelling)
@@ -1071,7 +1071,7 @@ func (d *DatabaseHelperImpl) GetBusinessConnectHomeBestSellingProductsByLimit(li
 			existingIDs[i] = p.ID
 		}
 
-		var fallback []Data.Productt
+		var fallback []Data.Product
 		fallbackErr := conn.DB.
 			Preload("ProductImages").
 			Where("best_seller = ?", false).
@@ -1088,8 +1088,8 @@ func (d *DatabaseHelperImpl) GetBusinessConnectHomeBestSellingProductsByLimit(li
 	return bestSelling, nil
 }
 
-func (d *DatabaseHelperImpl) GetBusinessConnectHomeOnSaleProductsByLimit(limit int) ([]Data.Productt, error) {
-	var onSale []Data.Productt
+func (d *DatabaseHelperImpl) GetBusinessConnectHomeOnSaleProductsByLimit(limit int) ([]Data.Product, error) {
+	var onSale []Data.Product
 
 	err := conn.DB.
 		Preload("ProductImages").
@@ -1099,7 +1099,7 @@ func (d *DatabaseHelperImpl) GetBusinessConnectHomeOnSaleProductsByLimit(limit i
 		Find(&onSale).Error
 
 	if err != nil {
-		return []Data.Productt{}, fmt.Errorf("error retrieving on-sale products: %w", err)
+		return []Data.Product{}, fmt.Errorf("error retrieving on-sale products: %w", err)
 	}
 
 	remaining := limit - len(onSale)
@@ -1109,7 +1109,7 @@ func (d *DatabaseHelperImpl) GetBusinessConnectHomeOnSaleProductsByLimit(limit i
 			existingIDs[i] = p.ID
 		}
 
-		var fallback []Data.Productt
+		var fallback []Data.Product
 		fallbackErr := conn.DB.
 			Preload("ProductImages").
 			Where("on_sale = ?", false).
@@ -1127,8 +1127,8 @@ func (d *DatabaseHelperImpl) GetBusinessConnectHomeOnSaleProductsByLimit(limit i
 }
 
 // Function to retrieve multiple products by their IDs
-func (d *DatabaseHelperImpl) GetBusinessConnectProductsByIDs(productIDs []uint64) ([]Data.Productt, error) {
-	var products []Data.Productt
+func (d *DatabaseHelperImpl) GetBusinessConnectProductsByIDs(productIDs []uint64) ([]Data.Product, error) {
+	var products []Data.Product
 
 	// Fetch all products with IDs in the given slice
 	if err := conn.DB.Where("id IN ?", productIDs).Find(&products).Error; err != nil {
@@ -1143,8 +1143,8 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByIDs(productIDs []uint64
 	return products, nil
 }
 
-func (d *DatabaseHelperImpl) GetBusinessConnectProductByID(productID uint64) (Data.Productt, error) {
-	var productRecord Data.Productt
+func (d *DatabaseHelperImpl) GetBusinessConnectProductByID(productID uint64) (Data.Product, error) {
+	var productRecord Data.Product
 	var reviewLimit = 4
 
 	// Try to retrieve the product by its ID and preload a limited number of customer reviews
@@ -1158,7 +1158,7 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductByID(productID uint64) (Da
 			// Product not found, find the next closest available product ID
 			nextProductID, findErr := d.findClosestAvailableProductID(productID)
 			if findErr != nil {
-				return Data.Productt{}, findErr
+				return Data.Product{}, findErr
 			}
 
 			// Retrieve the product by the closest available ID and preload a limited number of customer reviews
@@ -1167,19 +1167,19 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductByID(productID uint64) (Da
 					return db.Limit(reviewLimit) // Limit the number of reviews
 				}).
 				First(&productRecord).Error; err != nil {
-				return Data.Productt{}, errors.New("error retrieving product record")
+				return Data.Product{}, errors.New("error retrieving product record")
 			}
 		} else {
 			// Some other error occurred
-			return Data.Productt{}, errors.New("error retrieving product record")
+			return Data.Product{}, errors.New("error retrieving product record")
 		}
 	}
 
 	return productRecord, nil
 }
 
-func (d *DatabaseHelperImpl) GetBusinessConnectProductByIDd(productID uint64) (Data.Productt, error) {
-	var productRecord Data.Productt
+func (d *DatabaseHelperImpl) GetBusinessConnectProductByIDd(productID uint64) (Data.Product, error) {
+	var productRecord Data.Product
 	var reviewLimit = 4
 
 	// Try to retrieve the product by its ID and preload a limited number of customer reviews
@@ -1191,24 +1191,24 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductByIDd(productID uint64) (D
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Product not found, find the next closest available product ID
-			return Data.Productt{}, errors.New("error retrieving product record")
+			return Data.Product{}, errors.New("error retrieving product record")
 		} else {
 			// Some other error occurred
-			return Data.Productt{}, errors.New("error retrieving product record")
+			return Data.Product{}, errors.New("error retrieving product record")
 		}
 	}
 
 	return productRecord, nil
 }
 
-func (d *DatabaseHelperImpl) GetProductByID(productID uint) (Data.Productt, error) {
-	var product Data.Productt
+func (d *DatabaseHelperImpl) GetProductByID(productID uint) (Data.Product, error) {
+	var product Data.Product
 	err := conn.DB.First(&product, productID).Error
 	return product, err
 }
 
-func (d *DatabaseHelperImpl) findClosestAvailableProductID(targetID uint64) (Data.Productt, error) {
-	var closestProduct Data.Productt
+func (d *DatabaseHelperImpl) findClosestAvailableProductID(targetID uint64) (Data.Product, error) {
+	var closestProduct Data.Product
 
 	// Look for the next higher product ID and preload CustomerReviews
 	if err := conn.DB.Where("id > ?", targetID).
@@ -1224,17 +1224,17 @@ func (d *DatabaseHelperImpl) findClosestAvailableProductID(targetID uint64) (Dat
 				Preload("CustomerReviews"). // Preload customer reviews
 				Limit(1).
 				First(&closestProduct).Error; err != nil {
-				return Data.Productt{}, errors.New("error finding closest lower product ID")
+				return Data.Product{}, errors.New("error finding closest lower product ID")
 			}
 		} else {
 			// Some other error occurred
-			return Data.Productt{}, errors.New("error finding closest higher product ID")
+			return Data.Product{}, errors.New("error finding closest higher product ID")
 		}
 	}
 
 	// If no IDs are found, return an error
 	if closestProduct.ID == 0 {
-		return Data.Productt{}, errors.New("no available product found")
+		return Data.Product{}, errors.New("no available product found")
 	}
 
 	return closestProduct, nil
@@ -1269,7 +1269,7 @@ func (d *DatabaseHelperImpl) GetPreviousProductID(currentID uint64) (uint64, err
 // SearchProductsByTitleAndCategory searches products by title and optionally by category.
 // It preloads product images and limits results to 7.
 func (d *DatabaseHelperImpl) SearchProductsByTitleAndCategory(searchTerm string, categorySlug string) ([]Data.ProductSearchResponse, error) {
-	var products []Data.Productt
+	var products []Data.Product
 	var results []Data.ProductSearchResponse
 
 	// If search term is empty, return an empty slice.
@@ -1279,7 +1279,7 @@ func (d *DatabaseHelperImpl) SearchProductsByTitleAndCategory(searchTerm string,
 	}
 
 	// Initialize the GORM query builder
-	tx := conn.DB.Model(&Data.Productt{}).Preload("ProductImages")
+	tx := conn.DB.Model(&Data.Product{}).Preload("ProductImages")
 
 	// Apply search by title (case-insensitive)
 	searchTermLower := "%" + strings.ToLower(searchTerm) + "%"
@@ -1287,10 +1287,10 @@ func (d *DatabaseHelperImpl) SearchProductsByTitleAndCategory(searchTerm string,
 
 	// Apply category filter ONLY if categorySlug is provided and not "all-categories"
 	if categorySlug != "" && categorySlug != "all-categories" {
-		// Assuming your Productt model has a `Category` field that directly stores the category slug
-		// If `Productt.Category` stores the actual category name, you might need to adjust this
+		// Assuming your Product model has a `Category` field that directly stores the category slug
+		// If `Product.Category` stores the actual category name, you might need to adjust this
 		// to use a JOIN with a `categories` table if you have a `Category` model as well.
-		// Based on your `Productt` model, `Category` is a string field, so we'll filter directly on it.
+		// Based on your `Product` model, `Category` is a string field, so we'll filter directly on it.
 		tx = tx.Where("LOWER(category) = ?", strings.ToLower(categorySlug))
 	}
 
@@ -1320,7 +1320,7 @@ func (d *DatabaseHelperImpl) SearchProductsByTitleAndCategory(searchTerm string,
 		results = append(results, Data.ProductSearchResponse{
 			Title:        product.Title,
 			ProductUrlID: product.ProductUrlID,
-			Category:     product.Category, // Using the string category from Productt model
+			Category:     product.Category, // Using the string category from Product model
 			SellingPrice: product.SellingPrice,
 			ImageUrl:     imageUrl,
 		})
@@ -1348,7 +1348,7 @@ func (d *DatabaseHelperImpl) SearchProductsByTitle(searchTerm string) ([]struct 
 	// searchTermLower := strings.ToLower(searchTerm)
 	fmt.Println("Search term:", searchTerm)
 	// Perform a case-insensitive search by converting the title to lowercase
-	err := conn.DB.Model(&Data.Productt{}).
+	err := conn.DB.Model(&Data.Product{}).
 		Select("title, product_url_id", "category").
 		Where("LOWER(title) LIKE ?", "%"+searchTerm+"%").
 		Find(&results).Error
@@ -1360,10 +1360,10 @@ func (d *DatabaseHelperImpl) SearchProductsByTitle(searchTerm string) ([]struct 
 	return results, nil
 }
 
-func (d *DatabaseHelperImpl) SearchAdminProductsByTitle(searchTerm string) ([]Data.Productt, error) {
-	var results []Data.Productt
+func (d *DatabaseHelperImpl) SearchAdminProductsByTitle(searchTerm string) ([]Data.Product, error) {
+	var results []Data.Product
 
-	query := conn.DB.Model(&Data.Productt{}).
+	query := conn.DB.Model(&Data.Product{}).
 		Where("publish_status = ?", "publish").
 		Where("deleted_at IS NULL")
 
@@ -1409,7 +1409,7 @@ func (d *DatabaseHelperImpl) SearchAdminOrderByTitle(searchTerm string) ([]Data.
 	return results, nil
 }
 
-func (d *DatabaseHelperImpl) GetTransactionsByUserAndDateWithLimit(userID uint, dateString string) ([]Data.Productt, error) {
+func (d *DatabaseHelperImpl) GetTransactionsByUserAndDateWithLimit(userID uint, dateString string) ([]Data.Product, error) {
 	// Parse the date string to a time.Time object
 	parsedDate, err := time.Parse("01/02/2006", dateString)
 	if err != nil {
@@ -1420,7 +1420,7 @@ func (d *DatabaseHelperImpl) GetTransactionsByUserAndDateWithLimit(userID uint, 
 	formattedDate := parsedDate.Format("2006-01-02")
 
 	// Query the database for transactions for the specified user and date with a limit of 10
-	var transactions []Data.Productt
+	var transactions []Data.Product
 	if err := conn.DB.Where("user_id = ? AND DATE(created_at) = ?", userID, formattedDate).Limit(10).Find(&transactions).Error; err != nil {
 		return nil, err
 	}
@@ -1428,12 +1428,12 @@ func (d *DatabaseHelperImpl) GetTransactionsByUserAndDateWithLimit(userID uint, 
 	return transactions, nil
 }
 
-func (d *DatabaseHelperImpl) GetTransactionHistoryForAi(userID uint64, limit int) ([]Data.Productt, int64, error) {
-	var history []Data.Productt
+func (d *DatabaseHelperImpl) GetTransactionHistoryForAi(userID uint64, limit int) ([]Data.Product, int64, error) {
+	var history []Data.Product
 	var transactionCount int64
 
 	// Count total number of transactions for the user
-	if err := conn.DB.Model(&Data.Productt{}).Where("user_id = ?", userID).Error; err != nil {
+	if err := conn.DB.Model(&Data.Product{}).Where("user_id = ?", userID).Error; err != nil {
 		return nil, 0, err
 	}
 
@@ -1441,10 +1441,10 @@ func (d *DatabaseHelperImpl) GetTransactionHistoryForAi(userID uint64, limit int
 	if transactionErr := conn.DB.Where("user_id = ?", userID).Order("created_at desc").Limit(limit).Find(&history).Error; transactionErr != nil {
 		if errors.Is(transactionErr, gorm.ErrRecordNotFound) {
 			// The record with the specified UserID was not found
-			return []Data.Productt{}, 0, errors.New("no transaction record found")
+			return []Data.Product{}, 0, errors.New("no transaction record found")
 		} else {
 			// Some other error occurred
-			return []Data.Productt{}, 0, errors.New("error retrieving transaction record")
+			return []Data.Product{}, 0, errors.New("error retrieving transaction record")
 		}
 	}
 
@@ -1560,7 +1560,7 @@ type SubscriptionService struct {
 
 func (d *DatabaseHelperImpl) UpdateSubscriptionStatus(transactionID uint64) error {
 	// Update auto renewal status to false for all Product records with the specified user ID
-	if err := conn.DB.Model(&Data.Productt{}).Where("id = ?", transactionID).Update("auto_renew", false).Error; err != nil {
+	if err := conn.DB.Model(&Data.Product{}).Where("id = ?", transactionID).Update("auto_renew", false).Error; err != nil {
 		return err
 	}
 
@@ -1587,18 +1587,18 @@ func GenerateProductURL(productName string, productID int) string {
 }
 
 // AddProduct adds a product and updates its ProductUrlID
-func (d *DatabaseHelperImpl) AddProduct(post Data.Productt, user Data.User) (Data.Productt, error) {
+func (d *DatabaseHelperImpl) AddProduct(post Data.Product, user Data.User) (Data.Product, error) {
 	// Create the product in the database
 	result := conn.DB.Create(&post)
 
 	// Check if an error occurred when creating the product
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return Data.Productt{}, fmt.Errorf("failed to create product: product not found, %w", result.Error)
+			return Data.Product{}, fmt.Errorf("failed to create product: product not found, %w", result.Error)
 		} else if errors.Is(result.Error, gorm.ErrInvalidData) {
-			return Data.Productt{}, fmt.Errorf("failed to create product: invalid data provided, %w", result.Error)
+			return Data.Product{}, fmt.Errorf("failed to create product: invalid data provided, %w", result.Error)
 		} else {
-			return Data.Productt{}, fmt.Errorf("failed to create product: %w", result.Error)
+			return Data.Product{}, fmt.Errorf("failed to create product: %w", result.Error)
 		}
 	}
 
@@ -1608,13 +1608,13 @@ func (d *DatabaseHelperImpl) AddProduct(post Data.Productt, user Data.User) (Dat
 	// Update the product with the new ProductUrlID
 	updateResult := conn.DB.Model(&post).Update("product_url_id", post.ProductUrlID)
 	if updateResult.Error != nil {
-		return Data.Productt{}, fmt.Errorf("failed to update product URL ID: %w", updateResult.Error)
+		return Data.Product{}, fmt.Errorf("failed to update product URL ID: %w", updateResult.Error)
 	}
 
 	// Update user with posts amount
 	updateUserResult := conn.DB.Model(&user).Update("total_product", user.TotalProduct+1)
 	if updateUserResult.Error != nil {
-		return Data.Productt{}, fmt.Errorf("failed to update user's total products: %w", updateUserResult.Error)
+		return Data.Product{}, fmt.Errorf("failed to update user's total products: %w", updateUserResult.Error)
 	}
 
 	// Return the updated product
@@ -1675,7 +1675,7 @@ func (d *DatabaseHelperImpl) AddBlog(post Data.Blog, user Data.User) (Data.Blog,
 // SaveCustomerReview saves a customer review for a product
 func (d *DatabaseHelperImpl) SaveCustomerReview(productID uint, email string, name string, reviewText string, rating int) (Data.CustomerReview, error) {
 	// Check if the product exists in the database
-	var product Data.Productt
+	var product Data.Product
 	if err := conn.DB.First(&product, productID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return Data.CustomerReview{}, fmt.Errorf("product not found: %w", err)
@@ -1711,7 +1711,7 @@ func (d *DatabaseHelperImpl) GetCustomerReviewsByProduct(productID uint, limit i
 	var reviews []Data.CustomerReview
 
 	// Check if the product exists in the database
-	var product Data.Productt
+	var product Data.Product
 	if err := conn.DB.First(&product, productID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, 0, fmt.Errorf("product not found: %w", err)
@@ -1865,7 +1865,7 @@ func (d *DatabaseHelperImpl) AddOrder(orderHistoryBody Data.OrderHistoryBody, or
 		for i := range productOrders {
 			productOrders[i].OrderHistoryID = orderHistory.ID
 
-			var product Data.Productt
+			var product Data.Product
 			if err := tx.Where("product_url_id = ?", ordersBody[i].ProductUrlID).First(&product).Error; err != nil {
 				return err
 			}
@@ -2250,9 +2250,9 @@ func UpdateProductSalesByOrderHistory(orderHistoryID uint) error {
 
 	// Step 2: Iterate over each ProductOrder
 	for _, productOrder := range orderHistory.ProductOrders {
-		var product Data.Productt
+		var product Data.Product
 
-		// Step 3: Retrieve the Productt by ProducttID from ProductOrder
+		// Step 3: Retrieve the Product by ProducttID from ProductOrder
 		if err := conn.DB.First(&product, productOrder.ProducttID).Error; err != nil {
 			return fmt.Errorf("error retrieving product: %v", err)
 		}
@@ -2260,7 +2260,7 @@ func UpdateProductSalesByOrderHistory(orderHistoryID uint) error {
 		// Step 4: Update the Sales count (increment by ProductOrder.Quantity)
 		product.Sales += productOrder.Quantity
 
-		// Save the updated Productt
+		// Save the updated Product
 		if err := conn.DB.Save(&product).Error; err != nil {
 			return fmt.Errorf("error updating product sales: %v", err)
 		}
@@ -2319,7 +2319,7 @@ func (d *DatabaseHelperImpl) GetAnalyticsData() (*Data.Analytics, error) {
 	return &analytics, nil
 }
 
-func (d *DatabaseHelperImpl) UpdateBusinessConnectProduct(Product Data.Productt, ProductID uint) error {
+func (d *DatabaseHelperImpl) UpdateBusinessConnectProduct(Product Data.Product, ProductID uint) error {
 	// Find the product and update it
 	returnedProduct, productErr := d.GetBusinessConnectProductByIDd(uint64(ProductID))
 
@@ -2387,7 +2387,7 @@ func (d *DatabaseHelperImpl) UpdateBusinessConnectBlog(Blog Data.Blog, BlogID ui
 }
 
 func (d *DatabaseHelperImpl) DeleteBusinessConnectProduct(ProductID uint) error {
-	var returnedProduct Data.Productt
+	var returnedProduct Data.Product
 
 	if err := conn.DB.First(&returnedProduct, "id = ?", uint64(ProductID)).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -2513,8 +2513,8 @@ func (d *DatabaseHelperImpl) CreateBusinessConnectDeviceFingerprint(fingerprintH
 	return nil
 }
 
-func (d *DatabaseHelperImpl) RecommendProductsForUser2(fingerprintHash string, limit, offset int) ([]Data.Productt, error) {
-	var products []Data.Productt
+func (d *DatabaseHelperImpl) RecommendProductsForUser2(fingerprintHash string, limit, offset int) ([]Data.Product, error) {
+	var products []Data.Product
 
 	// Check if fingerprintHash is empty for anonymous users
 	if fingerprintHash == "" {
@@ -2593,7 +2593,7 @@ func (d *DatabaseHelperImpl) RecommendProductsForUser2(fingerprintHash string, l
 
 		fmt.Printf("Top categories based on user activity: %v\n", topCategories)
 
-		query := conn.DB.Model(&Data.Productt{}).Where("publish_status = ?", "publish")
+		query := conn.DB.Model(&Data.Product{}).Where("publish_status = ?", "publish")
 		if len(topCategories) > 0 {
 			query = query.Where("category IN ?", topCategories)
 		}
@@ -2627,7 +2627,7 @@ func (d *DatabaseHelperImpl) RecommendProductsForUser2(fingerprintHash string, l
 	if len(products) < limit {
 		fmt.Println("Fewer products found than limit, fetching more anonymous products")
 		missing := limit - len(products)
-		var topUp []Data.Productt
+		var topUp []Data.Product
 		err = conn.DB.Where("publish_status = ?", "publish").
 			Order("product_rank * 1000 + sales DESC, RAND()").
 			Limit(missing).
@@ -2658,8 +2658,8 @@ func (d *DatabaseHelperImpl) RecommendProductsForUser2(fingerprintHash string, l
 	return products, nil
 }
 
-func (d *DatabaseHelperImpl) RecommendProductsForUser(fingerprintHash string, limit, offset int) ([]Data.Productt, error) {
-	var finalProducts []Data.Productt
+func (d *DatabaseHelperImpl) RecommendProductsForUser(fingerprintHash string, limit, offset int) ([]Data.Product, error) {
+	var finalProducts []Data.Product
 	existing := make(map[uint]bool)
 	target := offset + limit
 
@@ -2734,7 +2734,7 @@ func (d *DatabaseHelperImpl) RecommendProductsForUser(fingerprintHash string, li
 		}
 
 		if len(recommendedIDs) > 0 {
-			var collabProducts []Data.Productt
+			var collabProducts []Data.Product
 			err = conn.DB.
 				Where("id IN ? AND publish_status = ? AND stock_remaining > 0", recommendedIDs, "publish").
 				Order("product_rank * 1000 + sales DESC").
@@ -2770,7 +2770,7 @@ func (d *DatabaseHelperImpl) RecommendProductsForUser(fingerprintHash string, li
 		}
 
 		if len(topCategories) > 0 {
-			var categoryProducts []Data.Productt
+			var categoryProducts []Data.Product
 			err = conn.DB.
 				Where("category IN ? AND publish_status = ? AND stock_remaining > 0", topCategories, "publish").
 				Order("product_rank * 1000 + sales DESC").
@@ -2805,7 +2805,7 @@ func (d *DatabaseHelperImpl) RecommendProductsForUser(fingerprintHash string, li
 		}
 
 		if len(searchQueries) > 0 {
-			var searchProducts []Data.Productt
+			var searchProducts []Data.Product
 			query := conn.DB.
 				Where("publish_status = ? AND stock_remaining > 0", "publish")
 			for _, q := range searchQueries {
@@ -2833,7 +2833,7 @@ func (d *DatabaseHelperImpl) RecommendProductsForUser(fingerprintHash string, li
 
 	// Step 5: Best sellers
 	if len(finalProducts) < target {
-		var bestSellers []Data.Productt
+		var bestSellers []Data.Product
 		err = conn.DB.
 			Where("publish_status = ? AND best_seller = ? AND stock_remaining > 0", "publish", true).
 			Order("product_rank * 1000 + sales DESC").
@@ -2854,7 +2854,7 @@ func (d *DatabaseHelperImpl) RecommendProductsForUser(fingerprintHash string, li
 
 	// Step 6: Random top-up
 	if len(finalProducts) < target {
-		var topUp []Data.Productt
+		var topUp []Data.Product
 		err = conn.DB.
 			Where("publish_status = ? AND stock_remaining > 0", "publish").
 			Order("product_rank * 1000 + sales DESC, RAND()").
@@ -2875,7 +2875,7 @@ func (d *DatabaseHelperImpl) RecommendProductsForUser(fingerprintHash string, li
 
 RETURN_PRODUCTS:
 	if offset >= len(finalProducts) {
-		return []Data.Productt{}, nil
+		return []Data.Product{}, nil
 	}
 	return finalProducts[offset:min(offset+limit, len(finalProducts))], nil
 }
@@ -2887,8 +2887,8 @@ func min(a, b int) int {
 	return b
 }
 
-func (d *DatabaseHelperImpl) RecommendForAnonymous(limit int) ([]Data.Productt, error) {
-	var products []Data.Productt
+func (d *DatabaseHelperImpl) RecommendForAnonymous(limit int) ([]Data.Product, error) {
+	var products []Data.Product
 
 	err := conn.DB.
 		Where("publish_status = ?", "publish").

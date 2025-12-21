@@ -14,7 +14,7 @@ import (
 
 var (
 	OK              bool
-	PostBody        Data.Productt
+	PostBody        Data.Product
 	imageUploads    []Data.ProductImage
 	recievedFiles   *multipart.Form
 	imageUploadsErr error
@@ -50,7 +50,7 @@ func PostProduct(ctx *fiber.Ctx) error {
 	}
 
 	// Parse product details
-	var product Data.Productt
+	var product Data.Product
 
 	product.UserID = user.ID
 	product.Title = ctx.FormValue("productTitle")

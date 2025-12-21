@@ -44,7 +44,7 @@ type User struct {
 	// Tokens and Counters
 	RefreshToken string `json:"refresh_token" gorm:"column:refresh_token"`
 	// TransactionHistory []TransactionDetail `json:"transaction_details,omitempty" gorm:"foreignKey:UserID"` // Define the foreign key relationship
-	Products []Productt `json:"product,omitempty" gorm:"foreignKey:UserID"` // Define the foreign key relationship
+	Products []Product `json:"product,omitempty" gorm:"foreignKey:UserID"` // Define the foreign key relationship
 }
 
 type TokenClaims struct {
@@ -92,7 +92,7 @@ type SiteVisit struct {
 
 // product struct
 type (
-	Productt struct {
+	Product struct {
 		gorm.Model
 		UserID              uint             `json:"user_id"`
 		ProductUrlID        string           `json:"product_url_id"`
