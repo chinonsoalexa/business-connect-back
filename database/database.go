@@ -59,10 +59,10 @@ func init() {
 
 func DbMigration() {
 	// AutoMigrate the user model
-	err := DB.AutoMigrate(&Data.User{})
-	if err != nil {
-		panic("failed to migrate the User's database")
-	}
+	// err := DB.AutoMigrate(&Data.User{})
+	// if err != nil {
+	// 	panic("failed to migrate the User's database")
+	// }
 
 	// AutoMigrate the otp model
 	otpErr := DB.AutoMigrate(&Data.OTP{})
@@ -71,89 +71,89 @@ func DbMigration() {
 	}
 
 	// AutoMigrate the transaction history model
-	err = DB.AutoMigrate(&Data.Productt{})
-	if err != nil {
-		panic("failed to migrate the Productt database")
-	}
+	// err = DB.AutoMigrate(&Data.Productt{})
+	// if err != nil {
+	// 	panic("failed to migrate the Productt database")
+	// }
 
-	// AutoMigrate the jti model
-	err = DB.AutoMigrate(&Data.OrderHistory{})
-	if err != nil {
-		panic("failed to migrate the OrderHistory to the database")
-	}
+	// // AutoMigrate the jti model
+	// err = DB.AutoMigrate(&Data.OrderHistory{})
+	// if err != nil {
+	// 	panic("failed to migrate the OrderHistory to the database")
+	// }
 
-	err = DB.AutoMigrate(&Data.ProductOrder{})
-	if err != nil {
-		panic("failed to migrate the ProductOrder to the database")
-	}
+	// err = DB.AutoMigrate(&Data.ProductOrder{})
+	// if err != nil {
+	// 	panic("failed to migrate the ProductOrder to the database")
+	// }
 
-	err = DB.AutoMigrate(&Data.CustomerReview{})
-	if err != nil {
-		panic("failed to migrate the CustomerReview database")
-	}
+	// err = DB.AutoMigrate(&Data.CustomerReview{})
+	// if err != nil {
+	// 	panic("failed to migrate the CustomerReview database")
+	// }
 
-	err = DB.AutoMigrate(&Data.ProductImage{})
-	if err != nil {
-		panic("failed to migrate the ProductImage database")
-	}
+	// err = DB.AutoMigrate(&Data.ProductImage{})
+	// if err != nil {
+	// 	panic("failed to migrate the ProductImage database")
+	// }
 
-	err = DB.AutoMigrate(&Data.Blog{})
-	if err != nil {
-		panic("failed to migrate the Blog database")
-	}
+	// err = DB.AutoMigrate(&Data.Blog{})
+	// if err != nil {
+	// 	panic("failed to migrate the Blog database")
+	// }
 
-	err = DB.AutoMigrate(&Data.BlogImage{})
-	if err != nil {
-		panic("failed to migrate the BlogImage database")
-	}
+	// err = DB.AutoMigrate(&Data.BlogImage{})
+	// if err != nil {
+	// 	panic("failed to migrate the BlogImage database")
+	// }
 
-	err = DB.AutoMigrate(&Data.CustomerBlogReview{})
-	if err != nil {
-		panic("failed to migrate the CustomerBlogReview database")
-	}
+	// err = DB.AutoMigrate(&Data.CustomerBlogReview{})
+	// if err != nil {
+	// 	panic("failed to migrate the CustomerBlogReview database")
+	// }
 
-	err = DB.AutoMigrate(&Data.SubscribeToEmail{})
-	if err != nil {
-		panic("failed to migrate the SubscribeToEmail database")
-	}
+	// err = DB.AutoMigrate(&Data.SubscribeToEmail{})
+	// if err != nil {
+	// 	panic("failed to migrate the SubscribeToEmail database")
+	// }
 
-	err = DB.AutoMigrate(&Data.SiteVisit{})
-	if err != nil {
-		panic("failed to migrate the SiteVisit database")
-	}
+	// err = DB.AutoMigrate(&Data.SiteVisit{})
+	// if err != nil {
+	// 	panic("failed to migrate the SiteVisit database")
+	// }
 
-	err = DB.AutoMigrate(&Data.BusinessConnectEmailSubscriber{})
-	if err != nil {
-		panic("failed to migrate the BusinessConnectEmailSubscriber database")
-	}
+	// err = DB.AutoMigrate(&Data.BusinessConnectEmailSubscriber{})
+	// if err != nil {
+	// 	panic("failed to migrate the BusinessConnectEmailSubscriber database")
+	// }
 
-	err = DB.AutoMigrate(&Data.Email{})
-	if err != nil {
-		panic("failed to migrate the Email database")
-	}
+	// err = DB.AutoMigrate(&Data.Email{})
+	// if err != nil {
+	// 	panic("failed to migrate the Email database")
+	// }
 
-	err = DB.AutoMigrate(&Data.ShippingFees{})
-	if err != nil {
-		panic("failed to migrate the ShippingFees database")
-	}
+	// err = DB.AutoMigrate(&Data.ShippingFees{})
+	// if err != nil {
+	// 	panic("failed to migrate the ShippingFees database")
+	// }
 
-	err = DB.AutoMigrate(&Data.Analytics{})
-	if err != nil {
-		panic("failed to migrate the Analytics database")
-	}
+	// err = DB.AutoMigrate(&Data.Analytics{})
+	// if err != nil {
+	// 	panic("failed to migrate the Analytics database")
+	// }
 
-	err = DB.AutoMigrate(&Data.JTI{})
+	err := DB.AutoMigrate(&Data.JTI{})
 	if err != nil {
 		panic("failed to migrate the JTI database")
 	}
 
-	err = DB.AutoMigrate(&Data.BusinessConnectDeviceFingerprint{})
-	if err != nil {
-		panic("failed to migrate the BusinessConnectDeviceFingerprint database")
-	}
+	// err = DB.AutoMigrate(&Data.BusinessConnectDeviceFingerprint{})
+	// if err != nil {
+	// 	panic("failed to migrate the BusinessConnectDeviceFingerprint database")
+	// }
 
-	err = DB.AutoMigrate(&Data.BusinessConnectUserActivity{})
-	if err != nil {
-		panic("failed to migrate the BusinessConnectUserActivity database")
-	}
+	// err = DB.AutoMigrate(&Data.BusinessConnectUserActivity{})
+	// if err != nil {
+	// 	panic("failed to migrate the BusinessConnectUserActivity database")
+	// }
 }
