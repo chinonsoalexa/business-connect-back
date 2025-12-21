@@ -23,29 +23,86 @@ type OTP struct {
 type User struct {
 	gorm.Model
 
-	// Basic Information
-	FirstName      string `json:"FirstName" gorm:"column:FirstName" validate:"required,min=2,max=100"`
-	LastName       string `json:"LastName" gorm:"column:LastName" validate:"required,min=2,max=100"`
-	Password       string `json:"password" gorm:"column:password" validate:"required,min=8,max=100"`
-	Email          string `json:"email" gorm:"column:email" validate:"email,required"`
-	EmailActivated bool   `json:"email_activated" gorm:"column:email_activated"`
-	Suspended      bool   `json:"suspended" gorm:"column:suspended"`
-	Address        string `json:"address" gorm:"column:address"`
+	// Basic Info
+	FullName string `json:"full_name" gorm:"size:100;not null"`
+	Email     string `json:"email" gorm:"uniqueIndex;not null"`
+	Password  string `json:"-"` // store HASHED password only
 
-	// earnings
-	TotalRevenue  string `json:"total_revenue" gorm:"column:total_revenue"`
-	TotalSales    string `json:"total_sales" gorm:"column:total_sales"`
-	TotalCustomer int    `json:"total_customer" gorm:"column:total_customer"`
-	TotalProduct  int    `json:"total_product" gorm:"column:total_product"`
+	EmailVerified bool `json:"email_verified" gorm:"default:false"`
+	Suspended     bool `json:"suspended" gorm:"default:false"`
+	Address       string `json:"address"`
 
-	// User Type
-	UserType string `json:"user_type" gorm:"column:user_type" validate:"required,eq=ADMIN"`
+	// Business Metrics
+	TotalRevenue  float64 `json:"total_revenue" gorm:"default:0"`
+	TotalSales    int64   `json:"total_sales" gorm:"default:0"`
+	TotalCustomer int64   `json:"total_customer" gorm:"default:0"`
+	TotalProduct  int64   `json:"total_product" gorm:"default:0"`
 
-	// Tokens and Counters
-	RefreshToken string `json:"refresh_token" gorm:"column:refresh_token"`
-	// TransactionHistory []TransactionDetail `json:"transaction_details,omitempty" gorm:"foreignKey:UserID"` // Define the foreign key relationship
-	Products []Product `json:"product,omitempty" gorm:"foreignKey:UserID"` // Define the foreign key relationship
+	// Role
+	UserType string `json:"user_type" gorm:"size:20;index"` // ADMIN | BUSINESS | USER
+
+	// Auth
+	RefreshToken string `json:"-"`
+
+	// Relations
+	Posts []Post `json:"posts,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
+
+
+// post struct
+type (
+	Post struct {
+		gorm.Model
+
+		// Ownership
+		UserID uint `json:"user_id" gorm:"index"`
+
+		// Core fields (COMMON)
+		PostType    string `json:"post_type" gorm:"size:20;index"` // personal | business | group | event | ad
+		Title       string `json:"title" gorm:"size:200;not null"`
+		ProductUrlID       string `json:"product_url_id" gorm:"size:200;not null"`
+		Description string `json:"description" gorm:"type:text;not null"`
+		WhatsappURL string `json:"whatsapp_url" gorm:"not null"`
+
+		// Visibility
+		IsSponsored bool `json:"is_sponsored" gorm:"default:false"`
+		IsActive    bool `json:"is_active" gorm:"default:true"`
+		Views       int64 `json:"views" gorm:"default:0"`
+		Clicks      int64 `json:"clicks" gorm:"default:0"`
+
+		// Location (used by business + event)
+		Location string `json:"location,omitempty"`
+
+		// BUSINESS FIELDS
+		BusinessCategory string `json:"business_category,omitempty"`
+
+		// GROUP / EVENT FIELDS
+		EntryType  string `json:"entry_type,omitempty"` // free | paid
+		EntryPrice int64  `json:"entry_price,omitempty"` // store in kobo
+		MaxMembers *int   `json:"max_members,omitempty"`
+
+		// EVENT ONLY
+		EventDate *time.Time `json:"event_date,omitempty"`
+
+		// Moderation
+		Approved bool `json:"approved" gorm:"default:true"`
+		
+		Images   []ProductImage   `json:"images,omitempty" gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"`
+	}
+	ProductImage struct {
+		gorm.Model
+		ProducttID       uint   `json:"productt_id"`
+		URL              string `json:"url" gorm:"column:url"`
+		OriginalFilename string `json:"original_file_name" gorm:"column:original_file_name"`
+	}
+	ProductSearchResponse struct {
+		Title        string  `json:"title"`
+		ProductUrlID string  `json:"product_url_id"`
+		Category     string  `json:"category"`
+		SellingPrice float64 `json:"selling_price"` // Numeric price
+		ImageUrl     string  `json:"image"`         // The first image URL
+	}
+)
 
 type TokenClaims struct {
 	gorm.Model
@@ -89,61 +146,6 @@ type SiteVisit struct {
 // purchase = +10
 
 // Track actions with a weight column and use it to influence recommendations.
-
-// product struct
-type (
-	Product struct {
-		gorm.Model
-		UserID              uint             `json:"user_id"`
-		ProductUrlID        string           `json:"product_url_id"`
-		Title               string           `json:"title"`
-		Description         string           `json:"description"`
-		NetWeight           int64            `json:"net_weight"`
-		InitialCost         float64          `json:"initial_cost"`
-		SellingPrice        float64          `json:"selling_price"`
-		Currency            string           `json:"currency"`
-		ProductStock        int64            `json:"product_stock"`
-		StockRemaining      int64            `json:"stock_remaining"`
-		DiscountType        string           `json:"discount_type"`
-		Category            string           `json:"category"`
-		Tags                string           `json:"tags"`
-		PublishStatus       string           `json:"publish_status"`
-		Sales               int64            `json:"sales"` // To track how many times the product has been sold
-		Image1              string           `json:"Image1"`
-		Image2              string           `json:"Image2"`
-		ProductReviewsCount int64            `json:"product_review_count"`
-		ProductRank         int              `json:"product_rank"`
-		CustomerReviews     []CustomerReview `json:"customer_review,omitempty" gorm:"foreignKey:ProducttID"`
-		ProductImages       []ProductImage   `json:"product_image,omitempty" gorm:"foreignKey:ProducttID"`
-
-		// New fields
-		Featured   bool `json:"featured" gorm:"column:featured"`       // Flag to indicate featured products
-		BestSeller bool `json:"best_seller" gorm:"column:best_seller"` // Flag to mark best-selling products
-		OnSale     bool `json:"on_sale" gorm:"column:on_sale"`         // Flag to mark products on sale
-	}
-	CustomerReview struct {
-		gorm.Model
-		ProducttID uint   `json:"productt_id"`
-		Email      string `json:"email"`
-		Name       string `json:"name"`
-		Review     string `json:"review"`
-		Rating     int    `json:"rating"`
-		AddEmail   bool   `json:"add_email"`
-	}
-	ProductImage struct {
-		gorm.Model
-		ProducttID       uint   `json:"productt_id"`
-		URL              string `json:"url" gorm:"column:url"`
-		OriginalFilename string `json:"original_file_name" gorm:"column:original_file_name"`
-	}
-	ProductSearchResponse struct {
-		Title        string  `json:"title"`
-		ProductUrlID string  `json:"product_url_id"`
-		Category     string  `json:"category"`
-		SellingPrice float64 `json:"selling_price"` // Numeric price
-		ImageUrl     string  `json:"image"`         // The first image URL
-	}
-)
 
 // blog types
 type (

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+
 	// "strings"
 
 	// "fmt"
@@ -308,7 +309,7 @@ func UpdateBusinessConnectProduct(ctx *fiber.Ctx) error {
 	existingProduct, err := dbFunc.DBHelper.GetProductByID(uint(ProductUpdate.ProductID))
 	if err != nil {
 		return ctx.Status(http.StatusNotFound).JSON(fiber.Map{
-			"error": "Product not found",
+			"error": "Post not found",
 		})
 	}
 
@@ -318,44 +319,23 @@ func UpdateBusinessConnectProduct(ctx *fiber.Ctx) error {
 	// Overwrite updated fields
 	UpdatedProduct.Title = ProductUpdate.ProductTitle
 	UpdatedProduct.Description = ProductUpdate.ProductDescription
-	UpdatedProduct.InitialCost = ProductUpdate.InitialCost
-	UpdatedProduct.SellingPrice = ProductUpdate.SellingPrice
-	UpdatedProduct.ProductStock = ProductUpdate.ProductStock
-	UpdatedProduct.NetWeight = ProductUpdate.NetWeight
-	UpdatedProduct.Category = ProductUpdate.Category
-	UpdatedProduct.ProductRank = ProductUpdate.ProductRank
-	UpdatedProduct.Tags = ProductUpdate.Tags
-	UpdatedProduct.PublishStatus = ProductUpdate.PublishStatus
-
-	// Make sure product rank do not go below 1 or above 5
-	if UpdatedProduct.ProductRank < 1 {
-		UpdatedProduct.ProductRank = 1
-	} else if UpdatedProduct.ProductRank > 5 {
-		UpdatedProduct.ProductRank = 5
-	}
-
-	// Handle OnSale
-	if UpdatedProduct.InitialCost != UpdatedProduct.SellingPrice {
-		UpdatedProduct.OnSale = true
-	} else {
-		UpdatedProduct.OnSale = false
-	}
-
-	// Handle Featured
-	if ProductUpdate.FeaturedStatus == "featured" {
-		UpdatedProduct.Featured = true
-	} else {
-		UpdatedProduct.Featured = false
-	}
+	// UpdatedProduct.InitialCost = ProductUpdate.InitialCost
+	// UpdatedProduct.SellingPrice = ProductUpdate.SellingPrice
+	// UpdatedProduct.ProductStock = ProductUpdate.ProductStock
+	// UpdatedProduct.NetWeight = ProductUpdate.NetWeight
+	UpdatedProduct.BusinessCategory = ProductUpdate.Category
+	// UpdatedProduct.ProductRank = ProductUpdate.ProductRank
+	// UpdatedProduct.Tags = ProductUpdate.Tags
+	// UpdatedProduct.PublishStatus = ProductUpdate.PublishStatus
 
 	// Now intelligently update StockRemaining:
-	stockDifference := ProductUpdate.ProductStock - existingProduct.ProductStock
-	UpdatedProduct.StockRemaining = existingProduct.StockRemaining + stockDifference
+	// stockDifference := ProductUpdate.ProductStock - existingProduct.ProductStock
+	// UpdatedProduct.StockRemaining = existingProduct.StockRemaining + stockDifference
 
 	// Make sure StockRemaining doesn't go negative
-	if UpdatedProduct.StockRemaining < 0 {
-		UpdatedProduct.StockRemaining = 0
-	}
+	// if UpdatedProduct.StockRemaining < 0 {
+	// 	UpdatedProduct.StockRemaining = 0
+	// }
 
 	// Save update
 	updateErr := dbFunc.DBHelper.UpdateBusinessConnectProduct(UpdatedProduct, uint(ProductUpdate.ProductID))

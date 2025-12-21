@@ -71,9 +71,9 @@ func DbMigration() {
 	}
 
 	// AutoMigrate the transaction history model
-	// err = DB.AutoMigrate(&Data.Product{})
+	// err = DB.AutoMigrate(&Data.Post{})
 	// if err != nil {
-	// 	panic("failed to migrate the Product database")
+	// 	panic("failed to migrate the Post database")
 	// }
 
 	// // AutoMigrate the jti model

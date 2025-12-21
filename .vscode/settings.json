@@ -5,6 +5,6 @@
         "godotenv",
         "gofiber",
         "joho",
-        "Product"
+        "Post"
     ]
 }

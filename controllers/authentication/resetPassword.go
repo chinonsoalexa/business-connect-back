@@ -45,7 +45,7 @@ func SendEmailPasswordChange(ctx *fiber.Ctx) error {
 	// }
 
 	// let's send a token with users first and last name to verify the user with email ID
-	emailUserErr = ForgotPasswordEmailVerification(UserBodyReturn.FirstName+" "+UserBodyReturn.LastName, UserBodyReturn.Email)
+	emailUserErr = ForgotPasswordEmailVerification(UserBodyReturn.FullName, UserBodyReturn.Email)
 
 	if emailUserErr != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{

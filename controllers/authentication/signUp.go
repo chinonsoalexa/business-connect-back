@@ -56,7 +56,7 @@ func SignUp(ctx *fiber.Ctx) error {
 			})
 		}
 		// let's check if the user's email is verified
-		if !existingUser.EmailActivated {
+		if !existingUser.EmailVerified {
 			// User needs to verify email address, send an error message
 			return ctx.Status(http.StatusConflict).JSON(fiber.Map{
 				"error": "User already exist, please verify your email ID",
@@ -84,7 +84,7 @@ func SignUp(ctx *fiber.Ctx) error {
 	}
 
 	// let's send token to user to verify the user with email ID
-	emailErr = EmailVerification(createdUser.FirstName+" "+createdUser.LastName, NewUser.Email)
+	emailErr = EmailVerification(createdUser.FullName, NewUser.Email)
 
 	if emailErr != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -171,7 +171,7 @@ func EmailAuthentication(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Failed to find user by email"})
 	}
 
-	UserBodyReturn.EmailActivated = true
+	UserBodyReturn.EmailVerified = true
 
 	// Update the user
 	updateErr := dbFunc.DBHelper.UpdateUser(UserBodyReturn)
@@ -257,7 +257,7 @@ func ResendEmailVerification(ctx *fiber.Ctx) error {
 	}
 
 	// let's send token to user to verify the user with email ID
-	emailErr = EmailVerification(existingUser.FirstName+" "+existingUser.LastName, OTPBody.Email)
+	emailErr = EmailVerification(existingUser.FullName, OTPBody.Email)
 
 	if emailErr != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{

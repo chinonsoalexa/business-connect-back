@@ -28,7 +28,7 @@ type PaginationData struct {
 
 func GetBusinessConnectProductsByLimit(ctx *fiber.Ctx) error {
 	var totalRecords int64
-	var productRecords []Data.Product
+	var productRecords []Data.Post
 	var err error
 
 	// Parse query params
@@ -120,7 +120,7 @@ func GetBusinessConnectProductByID(ctx *fiber.Ctx) error {
 		})
 	}
 
-	relatedProducts, _, CatErr := dbFunc.DBHelper.GetBusinessConnectRecommendedProductsByLimit(convertedTransactionID, productDetail.Category, 12)
+	relatedProducts, _, CatErr := dbFunc.DBHelper.GetBusinessConnectRecommendedProductsByLimit(convertedTransactionID, productDetail.BusinessCategory, 12)
 	if CatErr != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "failed to get recommended product",

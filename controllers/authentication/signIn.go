@@ -177,7 +177,7 @@ func MagicLinkSignIn(ctx *fiber.Ctx) error {
 	}
 
 	// let's check if the user's email is verified
-	if !user.EmailActivated {
+	if !user.EmailVerified {
 		// User needs to verify email address, send an error message
 		return ctx.Status(http.StatusConflict).JSON(fiber.Map{
 			"error": "User already exist, please verify your email ID",
@@ -193,7 +193,7 @@ func MagicLinkSignIn(ctx *fiber.Ctx) error {
 	}
 
 	// let's send the magic link to the user's email
-	magicError := MagicLinkEmailVerification(user.FirstName+" "+user.LastName, user.Email)
+	magicError := MagicLinkEmailVerification(user.FullName, user.Email)
 	if magicError != nil {
 		return ctx.Status(http.StatusConflict).JSON(fiber.Map{
 			"error": "there was an error sending mail",
