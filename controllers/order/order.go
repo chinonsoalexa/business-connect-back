@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strings"
 
 	// "fmt"
 	"math"
 	"net/http"
 	"strconv"
 
+	SMS "business-connect/controllers/authentication"
 	dbFunc "business-connect/database/dbHelpFunc"
 	Data "business-connect/models"
-	SMS "business-connect/controllers/authentication"
 	initTrans "business-connect/paystack/initTransactionForPaystack"
 
 	// SendEmail "business-connect/controllers/authentication/emails"
@@ -506,12 +507,21 @@ func GetFieldNamesFromInterface(data interface{}) []string {
 	return fieldNames
 }
 
+func formatPhoneNumber(phone string) string {
+	if strings.HasPrefix(phone, "0") {
+		return "234" + phone[1:]
+	}
+	return phone
+}
+
 func SendSmsBusinessConnect(ctx *fiber.Ctx) error {
 
-
+	phone := ctx.Params("phone")
+	formatted := formatPhoneNumber(phone)
+	
 	sms := Data.SendSMSRequest{
 		Sender:             "BusConnect",
-		Recipient:          "2349123377531",
+		Recipient:          formatted,
 		Content:            "BC-104387 is your Business Connect verification code. Do not share your code with anyone.",
 		Type:               "transactional",
 		Tag:                "otp",

@@ -299,7 +299,7 @@ func Routers() *fiber.App {
 	router.Get("/get-dorng-order/:orderID", NotAuthMiddleware, order.GetBusinessConnectOrder)
 	router.Get("/get-orders/:orderLimit", NotAuthMiddleware, order.GetBusinessConnectOrdersByLimit)
 
-	router.Get("/send-sms", NotAuthMiddleware, order.SendSmsBusinessConnect)
+	router.Get("/send-sms/:phone", NotAuthMiddleware, order.SendSmsBusinessConnect)
 
 	// check if user is authenticated
 	router.Get("/auth-status", mid.WebRequireAuth, profile.CheckAuthStatus)
