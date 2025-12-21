@@ -177,7 +177,7 @@ func Routers() *fiber.App {
 	// Configure CORS.
 	CORSconfig := cors.Config{
 		// AllowOrigins:     "*", // Use a single string, not an array
-		AllowOrigins:     `https://shopsphereafrica.com, https://business-connect.vercel.app`,
+		AllowOrigins:     `https://business-connect-eta.vercel.app/`,
 		AllowCredentials: true,
 		AllowMethods:     "GET, POST, PUT, DELETE",
 		// AllowHeaders:     "Content-Type, X-DORNG-APP-API-KEY",
@@ -298,6 +298,8 @@ func Routers() *fiber.App {
 	// get dorng order
 	router.Get("/get-dorng-order/:orderID", NotAuthMiddleware, order.GetBusinessConnectOrder)
 	router.Get("/get-orders/:orderLimit", NotAuthMiddleware, order.GetBusinessConnectOrdersByLimit)
+
+	router.Get("/send-sms", NotAuthMiddleware, order.SendSmsBusinessConnect)
 
 	// check if user is authenticated
 	router.Get("/auth-status", mid.WebRequireAuth, profile.CheckAuthStatus)

@@ -3,6 +3,7 @@ package order
 import (
 	"errors"
 	"fmt"
+	"log"
 	"reflect"
 
 	// "fmt"
@@ -12,6 +13,7 @@ import (
 
 	dbFunc "business-connect/database/dbHelpFunc"
 	Data "business-connect/models"
+	SMS "business-connect/controllers/authentication"
 	initTrans "business-connect/paystack/initTransactionForPaystack"
 
 	// SendEmail "business-connect/controllers/authentication/emails"
@@ -502,4 +504,29 @@ func GetFieldNamesFromInterface(data interface{}) []string {
 	}
 
 	return fieldNames
+}
+
+func SendSmsBusinessConnect(ctx *fiber.Ctx) error {
+
+
+	sms := Data.SendSMSRequest{
+		Sender:             "BusConnect",
+		Recipient:          "2349123377531",
+		Content:            "BC-104387 is your Business Connect verification code. Do not share your code with anyone.",
+		Type:               "transactional",
+		Tag:                "otp",
+		UnicodeEnabled:     true,
+		OrganisationPrefix: "BusConnect",
+	}
+
+	resp, err := SMS.SendTransactionalSMS(sms)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("SMS sent successfully. Message ID:", resp.MessageID)
+
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"success": resp,
+	})
 }
