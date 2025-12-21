@@ -533,12 +533,15 @@ func SendSmsBusinessConnect(ctx *fiber.Ctx) error {
         OrganisationPrefix: "BusConnect",
     }
 
+	fmt.Println("data to send: ", sms)
+
     resp, err := SMS.SendTransactionalSMS(sms)
     if err != nil {
         return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
             "error": err.Error(),
         })
     }
+	fmt.Println("data response: ", resp)
 
     return ctx.Status(http.StatusOK).JSON(fiber.Map{
         "success": true,
