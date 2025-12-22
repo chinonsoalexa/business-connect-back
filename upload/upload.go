@@ -39,11 +39,11 @@ func getContentType(filename string) string {
 	}
 }
 
-func UploadFiles(fileHeader []*multipart.FileHeader) ([]Data.ProductImage, error) {
+func UploadFiles(fileHeader []*multipart.FileHeader) ([]Data.PostImage, error) {
 	var (
 		b2Client   *b2.Client
 		bucket     *b2.Bucket
-		results    []Data.ProductImage
+		results    []Data.PostImage
 		EnvErr     error
 		B2LinkErr  error
 		bucketName string
@@ -138,7 +138,7 @@ func UploadFiles(fileHeader []*multipart.FileHeader) ([]Data.ProductImage, error
 		// Build the download URL
 		// downloadURL := fmt.Sprintf("https://shopsphereafrica.com/image/%s", fileName)
 
-		var imageResp = Data.ProductImage{
+		var imageResp = Data.PostImage{
 			URL:              fileName,
 			OriginalFilename: fileHeader.Filename,
 		}
