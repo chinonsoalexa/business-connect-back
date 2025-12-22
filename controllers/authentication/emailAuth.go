@@ -126,7 +126,7 @@ func EmailVerification(name, sendTo string) error {
 
 			<p style="color: #777777;">Hi {{.Name}},</p>
 			<p style="color: #777777;">We're excited to have you on board! Just one more step to activate your Business Connect account:</p>
-			<p style="color: #777777;">Please click the button below to verify your email address and start exploring Business Connect's features.</p>
+			<p style="color: #777777;">Please copy the code below to verify your email address and start exploring Business Connect's features.</p>
 
 			<a href="#" style="display: block; margin: 0 auto; padding: 15px; background-color: #007bff; color: #ffffff; text-decoration: none; font-size: 24px; border-radius: 6px; width: 200px; text-align: center;">{{.Token}}</a>
 
