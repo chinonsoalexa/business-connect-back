@@ -203,6 +203,9 @@ func Routers() *fiber.App {
 	// securing all the web endpoint from being accessible to app cause of the origin is not included in the app requests
 
 	// payuee web authentication using email and password
+	router.Post("/sign-up", NotAuthMiddleware, authentication.SignUp)
+	router.Post("/email-verification", NotAuthMiddleware, authentication.EmailAuthentication)
+	router.Post("/resend-otp", NotAuthMiddleware, authentication.ResendEmailVerification)
 	router.Post("/sign-in", NotAuthMiddleware, authentication.SignIn)
 	router.Post("/forgotten-password-email", NotAuthMiddleware, authentication.SendEmailPasswordChange)
 	router.Post("/forgotten-password-verification", NotAuthMiddleware, authentication.VerifyForgotPassword)

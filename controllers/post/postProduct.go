@@ -15,7 +15,7 @@ import (
 var (
 	OK              bool
 	PostBody        Data.Post
-	imageUploads    []Data.ProductImage
+	imageUploads    []Data.PostImage
 	recievedFiles   *multipart.Form
 	imageUploadsErr error
 	fileParseError  error

@@ -59,10 +59,10 @@ func init() {
 
 func DbMigration() {
 	// AutoMigrate the user model
-	// err := DB.AutoMigrate(&Data.User{})
-	// if err != nil {
-	// 	panic("failed to migrate the User's database")
-	// }
+	err := DB.AutoMigrate(&Data.User{})
+	if err != nil {
+		panic("failed to migrate the User's database")
+	}
 
 	// AutoMigrate the otp model
 	otpErr := DB.AutoMigrate(&Data.OTP{})
@@ -82,20 +82,20 @@ func DbMigration() {
 	// 	panic("failed to migrate the OrderHistory to the database")
 	// }
 
-	// err = DB.AutoMigrate(&Data.ProductOrder{})
+	// err = DB.AutoMigrate(&Data.UserProfile{})
 	// if err != nil {
-	// 	panic("failed to migrate the ProductOrder to the database")
+	// 	panic("failed to migrate the UserProfile to the database")
 	// }
 
-	// err = DB.AutoMigrate(&Data.CustomerReview{})
-	// if err != nil {
-	// 	panic("failed to migrate the CustomerReview database")
-	// }
+	err = DB.AutoMigrate(&Data.Post{})
+	if err != nil {
+		panic("failed to migrate the Post database")
+	}
 
-	// err = DB.AutoMigrate(&Data.ProductImage{})
-	// if err != nil {
-	// 	panic("failed to migrate the ProductImage database")
-	// }
+	err = DB.AutoMigrate(&Data.PostImage{})
+	if err != nil {
+		panic("failed to migrate the PostImage database")
+	}
 
 	// err = DB.AutoMigrate(&Data.Blog{})
 	// if err != nil {
@@ -142,7 +142,7 @@ func DbMigration() {
 	// 	panic("failed to migrate the Analytics database")
 	// }
 
-	err := DB.AutoMigrate(&Data.JTI{})
+	err = DB.AutoMigrate(&Data.JTI{})
 	if err != nil {
 		panic("failed to migrate the JTI database")
 	}

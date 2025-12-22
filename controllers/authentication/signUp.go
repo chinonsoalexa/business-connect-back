@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	dbFunc "business-connect/database/dbHelpFunc"
+	emailValid "business-connect/email"
 	reqAuth "business-connect/middleware"
 	myjwt "business-connect/middleware/myjwt"
 	Data "business-connect/models"
@@ -49,12 +51,27 @@ func SignUp(ctx *fiber.Ctx) error {
 	}
 
 	if dbErr == nil {
+
 		// let's check if the email is valid
-		if dbFunc.DBHelper.CheckSpecialCharacters(NewUser.Email) {
+		err := emailValid.LoadDisposableList("fakeEmails.json")
+		if err != nil {
+			log.Fatal("Failed to load disposable list:", err)
+		}
+
+		result, err := emailValid.ValidateEmail(NewUser.Email)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if result.RiskScore >= 75 {
+			fmt.Println("❌ Reject registration (high-risk email)")
 			return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
 				"error": "This email is invalid because it uses illegal characters. Please enter a valid email",
 			})
 		}
+
+		NewUser.Email = result.Normalized
+
 		// let's check if the user's email is verified
 		if !existingUser.EmailVerified {
 			// User needs to verify email address, send an error message

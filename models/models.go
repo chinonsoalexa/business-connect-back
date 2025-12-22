@@ -25,12 +25,19 @@ type User struct {
 
 	// Basic Info
 	FullName string `json:"full_name" gorm:"size:100;not null"`
-	Email     string `json:"email" gorm:"uniqueIndex;not null"`
-	Password  string `json:"-"` // store HASHED password only
+	Email    string `json:"email" gorm:"uniqueIndex;not null"`
+	Password string `json:"-"` // store HASHED password only
+	PhoneNumber   string `json:"phone_number" gorm:"size:15;index"`
+	ProfilePhotoURL string `json:"profile_photo_url"`
+	CoverPhotoURL   string `json:"cover_photo_url"`
 
-	EmailVerified bool `json:"email_verified" gorm:"default:false"`
-	Suspended     bool `json:"suspended" gorm:"default:false"`
+	EmailVerified bool   `json:"email_verified" gorm:"default:false"`
+	Suspended     bool   `json:"suspended" gorm:"default:false"`
 	Address       string `json:"address"`
+	State         string `json:"state"`
+	City          string `json:"city"`
+	Longitude     string `json:"longitude"`
+	Latitude      string `json:"latitude"`
 
 	// Business Metrics
 	TotalRevenue  float64 `json:"total_revenue" gorm:"default:0"`
@@ -48,7 +55,6 @@ type User struct {
 	Posts []Post `json:"posts,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
-
 // post struct
 type (
 	Post struct {
@@ -58,15 +64,15 @@ type (
 		UserID uint `json:"user_id" gorm:"index"`
 
 		// Core fields (COMMON)
-		PostType    string `json:"post_type" gorm:"size:20;index"` // personal | business | group | event | ad
-		Title       string `json:"title" gorm:"size:200;not null"`
-		ProductUrlID       string `json:"product_url_id" gorm:"size:200;not null"`
-		Description string `json:"description" gorm:"type:text;not null"`
-		WhatsappURL string `json:"whatsapp_url" gorm:"not null"`
+		PostType     string `json:"post_type" gorm:"size:20;index"` // personal | business | group | event | ad
+		Title        string `json:"title" gorm:"size:200;not null"`
+		ProductUrlID string `json:"product_url_id" gorm:"size:200;not null"`
+		Description  string `json:"description" gorm:"type:text;not null"`
+		WhatsappURL  string `json:"whatsapp_url" gorm:"not null"`
 
 		// Visibility
-		IsSponsored bool `json:"is_sponsored" gorm:"default:false"`
-		IsActive    bool `json:"is_active" gorm:"default:true"`
+		IsSponsored bool  `json:"is_sponsored" gorm:"default:false"`
+		IsActive    bool  `json:"is_active" gorm:"default:true"`
 		Views       int64 `json:"views" gorm:"default:0"`
 		Clicks      int64 `json:"clicks" gorm:"default:0"`
 
@@ -77,7 +83,7 @@ type (
 		BusinessCategory string `json:"business_category,omitempty"`
 
 		// GROUP / EVENT FIELDS
-		EntryType  string `json:"entry_type,omitempty"` // free | paid
+		EntryType  string `json:"entry_type,omitempty"`  // free | paid
 		EntryPrice int64  `json:"entry_price,omitempty"` // store in kobo
 		MaxMembers *int   `json:"max_members,omitempty"`
 
@@ -86,12 +92,12 @@ type (
 
 		// Moderation
 		Approved bool `json:"approved" gorm:"default:true"`
-		
-		Images   []ProductImage   `json:"images,omitempty" gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"`
+
+		Images []PostImage `json:"images,omitempty" gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"`
 	}
-	ProductImage struct {
+	PostImage struct {
 		gorm.Model
-		ProducttID       uint   `json:"productt_id"`
+		PostID        uint   `json:"post_id"`
 		URL              string `json:"url" gorm:"column:url"`
 		OriginalFilename string `json:"original_file_name" gorm:"column:original_file_name"`
 	}

@@ -81,7 +81,7 @@ type DatabaseHelper interface {
 	GetLast12DaysSiteVisits() (map[string]int64, error)
 	UpdateSubscriptionStatus(transactionID uint64) error
 	AddProduct(post Data.Post, user Data.User) (Data.Post, error)
-	AddProductImage(image Data.ProductImage, postID uint) error
+	AddProductImage(image Data.PostImage, postID uint) error
 	AddBlog(post Data.Blog, user Data.User) (Data.Blog, error)
 	AddBlogImage(image Data.BlogImage, postID uint) error
 	// SaveCustomerReview(productID uint, email string, name string, reviewText string, rating int) (Data.CustomerReview, error)
@@ -1632,9 +1632,9 @@ func (d *DatabaseHelperImpl) AddProduct(post Data.Post, user Data.User) (Data.Po
 	return post, nil
 }
 
-func (d *DatabaseHelperImpl) AddProductImage(image Data.ProductImage, postID uint) error {
+func (d *DatabaseHelperImpl) AddProductImage(image Data.PostImage, postID uint) error {
 	// Set the post_id for the image
-	image.ProducttID = postID
+	image.PostID = postID
 
 	result := conn.DB.Create(&image)
 
