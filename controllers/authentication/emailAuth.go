@@ -381,11 +381,13 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 		newOTP Data.OTP
 	)
 
-	envErr = godotenv.Load(".env")
-	if envErr != nil {
-		fmt.Println(envErr)
-		return fmt.Errorf("failed to load .env file: %w", envErr)
+	if os.Getenv("RENDER") == "" {
+		// Local development only
+		if err := godotenv.Load(".env"); err != nil {
+			log.Printf("Failed to load .env file: %v\n", err)
+		}
 	}
+
 
 	config := EmailConfig{
 		Name:              os.Getenv("EMAIL_SENDER_NAME"),
@@ -437,7 +439,7 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 		URL  string
 	}{
 		Name: name,
-		URL:  "https://shopsphereafrica.com/page/signin-new.html?user=" + sendTo + "&magic-code=" + otp,
+		URL:  "https://payuee.shop/dashboard/sign-in?user=" + sendTo + "&magic-code=" + otp,
 	}
 
 	// Create a new template and parse the HTML

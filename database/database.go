@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -17,11 +18,13 @@ import (
 var DB *gorm.DB
 
 func init() {
-	envErr := godotenv.Load(".env")
-
-	if envErr != nil {
-		fmt.Printf("Failed to load .env file: %v\n", envErr)
+	if os.Getenv("RENDER") == "" {
+		// Local development only
+		if err := godotenv.Load(".env"); err != nil {
+			log.Printf("Failed to load .env file: %v\n", err)
+		}
 	}
+
 
 	dsn := os.Getenv("DATABASE_URL")
 
