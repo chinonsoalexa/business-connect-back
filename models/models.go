@@ -93,7 +93,7 @@ type (
 		// Moderation
 		Approved bool `json:"approved" gorm:"default:true"`
 
-		Images []PostImage `json:"images,omitempty" gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE"`
+		Images []PostImage `json:"images,omitempty" gorm:"foreignKey:PostID;constraint:OnDelete:CASCADE"`
 	}
 	PostImage struct {
 		gorm.Model
