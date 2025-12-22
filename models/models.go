@@ -24,21 +24,21 @@ type User struct {
 	gorm.Model
 
 	// Basic Info
-	FullName string `json:"full_name" gorm:"size:100;not null"`
-	BusinessName string `json:"business_name" gorm:"size:100;not null"`
-	Email    string `json:"email" gorm:"uniqueIndex;not null"`
-	Password string `json:"-"` // store HASHED password only
-	PhoneNumber   string `json:"phone_number" gorm:"size:15;index"`
+	FullName        string `json:"full_name" gorm:"size:100;not null"`
+	BusinessName    string `json:"business_name" gorm:"size:100;not null"`
+	Email           string `json:"email" gorm:"uniqueIndex;not null"`
+	Password        string `json:"password"` // store HASHED password only
+	PhoneNumber     string `json:"phone_number" gorm:"size:15;index"`
 	ProfilePhotoURL string `json:"profile_photo_url"`
 	CoverPhotoURL   string `json:"cover_photo_url"`
 
-	EmailVerified bool   `json:"email_verified" gorm:"default:false"`
-	Suspended     bool   `json:"suspended" gorm:"default:false"`
-	Address       string `json:"address"`
-	State         string `json:"state"`
-	City          string `json:"city"`
-	Longitude     int64 `json:"longitude"`
-	Latitude      int64 `json:"latitude"`
+	EmailVerified bool    `json:"email_verified" gorm:"default:false"`
+	Suspended     bool    `json:"suspended" gorm:"default:false"`
+	Address       string  `json:"address"`
+	State         string  `json:"state"`
+	City          string  `json:"city"`
+	Longitude     float64 `json:"longitude"`
+	Latitude      float64 `json:"latitude"`
 
 	// Business Metrics
 	TotalRevenue  float64 `json:"total_revenue" gorm:"default:0"`
@@ -98,7 +98,7 @@ type (
 	}
 	PostImage struct {
 		gorm.Model
-		PostID        uint   `json:"post_id"`
+		PostID           uint   `json:"post_id"`
 		URL              string `json:"url" gorm:"column:url"`
 		OriginalFilename string `json:"original_file_name" gorm:"column:original_file_name"`
 	}
