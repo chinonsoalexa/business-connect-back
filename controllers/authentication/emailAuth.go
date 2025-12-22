@@ -76,6 +76,14 @@ func (sender *GmailSender) SendEmail(subject string, content string, to []string
 	return e.Send(smtpServerAddress, smtpAuth)
 }
 
+func mustEnv(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		log.Fatalf("Missing required environment variable: %s", key)
+	}
+	return value
+}
+
 func EmailVerification(name, sendTo string) error {
 	var (
 		newOTP Data.OTP
@@ -89,9 +97,9 @@ func EmailVerification(name, sendTo string) error {
 	}
 
 	config := EmailConfig{
-		Name:              os.Getenv("EMAIL_SENDER_NAME"),
-		FromEmailAddress:  os.Getenv("EMAIL_SENDER_ACCOUNT"),
-		FromEmailPassword: os.Getenv("EMAIL_SENDER_PASSWORD"),
+		Name:              mustEnv("EMAIL_SENDER_NAME"),
+		FromEmailAddress:  mustEnv("EMAIL_SENDER_ACCOUNT"),
+		FromEmailPassword: mustEnv("EMAIL_SENDER_PASSWORD"),
 	}
 
 	otp, randError = EmailOTPGenerator(30)
@@ -214,9 +222,9 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 	}
 
 	config := EmailConfig{
-		Name:              os.Getenv("EMAIL_SENDER_NAME"),
-		FromEmailAddress:  os.Getenv("EMAIL_SENDER_ACCOUNT"),
-		FromEmailPassword: os.Getenv("EMAIL_SENDER_PASSWORD"),
+		Name:              mustEnv("EMAIL_SENDER_NAME"),
+		FromEmailAddress:  mustEnv("EMAIL_SENDER_ACCOUNT"),
+		FromEmailPassword: mustEnv("EMAIL_SENDER_PASSWORD"),
 	}
 
 	otp, randError = EmailOTPGenerator(30)
@@ -392,9 +400,9 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 
 
 	config := EmailConfig{
-		Name:              os.Getenv("EMAIL_SENDER_NAME"),
-		FromEmailAddress:  os.Getenv("EMAIL_SENDER_ACCOUNT"),
-		FromEmailPassword: os.Getenv("EMAIL_SENDER_PASSWORD"),
+		Name:              mustEnv("EMAIL_SENDER_NAME"),
+		FromEmailAddress:  mustEnv("EMAIL_SENDER_ACCOUNT"),
+		FromEmailPassword: mustEnv("EMAIL_SENDER_PASSWORD"),
 	}
 
 	otp, randError = EmailOTPGenerator(30)
