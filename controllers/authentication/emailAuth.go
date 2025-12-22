@@ -99,7 +99,7 @@ func EmailVerification(name, sendTo string) error {
 	}
 
 	sender := NewGmailSender(config)
-	subject := "Shopsphere Africa Email Verification"
+	subject := "Business Connect Email Verification"
 	// HTML template with %s as a placeholder for the OTP
 	htmlTemplate := `
 	<!DOCTYPE html>
@@ -108,24 +108,21 @@ func EmailVerification(name, sendTo string) error {
 		<meta charset="UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Shopsphere Africa Email Verification</title>
+		<title>Business Connect Email Verification</title>
 	</head>
 	<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; text-align: center;">
 		<div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: left;">
-			<img src="https://shopsphereafrica.com/image/catalog/logo.png" alt="Shopsphere Africa Logo" style="display: block; margin: 0 auto; max-width: 100%;">
+			<img src="https://payuee.shop/assets/images/logo.png" alt="Business Connect Logo" style="display: block; margin: 0 auto; max-width: 100%;">
 			<h1 style="color: #333333; margin-bottom: 20px; text-align: center;">Verify Your Email Address</h1>
 
 			<p style="color: #777777;">Hi {{.Name}},</p>
-			<p style="color: #777777;">We're excited to have you on board! Just one more step to activate your Shopsphere Africa account:</p>
-			<p style="color: #777777;">Please click the button below to verify your email address and start exploring Shopsphere Africa's features.</p>
+			<p style="color: #777777;">We're excited to have you on board! Just one more step to activate your Business Connect account:</p>
+			<p style="color: #777777;">Please click the button below to verify your email address and start exploring Business Connect's features.</p>
 
-			<a href="{{.URL}}" style="display: block; margin: 0 auto; padding: 15px; background-color: #007bff; color: #ffffff; text-decoration: none; font-size: 24px; border-radius: 6px; width: 200px; text-align: center;">Verify Email</a>
+			<a href="#" style="display: block; margin: 0 auto; padding: 15px; background-color: #007bff; color: #ffffff; text-decoration: none; font-size: 24px; border-radius: 6px; width: 200px; text-align: center;">{{.Token}}</a>
 
-			<p style="color: #777777;">If you can't click the button, please copy and paste the following link into your browser:</p>
-			<textarea readonly style="display: block; margin: 0 auto; padding: 10px; background-color: #f9f9f9; border: 1px solid #ccc; border-radius: 6px; width: 100%; resize: none; font-size: 14px;">{{.URL}}</textarea>
-			
 			<p style="color: #777777; margin-top: 20px;">For security reasons, this link will expire in 24 hours. If you have any issues, please contact us at <a href="mailto:support@shopsphereafrica.com">support@shopsphereafrica.com</a>.</p>
-			<p style="color: #777777;">Thanks,<br>The Shopsphere Africa Team</p>
+			<p style="color: #777777;">Thanks,<br>The Business Connect Team</p>
 		</div>
 	</body>
 	</html>
@@ -133,10 +130,10 @@ func EmailVerification(name, sendTo string) error {
 	// Sample data
 	data := struct {
 		Name string
-		URL  string
+		Token  string
 	}{
 		Name: name,
-		URL:  "https://shopsphereafrica.com/page/signup-verify-otp-new.html?user=" + sendTo + "&token=" + otp,
+		Token:  otp,
 	}
 
 	// Create a new template and parse the HTML
@@ -415,7 +412,7 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 	</head>
 	<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; text-align: center;">
 	<div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: left;">
-		<img src="https://shopsphereafrica.com/image/catalog/logo.png" alt="Shopsphere Africa Logo" style="display: block; margin: 0 auto; max-width: 100%;">
+		<img src="https://payuee.shop/assets/images/logo.png" alt="Shopsphere Africa Logo" style="display: block; margin: 0 auto; max-width: 100%;">
 		<h1 style="color: #333333; margin-bottom: 20px; text-align: center;">Magic Login Link</h1>
 	
 		<p style="color: #777777;">Hi {{.Name}},</p>
