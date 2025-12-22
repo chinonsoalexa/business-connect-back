@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -44,6 +45,7 @@ func SignUp(ctx *fiber.Ctx) error {
 			emailErr := EmailVerification(existingUser.FullName, existingUser.Email)
 
 			if emailErr != nil {
+				fmt.Println("this is the email error:", emailErr)
 				return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
 					"error": "email verification failed",
 				})

@@ -139,14 +139,14 @@ func EmailVerification(name, sendTo string) error {
 	// Create a new template and parse the HTML
 	tmpl, err := template.New("email").Parse(htmlTemplate)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Execute the template with the provided data
 	var body bytes.Buffer
 	err = tmpl.Execute(&body, data)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	// Convert the buffer to a string to get the final HTML content
