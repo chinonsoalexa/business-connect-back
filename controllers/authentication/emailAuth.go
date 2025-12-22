@@ -81,10 +81,11 @@ func EmailVerification(name, sendTo string) error {
 		newOTP Data.OTP
 	)
 
-	envErr = godotenv.Load(".env")
-	if envErr != nil {
-		fmt.Println(envErr)
-		return fmt.Errorf("failed to load .env file: %w", envErr)
+	if os.Getenv("RENDER") == "" {
+		// Local development only
+		if err := godotenv.Load(".env"); err != nil {
+			log.Printf("Failed to load .env file: %v\n", err)
+		}
 	}
 
 	config := EmailConfig{
@@ -205,16 +206,17 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 		newOTP Data.OTP
 	)
 
-	envErr = godotenv.Load(".env")
-	if envErr != nil {
-		fmt.Println(envErr)
-		return fmt.Errorf("failed to load .env file: %w", envErr)
+	if os.Getenv("RENDER") == "" {
+		// Local development only
+		if err := godotenv.Load(".env"); err != nil {
+			log.Printf("Failed to load .env file: %v\n", err)
+		}
 	}
 
 	config := EmailConfig{
-		Name:              os.Getenv("ADMIN_EMAIL_SENDER_NAME"),
-		FromEmailAddress:  os.Getenv("ADMIN_EMAIL_SENDER_ACCOUNT"),
-		FromEmailPassword: os.Getenv("ADMIN_EMAIL_SENDER_PASSWORD"),
+		Name:              os.Getenv("EMAIL_SENDER_NAME"),
+		FromEmailAddress:  os.Getenv("EMAIL_SENDER_ACCOUNT"),
+		FromEmailPassword: os.Getenv("EMAIL_SENDER_PASSWORD"),
 	}
 
 	otp, randError = EmailOTPGenerator(30)
