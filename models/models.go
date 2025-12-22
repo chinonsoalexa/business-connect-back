@@ -25,6 +25,7 @@ type User struct {
 
 	// Basic Info
 	FullName string `json:"full_name" gorm:"size:100;not null"`
+	BusinessName string `json:"business_name" gorm:"size:100;not null"`
 	Email    string `json:"email" gorm:"uniqueIndex;not null"`
 	Password string `json:"-"` // store HASHED password only
 	PhoneNumber   string `json:"phone_number" gorm:"size:15;index"`
