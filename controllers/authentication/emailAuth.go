@@ -322,7 +322,7 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 		Year int
 	}{
 		Name: name,
-		URL:  "https://payuee.shop/sign-in?email=" + sendTo + "&token=" + otp,
+		URL:  "https://payuee.shop/dashboard/sign-in?email=" + sendTo + "&token=" + otp,
 		Year: currentYear,
 	}
 
