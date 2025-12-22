@@ -27,7 +27,7 @@ type User struct {
 	FullName        string `json:"full_name" gorm:"size:100;not null"`
 	BusinessName    string `json:"business_name" gorm:"size:100;not null"`
 	Email           string `json:"email" gorm:"uniqueIndex;not null"`
-	Password        string `json:"password"` // store HASHED password only
+	Password        string `json:"-"` // store HASHED password only
 	PhoneNumber     string `json:"phone_number" gorm:"size:15;index"`
 	ProfilePhotoURL string `json:"profile_photo_url"`
 	CoverPhotoURL   string `json:"cover_photo_url"`
@@ -54,6 +54,18 @@ type User struct {
 
 	// Relations
 	Posts []Post `json:"posts,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+}
+
+type SignUpRequest struct {
+	FullName     string  `json:"full_name"`
+	BusinessName string  `json:"business_name"`
+	Email        string  `json:"email"`
+	Password     string  `json:"password"`
+	PhoneNumber  string  `json:"phone_number"`
+	State        string  `json:"state"`
+	City         string  `json:"city"`
+	Longitude    float64 `json:"longitude"`
+	Latitude     float64 `json:"latitude"`
 }
 
 // post struct

@@ -293,6 +293,7 @@ func (d *DatabaseHelperImpl) CreateNewUser(NewUser Data.User) (CreatedUser Data.
 		NewPassword string
 	)
 
+	// ⚠️ Hash password here before save
 	NewPassword, err = d.CreatePasswordHash(NewUser.Password)
 	if err != nil {
 		return Data.User{}, err

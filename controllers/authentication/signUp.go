@@ -1,11 +1,13 @@
 package authentication
 
 import (
-	"fmt"
+	"errors"
 	"log"
 	"math/rand"
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -19,100 +21,130 @@ import (
 )
 
 func SignUp(ctx *fiber.Ctx) error {
-	var (
-		bindErr      error
-		dbErr        error
-		dbAddErr     error
-		existingUser Data.User
-		emailErr     error
-		NewUser      Data.User
-		createdUser  Data.User
-	)
+	var req Data.SignUpRequest
 
-	// Check if there is an error binding the request
-	if bindErr = ctx.BodyParser(&NewUser); bindErr != nil {
+	if err := ctx.BodyParser(&req); err != nil {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "Failed to read body",
+			"error": "Invalid request body",
 		})
 	}
 
-	NewUser.UserType = "USER"
-
-	// Check if the user already exists by email in the data base
-	existingUser, dbErr = dbFunc.DBHelper.FindByEmail(NewUser.Email)
-
-	if dbErr != nil {
-		if dbErr.Error() == "error retrieving user" {
-			// An error occurred while querying the database
-			return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to check user existence",
-			})
-		}
+	// 1️⃣ Validate input FIRST
+	if err := validateSignup(&req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
 	}
 
-	if dbErr == nil {
-
-		// let's check if the email is valid
-		err := emailValid.LoadDisposableList("fakeEmails.json")
-		if err != nil {
-			log.Fatal("Failed to load disposable list:", err)
-		}
-
-		result, err := emailValid.ValidateEmail(NewUser.Email)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if result.RiskScore >= 75 {
-			fmt.Println("❌ Reject registration (high-risk email)")
-			return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": "This email is invalid because it uses illegal characters. Please enter a valid email",
-			})
-		}
-
-		NewUser.Email = result.Normalized
-
-		// let's check if the user's email is verified
+	// 2️⃣ Check existing user
+	existingUser, err := dbFunc.DBHelper.FindByEmail(req.Email)
+	if err == nil {
 		if !existingUser.EmailVerified {
-			// User needs to verify email address, send an error message
 			return ctx.Status(http.StatusConflict).JSON(fiber.Map{
-				"error": "User already exist, please verify your email ID",
+				"error": "User exists but email is not verified",
 			})
 		}
-		// User already exists, send an error message
+
 		return ctx.Status(http.StatusConflict).JSON(fiber.Map{
-			"error": "User already exist, please login",
+			"error": "User already exists, please login",
 		})
 	}
 
-	usersIP := ctx.IP()
-
-	if usersIP == "102.89.33.226" {
-		NewUser.Suspended = true
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "Sorry your account has been suspended",
-		})
-	}
-
-	// Add new user to the database
-	createdUser, dbAddErr = dbFunc.DBHelper.CreateNewUser(NewUser)
-	if dbAddErr != nil {
-		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Error creating new user"})
-	}
-
-	// let's send token to user to verify the user with email ID
-	emailErr = EmailVerification(createdUser.FullName, NewUser.Email)
-
-	if emailErr != nil {
+	// 3️⃣ Disposable email check
+	err = emailValid.LoadDisposableList("fakeEmails.json")
+	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": emailErr.Error(),
+			"error": "Email validation service error",
 		})
 	}
 
-	// let's return a success message to the client side
+	result, err := emailValid.ValidateEmail(req.Email)
+	if err != nil || result.RiskScore >= 75 {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid or disposable email address",
+		})
+	}
+
+	// 4️⃣ Build DB model (explicit mapping)
+	newUser := Data.User{
+		FullName:     req.FullName,
+		BusinessName: req.BusinessName,
+		Email:        result.Normalized,
+		PhoneNumber:  req.PhoneNumber,
+		State:        req.State,
+		City:         req.City,
+		Longitude:    req.Longitude,
+		Latitude:     req.Latitude,
+		UserType:     "USER",
+	}
+
+	// 5️⃣ Create user
+	createdUser, err := dbFunc.DBHelper.CreateNewUser(newUser)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to create user",
+		})
+	}
+
+	// 6️⃣ Send verification email
+	if err := EmailVerification(createdUser.FullName, createdUser.Email); err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to send verification email",
+		})
+	}
+
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
-		"success": "Email verification link sent to " + NewUser.Email,
+		"success": "Verification email sent to " + createdUser.Email,
 	})
+}
+
+
+func validateSignup(req *Data.SignUpRequest) error {
+	// Required fields
+	if strings.TrimSpace(req.FullName) == "" {
+		return errors.New("full name is required")
+	}
+
+	if strings.TrimSpace(req.BusinessName) == "" {
+		return errors.New("business name is required")
+	}
+
+	if strings.TrimSpace(req.Email) == "" {
+		return errors.New("email is required")
+	}
+
+	if strings.TrimSpace(req.Password) == "" {
+		return errors.New("password is required")
+	}
+
+	// Email format (basic)
+	if !regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`).MatchString(req.Email) {
+		return errors.New("invalid email format")
+	}
+
+	// Password rules
+	if len(req.Password) < 8 {
+		return errors.New("password must be at least 8 characters long")
+	}
+
+	if !regexp.MustCompile(`[A-Z]`).MatchString(req.Password) {
+		return errors.New("password must contain at least one uppercase letter")
+	}
+
+	if !regexp.MustCompile(`[0-9]`).MatchString(req.Password) {
+		return errors.New("password must contain at least one number")
+	}
+
+	// Optional but recommended
+	if req.Longitude < -180 || req.Longitude > 180 {
+		return errors.New("invalid longitude")
+	}
+
+	if req.Latitude < -90 || req.Latitude > 90 {
+		return errors.New("invalid latitude")
+	}
+
+	return nil
 }
 
 func EmailAuthentication(ctx *fiber.Ctx) error {
