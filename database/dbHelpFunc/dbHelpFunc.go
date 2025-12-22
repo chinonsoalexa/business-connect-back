@@ -572,37 +572,27 @@ func (d *DatabaseHelperImpl) GetOTPByNumber(number string) (numberOTPBody Data.O
 	return numberOTPBody, nil
 }
 
-func (d *DatabaseHelperImpl) GetAndCheckOTPByEmail(email, otp string) (Data.OTP, error) {
-	log.Println("========== OTP VERIFICATION START ==========")
-
-	log.Println("[OTP DEBUG] Raw email:", fmt.Sprintf("%q", email))
-	log.Println("[OTP DEBUG] Raw OTP received:", fmt.Sprintf("%q", otp))
-
-	email = strings.TrimSpace(email)
-	otp = strings.TrimSpace(otp)
-
-	log.Println("[OTP DEBUG] Normalized email:", fmt.Sprintf("%q", email))
-	log.Println("[OTP DEBUG] Normalized OTP:", fmt.Sprintf("%q", otp))
-
-	userOTP, err := d.GetOTPByEmail(email)
-	if err != nil {
-		log.Println("[OTP DEBUG] DB error:", err)
-		return Data.OTP{}, errors.New("otp not found")
+func (d *DatabaseHelperImpl) GetAndCheckOTPByEmail(Email, OTP string) (userOTP Data.OTP, err error) {
+	userOTP, otpErr := d.GetOTPByEmail(Email)
+	if otpErr != nil {
+		if otpErr.Error() == "otp not found by email" {
+			return Data.OTP{}, errors.New("otp not found")
+		}
+		return Data.OTP{}, errors.New("an error occurred while getting otp email")
 	}
 
-	log.Println("[OTP DEBUG] OTP record found")
-	log.Println("[OTP DEBUG] Stored bcrypt hash:", userOTP.OTP)
-	log.Println("[OTP DEBUG] Hash length:", len(userOTP.OTP))
-	log.Println("[OTP DEBUG] CreatedAt:", userOTP.CreatedAT)
-	log.Println("[OTP DEBUG] MaxTry:", userOTP.MaxTry)
+	// Create a copy of the original userOTP for logging purposes
+	originalUserOTP := userOTP
+	hashErr := d.CompareOTPHash(originalUserOTP.OTP, OTP)
 
-	if err := bcrypt.CompareHashAndPassword([]byte(userOTP.OTP), []byte(otp)); err != nil {
-		log.Println("[OTP DEBUG] bcrypt compare failed:", err)
-		return userOTP, errors.New("incorrect otp value")
+	if hashErr != nil {
+		log.Println("Comparison failed: ", hashErr)
+		if hashErr.Error() == "incorrect OTP" {
+			return Data.OTP{}, errors.New("incorrect otp value")
+		} else if hashErr.Error() == "hashed OTP is too short to be a bcrypt hash" {
+			return Data.OTP{}, errors.New("hashed OTP is too short to be a bcrypt hash")
+		}
 	}
-
-	log.Println("[OTP DEBUG] OTP MATCH SUCCESS")
-	log.Println("========== OTP VERIFICATION END ==========")
 
 	return userOTP, nil
 }

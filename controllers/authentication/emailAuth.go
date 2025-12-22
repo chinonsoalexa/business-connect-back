@@ -322,7 +322,7 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 		Year int
 	}{
 		Name: name,
-		URL:  "https://shopsphereafrica.com/new_password.html?user=" + sendTo + "&token=" + otp,
+		URL:  "https://payuee.shop/sign-in?email=" + sendTo + "&token=" + otp,
 		Year: currentYear,
 	}
 
