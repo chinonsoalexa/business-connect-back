@@ -40,6 +40,14 @@ func SignUp(ctx *fiber.Ctx) error {
 	existingUser, err := dbFunc.DBHelper.FindByEmail(req.Email)
 	if err == nil {
 		if !existingUser.EmailVerified {
+			// let's send token to user to verify the user with email ID
+			emailErr := EmailVerification(existingUser.FullName, existingUser.Email)
+
+			if emailErr != nil {
+				return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+					"error": "email verification failed",
+				})
+			}
 			return ctx.Status(http.StatusConflict).JSON(fiber.Map{
 				"error": "User exists but email is not verified",
 			})
@@ -97,7 +105,6 @@ func SignUp(ctx *fiber.Ctx) error {
 		"success": "Verification email sent to " + createdUser.Email,
 	})
 }
-
 
 func validateSignup(req *Data.SignUpRequest) error {
 	// Required fields
