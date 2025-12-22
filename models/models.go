@@ -37,8 +37,8 @@ type User struct {
 	Address       string `json:"address"`
 	State         string `json:"state"`
 	City          string `json:"city"`
-	Longitude     string `json:"longitude"`
-	Latitude      string `json:"latitude"`
+	Longitude     int64 `json:"longitude"`
+	Latitude      int64 `json:"latitude"`
 
 	// Business Metrics
 	TotalRevenue  float64 `json:"total_revenue" gorm:"default:0"`
