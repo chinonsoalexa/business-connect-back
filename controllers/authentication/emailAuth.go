@@ -130,7 +130,7 @@ func EmailVerification(name, sendTo string) error {
 
 			<a href="#" style="display: block; margin: 0 auto; padding: 15px; background-color: #007bff; color: #ffffff; text-decoration: none; font-size: 24px; border-radius: 6px; width: 200px; text-align: center;">{{.Token}}</a>
 
-			<p style="color: #777777; margin-top: 20px;">For security reasons, this link will expire in 24 hours. If you have any issues, please contact us at <a href="mailto:support@shopsphereafrica.com">support@shopsphereafrica.com</a>.</p>
+			<p style="color: #777777; margin-top: 20px;">For security reasons, this link will expire in 24 hours. If you have any issues, please contact us at <a href="mailto:support@businessconnectt.com">support@businessconnectt.com</a>.</p>
 			<p style="color: #777777;">Thanks,<br>The Business Connect Team</p>
 		</div>
 	</body>
@@ -437,7 +437,7 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 		<textarea readonly style="display: block; margin: 0 auto; padding: 10px; background-color: #f9f9f9; border: 1px solid #ccc; border-radius: 6px; width: 100%; resize: none; font-size: 14px;">{{.URL}}</textarea>
 	
 		<p style="color: #777777; margin-top: 20px;">For security reasons, this link will expire in 5 minutes.</p>
-		<p style="color: #777777;">If you didn't request this login link or need assistance, please ignore this email or contact us at <a href="mailto:support@shopsphereafrica.com">support@shopsphereafrica.com</a>.</p>
+		<p style="color: #777777;">If you didn't request this login link or need assistance, please ignore this email or contact us at <a href="mailto:support@businessconnectt.com">support@businessconnectt.com</a>.</p>
 		<p style="color: #777777;">Thanks,<br>The Business Connect Team</p>
 	</div>
 	</body>
