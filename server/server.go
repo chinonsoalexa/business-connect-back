@@ -1,7 +1,7 @@
 package server
 
 import (
-	"fmt"
+	// "fmt"
 	"log"
 	"os"
 
@@ -12,12 +12,16 @@ import (
 	myjwt "business-connect/middleware/myjwt"
 )
 
-func StartServer() {
-	envErr := godotenv.Load(".env")
-
-	if envErr != nil {
-		fmt.Println("Failed to load .env file: %w", envErr)
+func LoadEnv() {
+	if os.Getenv("RENDER") == "" {
+		if err := godotenv.Load(".env"); err != nil {
+			log.Println("No .env file found, using system env")
+		}
 	}
+}
+
+func StartServer() {
+	LoadEnv()
 
 	// init the JWTs
 	jwtErr := myjwt.InitJWT()

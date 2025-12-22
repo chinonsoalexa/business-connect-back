@@ -102,7 +102,7 @@ func EmailVerification(name, sendTo string) error {
 		FromEmailPassword: mustEnv("EMAIL_SENDER_PASSWORD"),
 	}
 
-	otp, randError = EmailOTPGenerator(30)
+	otp, randError = EmailOTPGeneratorNumber(6)
 	if randError != nil {
 		return randError
 	}
@@ -602,6 +602,21 @@ func SendEmailToSubscribers(Subject, content, sendTo string) error {
 
 func EmailOTPGenerator(length int) (string, error) {
 	const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+	max := big.NewInt(int64(len(chars)))
+	b := make([]byte, length)
+	for i := range b {
+		n, err := rand.Int(rand.Reader, max)
+		if err != nil {
+			return "", err
+		}
+		b[i] = chars[n.Int64()]
+	}
+	return string(b), nil
+}
+
+func EmailOTPGeneratorNumber(length int) (string, error) {
+	const chars = "0123456789"
 
 	max := big.NewInt(int64(len(chars)))
 	b := make([]byte, length)
