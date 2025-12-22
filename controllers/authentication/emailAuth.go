@@ -223,7 +223,7 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 	}
 
 	sender := NewGmailSender(config)
-	subject := "Shopsphere Africa Admin Password Reset"
+	subject := "Business Connect Admin Password Reset"
 	// HTML template with %s as a placeholder for the OTP
 	htmlTemplate := `
 	<!DOCTYPE html>
@@ -233,12 +233,12 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta name="description" content="Shopsphere Africa admin is super flexible, powerful, clean &amp; modern responsive bootstrap 5 admin template with unlimited possibilities.">
-		<meta name="keywords" content="admin template, Shopsphere Africa admin template, dashboard template, flat admin template, responsive admin template, web app">
+		<meta name="description" content="Business Connect admin is super flexible, powerful, clean &amp; modern responsive bootstrap 5 admin template with unlimited possibilities.">
+		<meta name="keywords" content="admin template, Business Connect admin template, dashboard template, flat admin template, responsive admin template, web app">
 		<meta name="author" content="payuee">
 		<link rel="icon" href="https://shopsphereafrica.com/image/catalog/cart.png" type="image/x-icon">
 		<link rel="shortcut icon" href="https://shopsphereafrica.com/image/catalog/cart.png" type="image/x-icon">
-		<title>Reset Your Shopsphere Africa - Admin Password</title>
+		<title>Reset Your Business Connect - Admin Password</title>
 	</head>
 	<body style="margin: 30px auto; width: 650px; font-family: Work Sans, sans-serif; background-color: #f6f7fb; display: block; padding: 0 12px;">
 		<div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: left;">
@@ -267,7 +267,7 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 						<td style="padding: 30px;"> 
 							<h6 style="font-weight: 600; font-size: 16px; margin: 0 0 18px 0;">Password Reset</h6>
 							<p style="font-size: 13px; line-height: 1.7; letter-spacing: 0.7px; margin-top: 0;">Hi {{.Name}},</p>
-							<p style="font-size: 13px; line-height: 1.7; letter-spacing: 0.7px; margin-top: 0;">We've received a request to reset your Shopsphere Africa Admin password. If you didn't make this request, please ignore this email. Your account is still secure.</p>
+							<p style="font-size: 13px; line-height: 1.7; letter-spacing: 0.7px; margin-top: 0;">We've received a request to reset your Business Connect Admin password. If you didn't make this request, please ignore this email. Your account is still secure.</p>
 							<p style="text-align: center;"><a href="{{.URL}}" style="padding: 10px; background-color: #5C61F2; color: #fff; display: inline-block; border-radius: 30px; font-weight: 700; padding: 0.6rem 1.75rem;">Reset Password</a></p>
 							<p style="font-size: 13px; line-height: 1.7; letter-spacing: 0.7px; margin-top: 0;">If you can't click the button, please copy and paste the following link into your browser:</p>
 								<textarea readonly style="display: block; margin: 0 auto; padding: 10px; background-color: #f9f9f9; border: 1px solid #ccc; border-radius: 6px; width: 100%; resize: none; font-size: 14px;">{{.URL}}</textarea>
@@ -275,7 +275,7 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 							<p style="font-size: 13px; line-height: 1.7; letter-spacing: 0.7px; margin-top: 0;">Good luck! Hope it works.</p>
 							<p style="font-size: 13px; line-height: 1.7; letter-spacing: 0.7px; margin-top: 0;">For security reasons, this link will expire in an hour.</p>
 							<p style="margin-bottom: 0; font-size: 13px; line-height: 1.7; letter-spacing: 0.7px; margin-top: 0;">
-							Regards,<br>Shopsphere Africa Team</p>
+							Regards,<br>Business Connect Team</p>
 						</td>
 						</tr>
 					</tbody>
@@ -292,7 +292,7 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 						</tr>
 						<tr>
 							<td style="text-align: center; padding: 10px 30px 30px 30px; background-color: #f4f4f4;">
-								<p style="font-size: 13px; margin: 0;">© {{.Year}} Shopsphere Africa.</p>
+								<p style="font-size: 13px; margin: 0;">© {{.Year}} Business Connect.</p>
 							</td>
 						</tr>
 					</table>
@@ -399,7 +399,7 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 	}
 
 	sender := NewGmailSender(config)
-	subject := "Shopsphere Africa Magic Login Link"
+	subject := "Business Connect Magic Login Link"
 	// HTML template with %s as a placeholder for the OTP
 	htmlTemplate := `
 	<!DOCTYPE html>
@@ -412,11 +412,11 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 	</head>
 	<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; text-align: center;">
 	<div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: left;">
-		<img src="https://payuee.shop/assets/images/logo.png" alt="Shopsphere Africa Logo" style="display: block; margin: 0 auto; max-width: 100%;">
+		<img src="https://payuee.shop/assets/images/logo.png" alt="Business Connect Logo" style="display: block; margin: 0 auto; max-width: 100%;">
 		<h1 style="color: #333333; margin-bottom: 20px; text-align: center;">Magic Login Link</h1>
 	
 		<p style="color: #777777;">Hi {{.Name}},</p>
-		<p style="color: #777777;">You requested a magic login link to access your Shopsphere Africa account. This link will automatically log you into your Shopsphere Africa account.</p>
+		<p style="color: #777777;">You requested a magic login link to access your Business Connect account. This link will automatically log you into your Business Connect account.</p>
 		<p style="color: #777777;">To login, please click the button below:</p>
 	
 		<a href="{{.URL}}" style="display: block; margin: 0 auto; padding: 15px; background-color: #007bff; color: #ffffff; text-decoration: none; font-size: 24px; border-radius: 6px; width: 200px; text-align: center;">Login</a>
@@ -426,7 +426,7 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 	
 		<p style="color: #777777; margin-top: 20px;">For security reasons, this link will expire in 5 minutes.</p>
 		<p style="color: #777777;">If you didn't request this login link or need assistance, please ignore this email or contact us at <a href="mailto:support@shopsphereafrica.com">support@shopsphereafrica.com</a>.</p>
-		<p style="color: #777777;">Thanks,<br>The Shopsphere Africa Team</p>
+		<p style="color: #777777;">Thanks,<br>The Business Connect Team</p>
 	</div>
 	</body>
 	</html>
@@ -525,7 +525,7 @@ func SendEmailToSubscribers(Subject, content, sendTo string) error {
 		<meta charset="UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Shopsphere Africa Email Notification</title>
+		<title>Business Connect Email Notification</title>
 	</head>
 	<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; text-align: center;">
 		<div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: left;">
@@ -542,7 +542,7 @@ func SendEmailToSubscribers(Subject, content, sendTo string) error {
 				</tr>
 				<tr>
 					<td style="text-align: center; padding: 10px 30px 30px 30px; background-color: #f4f4f4;">
-						<p style="font-size: 13px; margin: 0;">© {{.Year}} Shopsphere Africa.</p>
+						<p style="font-size: 13px; margin: 0;">© {{.Year}} Business Connect.</p>
 					</td>
 				</tr>
 			</table>
