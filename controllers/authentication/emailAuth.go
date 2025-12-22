@@ -121,7 +121,7 @@ func EmailVerification(name, sendTo string) error {
 	</head>
 	<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; text-align: center;">
 		<div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: left;">
-			<img src="https://payuee.shop/assets/images/logo-2.png" alt="Business Connect Logo" style="display: block; margin: 0 auto; max-width: 100%;">
+			<img src="https://payuee.shop/assets/images/logo.png" alt="Business Connect Logo" style="display:block; margin:0 auto; width:120px; height:auto;">
 			<h1 style="color: #333333; margin-bottom: 20px; text-align: center;">Verify Your Email Address</h1>
 
 			<p style="color: #777777;">Hi {{.Name}},</p>
@@ -263,7 +263,7 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 							<table style="margin: 0 auto; margin-bottom: 30px;">
 							<tbody>
 								<tr style="display: flex; align-items: center; justify-content: space-between; width: 650px;">
-								<td><img style="max-width: 100%;" src="https://payuee.shop/assets/images/logo-2.png" alt=""></td>
+								<td><img style="max-width: 100%;" src="https://payuee.shop/assets/images/logo.png" alt="" style="display:block; margin:0 auto; width:120px; height:auto;"></td>
 								</tr>
 							</tbody>
 							</table>
@@ -424,7 +424,7 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 	</head>
 	<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; text-align: center;">
 	<div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: left;">
-		<img src="https://payuee.shop/assets/images/logo-2.png" alt="Business Connect Logo" style="display: block; margin: 0 auto; max-width: 100%;">
+		<img src="https://payuee.shop/assets/images/logo.png" alt="Business Connect Logo" style="display:block; margin:0 auto; width:120px; height:auto;">
 		<h1 style="color: #333333; margin-bottom: 20px; text-align: center;">Magic Login Link</h1>
 	
 		<p style="color: #777777;">Hi {{.Name}},</p>
