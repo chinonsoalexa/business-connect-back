@@ -120,7 +120,7 @@ func GetBusinessConnectProductByID(ctx *fiber.Ctx) error {
 		})
 	}
 
-	relatedProducts, _, CatErr := dbFunc.DBHelper.GetBusinessConnectRecommendedProductsByLimit(convertedTransactionID, productDetail.BusinessCategory, 12)
+	relatedProducts, _, CatErr := dbFunc.DBHelper.GetBusinessConnectRecommendedProductsByLimit(convertedTransactionID, *productDetail.BusinessCategory, 12)
 	if CatErr != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "failed to get recommended product",

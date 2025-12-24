@@ -323,7 +323,7 @@ func UpdateBusinessConnectProduct(ctx *fiber.Ctx) error {
 	// UpdatedProduct.SellingPrice = ProductUpdate.SellingPrice
 	// UpdatedProduct.ProductStock = ProductUpdate.ProductStock
 	// UpdatedProduct.NetWeight = ProductUpdate.NetWeight
-	UpdatedProduct.BusinessCategory = ProductUpdate.Category
+	// UpdatedProduct.BusinessCategory = ProductUpdate.BusinessCategory
 	// UpdatedProduct.ProductRank = ProductUpdate.ProductRank
 	// UpdatedProduct.Tags = ProductUpdate.Tags
 	// UpdatedProduct.PublishStatus = ProductUpdate.PublishStatus

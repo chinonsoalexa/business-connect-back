@@ -14,11 +14,11 @@ import (
 func NullifyCookie(ctx *fiber.Ctx) {
 	// Set the auth token cookie to expire
 	ctx.Cookie(&fiber.Cookie{
-		Name:     "__Shopsphere-Auth-Token",
+		Name:     "__BusinessConnect-Auth-Token",
 		Value:    "",
 		Expires:  time.Now().Add(-1000 * time.Hour),
 		Path:     "/",
-		Domain:   ".shopsphereafrica.com", // Ensure domain is set
+		Domain:   ".payuee.shop", // Ensure domain is set
 		HTTPOnly: true,
 		SameSite: "None",
 		Secure:   true, // Set to true if using "SameSite: None"
@@ -26,11 +26,11 @@ func NullifyCookie(ctx *fiber.Ctx) {
 
 	// Set the refresh token cookie to expire
 	ctx.Cookie(&fiber.Cookie{
-		Name:     "__Shopsphere-Refresh-Token",
+		Name:     "__BusinessConnect-Refresh-Token",
 		Value:    "",
 		Expires:  time.Now().Add(-1000 * time.Hour),
 		Path:     "/",
-		Domain:   ".shopsphereafrica.com", // Ensure domain is set
+		Domain:   ".payuee.shop", // Ensure domain is set
 		HTTPOnly: true,
 		SameSite: "None",
 		Secure:   true, // Set to true if using "SameSite: None"
@@ -42,7 +42,7 @@ func NullifyCookie(ctx *fiber.Ctx) {
 		Value:    "",
 		Expires:  time.Now().Add(-1000 * time.Hour),
 		Path:     "/",
-		Domain:   ".shopsphereafrica.com", // Ensure domain is set
+		Domain:   ".payuee.shop", // Ensure domain is set
 		HTTPOnly: true,
 		SameSite: "None",
 		Secure:   true, // Set to true if using "SameSite: None"
@@ -54,11 +54,11 @@ func SetAuthAndRefreshCookies(ctx *fiber.Ctx, authToken string, refreshToken str
 
 	// Set the cookie to be sent
 	ctx.Cookie(&fiber.Cookie{
-		Name:     "__Shopsphere-Auth-Token",
+		Name:     "__BusinessConnect-Auth-Token",
 		Value:    authToken,
 		Expires:  time.Now().Add(14 * 24 * time.Hour),
 		Path:     "/",
-		Domain:   ".shopsphereafrica.com",
+		Domain:   ".payuee.shop",
 		HTTPOnly: true,
 		SameSite: "None",
 		Secure:   true,
@@ -66,11 +66,11 @@ func SetAuthAndRefreshCookies(ctx *fiber.Ctx, authToken string, refreshToken str
 
 	// Set the cookie to be sent
 	ctx.Cookie(&fiber.Cookie{
-		Name:     "__Shopsphere-Refresh-Token",
+		Name:     "__BusinessConnect-Refresh-Token",
 		Value:    refreshToken,
 		Expires:  time.Now().Add(14 * 24 * time.Hour),
 		Path:     "/",
-		Domain:   ".shopsphereafrica.com",
+		Domain:   ".payuee.shop",
 		HTTPOnly: true,
 		SameSite: "None",
 		Secure:   true,
@@ -82,7 +82,7 @@ func SetAuthAndRefreshCookies(ctx *fiber.Ctx, authToken string, refreshToken str
 		Value:    csrfSecret,
 		Expires:  time.Now().Add(14 * 24 * time.Hour),
 		Path:     "/",
-		Domain:   ".shopsphereafrica.com",
+		Domain:   ".payuee.shop",
 		HTTPOnly: true,
 		SameSite: "None",
 		Secure:   true,
@@ -92,21 +92,21 @@ func SetAuthAndRefreshCookies(ctx *fiber.Ctx, authToken string, refreshToken str
 
 func WebRequireAuth(ctx *fiber.Ctx) error {
 	// get the authentication cookie of req
-	AuthCookie := ctx.Cookies("__Shopsphere-Auth-Token")
+	AuthCookie := ctx.Cookies("__BusinessConnect-Auth-Token")
 	// fmt.Println("this is the auth token: ", AuthCookie)
 	if AuthCookie == "" {
 		// send an error when cookie was not found
 		NullifyCookie(ctx)
-		// return ctx.Redirect("https://shopsphereafrica.com/page/signin-new.html")
+		// return ctx.Redirect("https://payuee.shop/page/signin-new.html")
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "No Authentication cookie found"})
 	}
 
 	// get the refresh cookie of req
-	RefreshCookie := ctx.Cookies("__Shopsphere-Refresh-Token")
+	RefreshCookie := ctx.Cookies("__BusinessConnect-Refresh-Token")
 	// fmt.Println("this is the refresh token", RefreshCookie)
 	if RefreshCookie == "" {
 		NullifyCookie(ctx)
-		// return ctx.Redirect("https://shopsphereafrica.com/page/signin-new.html")
+		// return ctx.Redirect("https://payuee.shop/page/signin-new.html")
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "No Refresh cookie found"})
 	}
 
@@ -115,7 +115,7 @@ func WebRequireAuth(ctx *fiber.Ctx) error {
 	// fmt.Println("this is the csrf token", CsrfCookie)
 	if CsrfCookie == "" {
 		NullifyCookie(ctx)
-		// return ctx.Redirect("https://shopsphereafrica.com/page/signin-new.html")
+		// return ctx.Redirect("https://payuee.shop/page/signin-new.html")
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "No Csrf secrets found"})
 	}
 
@@ -123,7 +123,7 @@ func WebRequireAuth(ctx *fiber.Ctx) error {
 
 	if jwtErr != nil && jwtErr.Error() == "Unauthorized" {
 		NullifyCookie(ctx)
-		// return ctx.Redirect("https://shopsphereafrica.com/page/signin-new.html")
+		// return ctx.Redirect("https://payuee.shop/page/signin-new.html")
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized attempt! JWT's not valid!"})
 	}
 
