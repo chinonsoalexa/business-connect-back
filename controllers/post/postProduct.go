@@ -86,6 +86,7 @@ func CreatePost(c *fiber.Ctx) error {
 	if len(files) > 0 {
 		uploads, err := upload.UploadFiles(files)
 		if err != nil {
+			fmt.Println("Image upload error:", err)
 			return c.Status(500).JSON(fiber.Map{"error": "image upload failed"})
 		}
 

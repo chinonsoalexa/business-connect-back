@@ -2,7 +2,7 @@ package authentication
 
 // imported packages to be used
 import (
-	"fmt"
+	// "fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -121,7 +121,7 @@ func SignIn(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Error creating cookies"})
 	}
 
-	fmt.Println("this is the Refresh Token String: ", refreshTokenString)
+	// fmt.Println("this is the Refresh Token String: ", refreshTokenString)
 
 	// set the cookies to these newly created jwt's and also set's the csrf token
 	reqAuth.SetAuthAndRefreshCookies(ctx, authTokenString, refreshTokenString, csrfSecret)
