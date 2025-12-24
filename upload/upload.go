@@ -44,7 +44,7 @@ func UploadFiles(fileHeader []*multipart.FileHeader) ([]Data.PostImage, error) {
 		b2Client   *b2.Client
 		bucket     *b2.Bucket
 		results    []Data.PostImage
-		EnvErr     error
+		// EnvErr     error
 		B2LinkErr  error
 		bucketName string
 		// accountID      string
@@ -53,9 +53,11 @@ func UploadFiles(fileHeader []*multipart.FileHeader) ([]Data.PostImage, error) {
 	)
 
 	// Load environment variables from the .env file
-	EnvErr = godotenv.Load(".env")
-	if EnvErr != nil {
-		return nil, errors.New("error loading .env file")
+	if os.Getenv("RENDER") == "" {
+		// Local development only
+		if err := godotenv.Load(".env"); err != nil {
+			log.Printf("Failed to load .env file: %v\n", err)
+		}
 	}
 
 	// Get B2 credentials from environment variables
