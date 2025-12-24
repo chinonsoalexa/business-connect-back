@@ -90,14 +90,14 @@ type (
 		Clicks      int64 `json:"clicks" gorm:"default:0"`
 
 		// Location (used by business + event)
-		Location string `json:"location,omitempty"`
+		Location *string `json:"location,omitempty"`
 
 		// BUSINESS FIELDS
-		BusinessCategory string `json:"business_category,omitempty"`
+		BusinessCategory *string `json:"business_category,omitempty"`
 
 		// GROUP / EVENT FIELDS
-		EntryType  string `json:"entry_type,omitempty"`  // free | paid
-		EntryPrice int64  `json:"entry_price,omitempty"` // store in kobo
+		EntryType  *string `json:"entry_type,omitempty"`  // free | paid
+		EntryPrice *int64  `json:"entry_price,omitempty"` // store in kobo
 		MaxMembers *int   `json:"max_members,omitempty"`
 
 		// EVENT ONLY
@@ -117,7 +117,7 @@ type (
 	ProductSearchResponse struct {
 		Title        string  `json:"title"`
 		ProductUrlID string  `json:"product_url_id"`
-		Category     string  `json:"category"`
+		Category     *string  `json:"category"`
 		SellingPrice float64 `json:"selling_price"` // Numeric price
 		ImageUrl     string  `json:"image"`         // The first image URL
 	}
