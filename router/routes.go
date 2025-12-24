@@ -261,7 +261,7 @@ func Routers() *fiber.App {
 	router.Get("/get-dorng-analytics", mid.WebRequireAuth, home.GetBusinessConnectAnalytics)
 
 	// post a product on BusinessConnect
-	router.Post("/publish-product", mid.WebRequireAuth, upload.PostProduct)
+	router.Post("/publish-product", mid.WebRequireAuth, upload.CreatePost)
 
 	// set shipping fee
 	router.Post("/set-shipping-fee", mid.WebRequireAuth, order.SetShippingPricePerKm)
