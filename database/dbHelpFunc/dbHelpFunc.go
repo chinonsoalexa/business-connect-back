@@ -807,7 +807,7 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
 
 	result := conn.DB.
 		Preload("Images").
-		Where("is_active = ? AND approved = ?", true, true).
+		// Where("is_active = ? AND approved = ?", true, true).
 		Order("created_at DESC").
 		Limit(limit).
 		Offset(offset).
@@ -819,7 +819,7 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
 
 	conn.DB.
 		Model(&Data.Post{}).
-		Where("is_active = ? AND approved = ?", true, true).
+		// Where("is_active = ? AND approved = ?", true, true).
 		Count(&postRecordsCount)
 
 	return posts, postRecordsCount, nil
@@ -1638,6 +1638,8 @@ func (d *DatabaseHelperImpl) AddProduct(post Data.Post, user Data.User) (Data.Po
 	post.ProfilePhotoURL = user.ProfilePhotoURL
 	post.PhoneNumber = user.PhoneNumber
 	post.Verified = user.Verified
+	post.IsActive = true
+	post.Approved = true
 	result := conn.DB.Create(&post)
 
 	// Check if an error occurred when creating the product
