@@ -797,11 +797,17 @@ func (d *DatabaseHelperImpl) CompareOTPHash(hash string, plainOTP string) error 
 	return nil
 }
 
-func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(userID uint, limit, offset int) ([]Data.Post, int64, error) {
+func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
+	userID uint, // ← unused, but not an error
+	limit,
+	offset int,
+) ([]Data.Post, int64, error) {
+
 	var postRecordsCount int64
 	var posts []Data.Post
 
-	result := conn.DB.Preload("Images").
+	result := conn.DB.
+		Preload("Images").
 		Where("is_active = ? AND approved = ?", true, true).
 		Order("created_at DESC").
 		Limit(limit).
@@ -809,11 +815,13 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(userID uint, limi
 		Find(&posts)
 
 	if result.Error != nil {
-		return []Data.Post{}, 0, errors.New(result.Error.Error())
+		return []Data.Post{}, 0, result.Error
 	}
 
-	// Optional: total count for frontend pagination if needed
-	conn.DB.Model(&Data.Post{}).Where("is_active = ? AND approved = ?", true, true).Count(&postRecordsCount)
+	conn.DB.
+		Model(&Data.Post{}).
+		Where("is_active = ? AND approved = ?", true, true).
+		Count(&postRecordsCount)
 
 	return posts, postRecordsCount, nil
 }
