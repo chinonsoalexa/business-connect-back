@@ -1677,6 +1677,9 @@ func (d *DatabaseHelperImpl) AddProduct(post Data.Post, user Data.User) (Data.Po
 	post.Verified = user.Verified
 	post.IsActive = true
 	post.Approved = true
+	if post.Location == nil || *post.Location == "" {
+		post.Location = &user.State
+	}
 	result := conn.DB.Create(&post)
 
 	// Check if an error occurred when creating the product
