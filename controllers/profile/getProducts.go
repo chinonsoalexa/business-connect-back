@@ -56,7 +56,7 @@ func GetPostsPaginated(ctx *fiber.Ctx) error {
 
 	offset := (page - 1) * limit
 
-	posts, total, postErr := dbFunc.DBHelper.GetBusinessConnectProductsByLimit(user.ID, limit, offset)
+	posts, total, postErr := dbFunc.DBHelper.GetBusinessConnectProductsByLimit(limit, offset)
 	if postErr != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch posts"})
 	}

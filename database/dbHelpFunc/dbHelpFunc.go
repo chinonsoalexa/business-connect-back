@@ -50,7 +50,7 @@ type DatabaseHelper interface {
 	UpdateMaxTry(Email string) (err error)
 	UpdateMaxTryNumber(number string) (err error)
 	UpdateMaxTryToZero(Email string) (err error)
-	GetBusinessConnectProductsByLimit(userID uint, limit, offset int) ([]Data.Post, int64, error)
+	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, int64, error)
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
 	GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
 	GetProductsByCategory(category string, limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
@@ -798,7 +798,6 @@ func (d *DatabaseHelperImpl) CompareOTPHash(hash string, plainOTP string) error 
 }
 
 func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
-	userID uint, // ← unused, but not an error
 	limit,
 	offset int,
 ) ([]Data.Post, int64, error) {
