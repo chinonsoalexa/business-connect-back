@@ -1629,6 +1629,7 @@ func (d *DatabaseHelperImpl) AddProduct(post Data.Post, user Data.User) (Data.Po
 	// Create the product in the database
 	post.UserName = user.FullName
 	post.ProfilePhotoURL = user.ProfilePhotoURL
+	post.PhoneNumber = user.PhoneNumber
 	result := conn.DB.Create(&post)
 
 	// Check if an error occurred when creating the product

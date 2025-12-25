@@ -77,6 +77,7 @@ type (
 		UserID uint `json:"user_id" gorm:"index"`
 		UserName string `json:"user_name" gorm:"index"`
 		ProfilePhotoURL string `json:"profile_photo_url"`
+		PhoneNumber     string `json:"phone_number" gorm:"size:15;index"`
 
 		// Core fields (COMMON)
 		PostType     string `json:"post_type" gorm:"size:20;index"` // personal | business | group | event | ad
