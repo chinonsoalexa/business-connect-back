@@ -33,6 +33,7 @@ type User struct {
 	CoverPhotoURL   string `json:"cover_photo_url"`
 
 	EmailVerified bool    `json:"email_verified" gorm:"default:false"`
+	Verified      bool    `json:"verified" gorm:"default:false"`
 	Suspended     bool    `json:"suspended" gorm:"default:false"`
 	Address       string  `json:"address"`
 	State         string  `json:"state"`
@@ -74,10 +75,11 @@ type (
 		gorm.Model
 
 		// Ownership
-		UserID uint `json:"user_id" gorm:"index"`
-		UserName string `json:"user_name" gorm:"index"`
+		UserID          uint   `json:"user_id" gorm:"index"`
+		UserName        string `json:"user_name" gorm:"index"`
 		ProfilePhotoURL string `json:"profile_photo_url"`
 		PhoneNumber     string `json:"phone_number" gorm:"size:15;index"`
+		Verified        bool   `json:"verified" gorm:"default:false"`
 
 		// Core fields (COMMON)
 		PostType     string `json:"post_type" gorm:"size:20;index"` // personal | business | group | event | ad
@@ -101,7 +103,7 @@ type (
 		// GROUP / EVENT FIELDS
 		EntryType  *string `json:"entry_type,omitempty"`  // free | paid
 		EntryPrice *int64  `json:"entry_price,omitempty"` // store in kobo
-		MaxMembers *int   `json:"max_members,omitempty"`
+		MaxMembers *int    `json:"max_members,omitempty"`
 
 		// EVENT ONLY
 		EventDate *time.Time `json:"event_date,omitempty"`
@@ -120,7 +122,7 @@ type (
 	ProductSearchResponse struct {
 		Title        string  `json:"title"`
 		ProductUrlID string  `json:"product_url_id"`
-		Category     *string  `json:"category"`
+		Category     *string `json:"category"`
 		SellingPrice float64 `json:"selling_price"` // Numeric price
 		ImageUrl     string  `json:"image"`         // The first image URL
 	}

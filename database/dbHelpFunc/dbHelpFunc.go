@@ -774,7 +774,7 @@ func (d *DatabaseHelperImpl) CreateOTPHash(OTP string) (string, error) {
 }
 
 func (d *DatabaseHelperImpl) CompareOTPHash(hash string, plainOTP string) error {
-		
+
 	hash = strings.TrimSpace(hash)
 	plainOTP = strings.TrimSpace(plainOTP)
 
@@ -809,7 +809,7 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(userID uint, limi
 		Find(&posts)
 
 	if result.Error != nil {
-		return []Data.Post{}, 0,errors.New(result.Error.Error())
+		return []Data.Post{}, 0, errors.New(result.Error.Error())
 	}
 
 	// Optional: total count for frontend pagination if needed
@@ -1356,11 +1356,11 @@ func (d *DatabaseHelperImpl) SearchProductsByTitleAndCategory(searchTerm string,
 		}
 
 		results = append(results, Data.ProductSearchResponse{
-			Title:        product.Title,
+			Title: product.Title,
 			// ProductUrlID: product.ProductUrlID,
-			Category:     product.BusinessCategory, // Using the string category from Post model
+			Category: product.BusinessCategory, // Using the string category from Post model
 			// SellingPrice: product.SellingPrice,
-			ImageUrl:     imageUrl,
+			ImageUrl: imageUrl,
 		})
 	}
 
@@ -1630,6 +1630,7 @@ func (d *DatabaseHelperImpl) AddProduct(post Data.Post, user Data.User) (Data.Po
 	post.UserName = user.FullName
 	post.ProfilePhotoURL = user.ProfilePhotoURL
 	post.PhoneNumber = user.PhoneNumber
+	post.Verified = user.Verified
 	result := conn.DB.Create(&post)
 
 	// Check if an error occurred when creating the product
