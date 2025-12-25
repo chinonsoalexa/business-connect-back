@@ -27,18 +27,17 @@ type PaginationData struct {
 }
 
 func GetPostsPaginated(ctx *fiber.Ctx) error {
-		// get stored user id from request time line
+	// Get stored user id from request context
 	userId := ctx.Locals("user-id")
-
 	if userId == nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "failed to get user",
 		})
 	}
 
 	user, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userId)
 	if uuidErr != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "failed to get user from request",
 		})
 	}
@@ -54,19 +53,32 @@ func GetPostsPaginated(ctx *fiber.Ctx) error {
 		limit = 20
 	}
 
+	// Calculate offset
 	offset := (page - 1) * limit
 
+	// Fetch posts and total count
 	posts, total, postErr := dbFunc.DBHelper.GetBusinessConnectProductsByLimit(limit, offset)
 	if postErr != nil {
-		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch posts"})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch posts"})
 	}
-	
+
+	// Clamp page if offset is beyond total
+	if offset >= int(total) {
+		posts = []Data.Post{}
+		page = int((total + int64(limit) - 1) / int64(limit)) // last valid page
+		offset = int(total)                                   // not really used, but for debug
+	}
+
+	// hasMore flag for frontend
+	hasMore := (page * limit) < int(total)
+
 	return ctx.JSON(fiber.Map{
-		"page":  page,
-		"limit": limit,
-		"total": total,
-		"posts": posts,
-		"user":  user,
+		"page":    page,
+		"limit":   limit,
+		"total":   total,
+		"posts":   posts,
+		"user":    user,
+		"hasMore": hasMore,
 	})
 }
 
