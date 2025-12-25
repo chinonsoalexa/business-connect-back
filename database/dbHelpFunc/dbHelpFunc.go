@@ -1627,6 +1627,8 @@ func GenerateProductURL(productName string, productID int) string {
 // AddProduct adds a product and updates its ProductUrlID
 func (d *DatabaseHelperImpl) AddProduct(post Data.Post, user Data.User) (Data.Post, error) {
 	// Create the product in the database
+	post.UserName = user.FullName
+	post.ProfilePhotoURL = user.ProfilePhotoURL
 	result := conn.DB.Create(&post)
 
 	// Check if an error occurred when creating the product
