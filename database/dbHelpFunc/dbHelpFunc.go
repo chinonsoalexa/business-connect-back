@@ -50,7 +50,7 @@ type DatabaseHelper interface {
 	UpdateMaxTry(Email string) (err error)
 	UpdateMaxTryNumber(number string) (err error)
 	UpdateMaxTryToZero(Email string) (err error)
-	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, int64, error)
+	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
 	GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
 	GetProductsByCategory(category string, limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
@@ -798,59 +798,35 @@ func (d *DatabaseHelperImpl) CompareOTPHash(hash string, plainOTP string) error 
 }
 
 func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
-	limit,
-	offset int,
-) ([]Data.Post, int64, error) {
+	limit, offset int,
+) ([]Data.Post, bool, error) {
 
-	var postRecordsCount int64
 	var posts []Data.Post
 
-	fmt.Println("🔹 GetBusinessConnectProductsByLimit called")
-	fmt.Printf("   limit: %d, offset: %d\n", limit, offset)
-
-	// Step 1: Fetch posts
+	// Fetch limit+1 posts to check for "hasMore"
 	result := conn.DB.
+		Model(&Data.Post{}).
 		Preload("Images").
-		// Uncomment if you want to filter
-		// Where("is_active = ? AND approved = ?", true, true).
+		// Uncomment if needed:
+		// Where("is_active = ? AND approved = ?", true, true)
 		Order("created_at DESC").
-		Limit(limit).
+		Limit(limit + 1).
 		Offset(offset).
 		Find(&posts)
 
 	if result.Error != nil {
-		fmt.Println("❌ Error fetching posts:", result.Error)
-		return []Data.Post{}, 0, result.Error
+		return nil, false, result.Error
 	}
 
-	fmt.Printf("✅ Posts fetched: %d\n", len(posts))
-	for i, p := range posts {
-		fmt.Printf("   Post[%d]: ID=%d, Title=%s, IsActive=%v, Approved=%v, DeletedAt=%v\n",
-			i, p.ID, p.Title, p.IsActive, p.Approved, p.DeletedAt.Time)
-		if len(p.Images) > 0 {
-			fmt.Printf("      Images: %d\n", len(p.Images))
-			for j, img := range p.Images {
-				fmt.Printf("         Image[%d]: URL=%s\n", j, img.URL)
-			}
-		}
+	hasMore := false
+	if len(posts) > limit {
+		hasMore = true
+		posts = posts[:limit] // return only the requested limit
 	}
 
-	// Step 2: Count total posts
-	countResult := conn.DB.
-		Model(&Data.Post{}).
-		// Uncomment if you want to filter
-		// Where("is_active = ? AND approved = ?", true, true).
-		Count(&postRecordsCount)
-
-	if countResult.Error != nil {
-		fmt.Println("❌ Error counting posts:", countResult.Error)
-		return posts, 0, countResult.Error
-	}
-
-	fmt.Printf("✅ Total posts in DB: %d\n", postRecordsCount)
-
-	return posts, postRecordsCount, nil
+	return posts, hasMore, nil
 }
+
 
 // func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
 // 	limit,

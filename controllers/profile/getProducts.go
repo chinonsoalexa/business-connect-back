@@ -53,34 +53,26 @@ func GetPostsPaginated(ctx *fiber.Ctx) error {
 		limit = 20
 	}
 
-	// Calculate offset
 	offset := (page - 1) * limit
 
-	// Fetch posts and total count
-	posts, total, postErr := dbFunc.DBHelper.GetBusinessConnectProductsByLimit(limit, offset)
+	// Fetch posts using limit+1 for hasMore
+	posts, hasMore, postErr := dbFunc.DBHelper.GetBusinessConnectProductsByLimit(limit, offset)
 	if postErr != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch posts"})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch posts",
+		})
 	}
 
-	// Clamp page if offset is beyond total
-	if offset >= int(total) {
-		posts = []Data.Post{}
-		page = int((total + int64(limit) - 1) / int64(limit)) // last valid page
-		offset = int(total)                                   // not really used, but for debug
-	}
-
-	// hasMore flag for frontend
-	hasMore := (page * limit) < int(total)
-
+	// Return JSON
 	return ctx.JSON(fiber.Map{
 		"page":    page,
 		"limit":   limit,
-		"total":   total,
 		"posts":   posts,
 		"user":    user,
 		"hasMore": hasMore,
 	})
 }
+
 
 func GetBusinessConnectProductsByLimit(ctx *fiber.Ctx) error {
 	var totalRecords int64
