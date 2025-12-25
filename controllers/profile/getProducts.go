@@ -26,6 +26,49 @@ type PaginationData struct {
 	AllRecords   int64
 }
 
+func GetPostsPaginated(ctx *fiber.Ctx) error {
+		// get stored user id from request time line
+	userId := ctx.Locals("user-id")
+
+	if userId == nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "failed to get user",
+		})
+	}
+
+	user, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userId)
+	if uuidErr != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "failed to get user from request",
+		})
+	}
+
+	// Default pagination values
+	page := ctx.QueryInt("page", 1)
+	limit := ctx.QueryInt("limit", 10)
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 50 {
+		limit = 20
+	}
+
+	offset := (page - 1) * limit
+
+	posts, total, postErr := dbFunc.DBHelper.GetBusinessConnectProductsByLimit(user.ID, limit, offset)
+	if postErr != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch posts"})
+	}
+	
+	return ctx.JSON(fiber.Map{
+		"page":  page,
+		"limit": limit,
+		"total": total,
+		"posts": posts,
+	})
+}
+
 func GetBusinessConnectProductsByLimit(ctx *fiber.Ctx) error {
 	var totalRecords int64
 	var productRecords []Data.Post

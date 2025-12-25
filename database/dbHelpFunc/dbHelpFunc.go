@@ -50,6 +50,7 @@ type DatabaseHelper interface {
 	UpdateMaxTry(Email string) (err error)
 	UpdateMaxTryNumber(number string) (err error)
 	UpdateMaxTryToZero(Email string) (err error)
+	GetBusinessConnectProductsByLimit(userID uint, limit, offset int) ([]Data.Post, int64, error)
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
 	GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
 	GetProductsByCategory(category string, limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
@@ -794,6 +795,27 @@ func (d *DatabaseHelperImpl) CompareOTPHash(hash string, plainOTP string) error 
 
 	// OTP matches
 	return nil
+}
+
+func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(userID uint, limit, offset int) ([]Data.Post, int64, error) {
+	var postRecordsCount int64
+	var posts []Data.Post
+
+	result := conn.DB.Preload("Images").
+		Where("is_active = ? AND approved = ?", true, true).
+		Order("created_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&posts)
+
+	if result.Error != nil {
+		return []Data.Post{}, 0,errors.New(result.Error.Error())
+	}
+
+	// Optional: total count for frontend pagination if needed
+	conn.DB.Model(&Data.Post{}).Where("is_active = ? AND approved = ?", true, true).Count(&postRecordsCount)
+
+	return posts, postRecordsCount, nil
 }
 
 func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error) {
