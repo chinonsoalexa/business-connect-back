@@ -797,61 +797,6 @@ func (d *DatabaseHelperImpl) CompareOTPHash(hash string, plainOTP string) error 
 	return nil
 }
 
-// func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
-// 	limit,
-// 	offset int,
-// ) ([]Data.Post, int64, error) {
-
-// 	var postRecordsCount int64
-// 	var posts []Data.Post
-
-// 	fmt.Println("🔹 GetBusinessConnectProductsByLimit called")
-// 	fmt.Printf("   limit: %d, offset: %d\n", limit, offset)
-
-// 	// Step 1: Fetch posts
-// 	result := conn.DB.
-// 		Preload("Images").
-// 		// Uncomment if you want to filter
-// 		// Where("is_active = ? AND approved = ?", true, true).
-// 		Order("created_at DESC").
-// 		Limit(limit).
-// 		Offset(offset).
-// 		Find(&posts)
-
-// 	if result.Error != nil {
-// 		fmt.Println("❌ Error fetching posts:", result.Error)
-// 		return []Data.Post{}, 0, result.Error
-// 	}
-
-// 	fmt.Printf("✅ Posts fetched: %d\n", len(posts))
-// 	for i, p := range posts {
-// 		fmt.Printf("   Post[%d]: ID=%d, Title=%s, IsActive=%v, Approved=%v, DeletedAt=%v\n",
-// 			i, p.ID, p.Title, p.IsActive, p.Approved, p.DeletedAt.Time)
-// 		if len(p.Images) > 0 {
-// 			fmt.Printf("      Images: %d\n", len(p.Images))
-// 			for j, img := range p.Images {
-// 				fmt.Printf("         Image[%d]: URL=%s\n", j, img.URL)
-// 			}
-// 		}
-// 	}
-
-// 	// Step 2: Count total posts
-// 	countResult := conn.DB.
-// 		Model(&Data.Post{}).
-// 		// Uncomment if you want to filter
-// 		// Where("is_active = ? AND approved = ?", true, true).
-// 		Count(&postRecordsCount)
-
-// 	if countResult.Error != nil {
-// 		fmt.Println("❌ Error counting posts:", countResult.Error)
-// 		return posts, 0, countResult.Error
-// 	}
-
-// 	fmt.Printf("✅ Total posts in DB: %d\n", postRecordsCount)
-
-// 	return posts, postRecordsCount, nil
-// }
-
 func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
 	limit,
 	offset int,
@@ -860,8 +805,13 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
 	var postRecordsCount int64
 	var posts []Data.Post
 
+	fmt.Println("🔹 GetBusinessConnectProductsByLimit called")
+	fmt.Printf("   limit: %d, offset: %d\n", limit, offset)
+
+	// Step 1: Fetch posts
 	result := conn.DB.
 		Preload("Images").
+		// Uncomment if you want to filter
 		// Where("is_active = ? AND approved = ?", true, true).
 		Order("created_at DESC").
 		Limit(limit).
@@ -869,16 +819,66 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
 		Find(&posts)
 
 	if result.Error != nil {
+		fmt.Println("❌ Error fetching posts:", result.Error)
 		return []Data.Post{}, 0, result.Error
 	}
 
-	conn.DB.
+	fmt.Printf("✅ Posts fetched: %d\n", len(posts))
+	for i, p := range posts {
+		fmt.Printf("   Post[%d]: ID=%d, Title=%s, IsActive=%v, Approved=%v, DeletedAt=%v\n",
+			i, p.ID, p.Title, p.IsActive, p.Approved, p.DeletedAt.Time)
+		if len(p.Images) > 0 {
+			fmt.Printf("      Images: %d\n", len(p.Images))
+			for j, img := range p.Images {
+				fmt.Printf("         Image[%d]: URL=%s\n", j, img.URL)
+			}
+		}
+	}
+
+	// Step 2: Count total posts
+	countResult := conn.DB.
 		Model(&Data.Post{}).
+		// Uncomment if you want to filter
 		// Where("is_active = ? AND approved = ?", true, true).
 		Count(&postRecordsCount)
 
+	if countResult.Error != nil {
+		fmt.Println("❌ Error counting posts:", countResult.Error)
+		return posts, 0, countResult.Error
+	}
+
+	fmt.Printf("✅ Total posts in DB: %d\n", postRecordsCount)
+
 	return posts, postRecordsCount, nil
 }
+
+// func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
+// 	limit,
+// 	offset int,
+// ) ([]Data.Post, int64, error) {
+
+// 	var postRecordsCount int64
+// 	var posts []Data.Post
+
+// 	result := conn.DB.
+// 		Preload("Images").
+// 		// Where("is_active = ? AND approved = ?", true, true).
+// 		Order("created_at DESC").
+// 		Limit(limit).
+// 		Offset(offset).
+// 		Find(&posts)
+
+// 	if result.Error != nil {
+// 		return []Data.Post{}, 0, result.Error
+// 	}
+
+// 	conn.DB.
+// 		Model(&Data.Post{}).
+// 		// Where("is_active = ? AND approved = ?", true, true).
+// 		Count(&postRecordsCount)
+
+// 	return posts, postRecordsCount, nil
+// }
 
 func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error) {
 	var productRecords []Data.Post
