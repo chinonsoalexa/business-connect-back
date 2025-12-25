@@ -66,6 +66,7 @@ func GetPostsPaginated(ctx *fiber.Ctx) error {
 		"limit": limit,
 		"total": total,
 		"posts": posts,
+		"user":  user,
 	})
 }
 
