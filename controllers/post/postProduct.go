@@ -105,7 +105,7 @@ func CreatePost(c *fiber.Ctx) error {
 	})
 }
 
-func UpdateUserProfile(c *fiber.Ctx) error {
+func UpdateProfilePhoto(c *fiber.Ctx) error {
 	userID := c.Locals("user-id")
 	if userID == nil {
 		return c.Status(401).JSON(fiber.Map{
@@ -167,7 +167,6 @@ func UpdateUserProfile(c *fiber.Ctx) error {
 		"profile_photo_url": photoURL,
 	})
 }
-
 
 // func PostProduct(ctx *fiber.Ctx) error {
 
