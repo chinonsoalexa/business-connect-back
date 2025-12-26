@@ -52,7 +52,7 @@ type DatabaseHelper interface {
 	UpdateMaxTryToZero(Email string) (err error)
 	GetStatusPostsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	AddProfileImage(userID uint, url string, originalFilename string) error
-	UpdateUserProfilePhoto(userID uint, photoURL string,) error
+	UpdateUserProfilePhoto(userID uint, photoURL string) error
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	GetUsersToConnect(currentUserID uint, limit, offset int) ([]UserSummary, bool, error)
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
@@ -132,7 +132,6 @@ const (
 	EntryFree = "free"
 	EntryPaid = "paid"
 )
-
 
 // the findByEmail() function accepts an email as an argument
 // and return a record of any found user else it returns an error
@@ -849,6 +848,9 @@ type UserSummary struct {
 	PhoneNumber     string `json:"phone_number"`
 	Verified        bool   `json:"verified"`
 	UserType        string `json:"user_type"`
+	State           string `json:"state"`
+	City            string `json:"city"`
+	CoverPhotoURL   string `json:"cover_photo_url"`
 }
 
 func (d *DatabaseHelperImpl) GetUsersToConnect(
@@ -865,7 +867,7 @@ func (d *DatabaseHelperImpl) GetUsersToConnect(
 
 	// Main query: exclude connected users + exclude self
 	result := conn.DB.Model(&Data.User{}).
-		Select("id, full_name, business_name, profile_photo_url, phone_number, verified, user_type").
+		Select("id, full_name, business_name, profile_photo_url, phone_number, cover_photo_url, state, city, verified, user_type").
 		// Where("id NOT IN (?) AND id != ?", subQuery, currentUserID).
 		Where("id != ?", currentUserID).
 		Limit(limit + 1).
