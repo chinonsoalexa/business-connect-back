@@ -56,6 +56,15 @@ func CreatePost(c *fiber.Ctx) error {
 		post.BusinessCategory = &v
 	}
 
+	if v := c.FormValue("stock_availability"); v != "" {
+		post.StockAvailability = v
+	}
+
+	if v := c.FormValue("entry_price"); v != "" {
+		price, _ := strconv.ParseInt(v, 10, 64)
+		post.EntryPrice = &price
+	}
+
 	if v := c.FormValue("entry_type"); v != "" {
 		post.EntryType = &v
 	}

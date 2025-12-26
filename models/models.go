@@ -54,7 +54,7 @@ type User struct {
 	RefreshToken string `json:"-"`
 
 	// Relations
-	Posts []Post `json:"posts,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	Posts  []Post         `json:"posts,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 	Images []ProfileImage `json:"images,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
@@ -97,10 +97,12 @@ type (
 		WhatsappURL  string `json:"whatsapp_url" gorm:"not null"`
 
 		// Visibility
-		IsSponsored bool  `json:"is_sponsored" gorm:"default:false"`
-		IsActive    bool  `json:"is_active" gorm:"default:true"`
-		Views       int64 `json:"views" gorm:"default:0"`
-		Clicks      int64 `json:"clicks" gorm:"default:0"`
+		IsSponsored       bool   `json:"is_sponsored" gorm:"default:false"`
+		IsActive          bool   `json:"is_active" gorm:"default:true"`
+		StockAvailability string `json:"stock_availability" gorm:"default:true"`
+		ProductPrice      int64  `json:"product_price" gorm:"default:0"`
+		Views             int64  `json:"views" gorm:"default:0"`
+		Clicks            int64  `json:"clicks" gorm:"default:0"`
 
 		// Location (used by business + event)
 		Location *string `json:"location,omitempty"`
