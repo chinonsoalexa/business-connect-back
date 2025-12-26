@@ -859,14 +859,15 @@ func (d *DatabaseHelperImpl) GetUsersToConnect(
 	var users []UserSummary
 
 	// Subquery: all connected users
-	subQuery := conn.DB.Table("connections").
-		Select("connected_user_id").
-		Where("user_id = ?", currentUserID)
+	// subQuery := conn.DB.Table("connections").
+	// 	Select("connected_user_id").
+	// 	Where("user_id = ?", currentUserID)
 
 	// Main query: exclude connected users + exclude self
 	result := conn.DB.Model(&Data.User{}).
 		Select("id, full_name, business_name, profile_photo_url, phone_number, verified, user_type").
-		Where("id NOT IN (?) AND id != ?", subQuery, currentUserID).
+		// Where("id NOT IN (?) AND id != ?", subQuery, currentUserID).
+		Where("id != ?", currentUserID).
 		Limit(limit + 1).
 		Offset(offset).
 		Find(&users)
