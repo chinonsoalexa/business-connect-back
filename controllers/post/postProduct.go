@@ -75,6 +75,10 @@ func CreatePost(c *fiber.Ctx) error {
 		post.EventDate = &t
 	}
 
+	if post.PostType == "ad" {
+		post.IsSponsored = true
+	}
+
 	// Save post first
 	savedPost, err := dbFunc.DBHelper.AddProduct(post, user)
 	if err != nil {

@@ -73,7 +73,6 @@ func GetPostsPaginated(ctx *fiber.Ctx) error {
 	})
 }
 
-
 func GetBusinessConnectProductsByLimit(ctx *fiber.Ctx) error {
 	var totalRecords int64
 	var productRecords []Data.Post
