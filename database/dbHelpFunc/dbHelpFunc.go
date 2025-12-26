@@ -844,16 +844,21 @@ func (d *DatabaseHelperImpl) GetStatusPostsByLimit(
 
 	var posts []Data.Post
 
+	// Calculate time 24 hours ago
+	twentyFourHoursAgo := time.Now().Add(-24 * time.Hour)
+
 	result := conn.DB.
 		Model(&Data.Post{}).
 		Preload("Images").
 		Where(`
-			is_active = ? 
-			AND approved = ? 
+			is_active = ?
+			AND approved = ?
 			AND post_type = ?
-		`, true, true, "status"). // only status posts
+			AND created_at >= ?
+		`, true, true, "status", twentyFourHoursAgo).
 		Order("created_at DESC").
 		Limit(limit + 1).
+		Offset(offset).
 		Find(&posts)
 
 	if result.Error != nil {
