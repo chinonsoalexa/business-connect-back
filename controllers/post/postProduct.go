@@ -144,7 +144,7 @@ func UpdateUserProfile(c *fiber.Ctx) error {
 	// Save image history
 	err = dbFunc.DBHelper.AddProfileImage(
 		user.ID,
-		photoURL,
+		photoURL.URL,
 		file.Filename,
 	)
 	if err != nil {
