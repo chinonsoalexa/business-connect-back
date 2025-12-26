@@ -105,7 +105,7 @@ func CreatePost(c *fiber.Ctx) error {
 	})
 }
 
-func UpdateProfilePhoto(c *fiber.Ctx) error {
+func UpdateUserProfile(c *fiber.Ctx) error {
 	userID := c.Locals("user-id")
 	if userID == nil {
 		return c.Status(401).JSON(fiber.Map{
@@ -120,26 +120,42 @@ func UpdateProfilePhoto(c *fiber.Ctx) error {
 		})
 	}
 
-	// Get file
+	// Try to get file (optional)
 	file, err := c.FormFile("profile_photo")
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "profile photo is required",
+		// ✅ No file uploaded → user skipped
+		return c.JSON(fiber.Map{
+			"success": true,
+			"message": "profile completed without photo",
+			"user":    user,
 		})
 	}
 
-	// Upload file (reuse your uploader)
+	// Upload file
 	uploads, err := upload.UploadFiles([]*multipart.FileHeader{file})
 	if err != nil || len(uploads) == 0 {
 		return c.Status(500).JSON(fiber.Map{
-			"error": "upload failed",
+			"error": "profile photo upload failed",
 		})
 	}
 
-	photoURL := uploads[0] // string path returned by uploader
+	photoURL := uploads[0]
 
-	// Update user record
-	if err := dbFunc.DBHelper.UpdateUserProfilePhoto(user.ID, photoURL.URL); err != nil {
+	// Save image history
+	err = dbFunc.DBHelper.AddProfileImage(
+		user.ID,
+		photoURL,
+		file.Filename,
+	)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "failed to save profile image",
+		})
+	}
+
+	// Update current profile photo
+	err = dbFunc.DBHelper.UpdateUserProfilePhoto(user.ID, photoURL.URL)
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "failed to update profile photo",
 		})
@@ -151,6 +167,7 @@ func UpdateProfilePhoto(c *fiber.Ctx) error {
 		"profile_photo_url": photoURL,
 	})
 }
+
 
 // func PostProduct(ctx *fiber.Ctx) error {
 

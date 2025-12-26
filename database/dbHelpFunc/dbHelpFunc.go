@@ -51,6 +51,7 @@ type DatabaseHelper interface {
 	UpdateMaxTryNumber(number string) (err error)
 	UpdateMaxTryToZero(Email string) (err error)
 	GetStatusPostsByLimit(limit, offset int) ([]Data.Post, bool, error)
+	AddProfileImage(userID uint, url string, originalFilename string) error
 	UpdateUserProfilePhoto(userID uint, photoURL string,) error
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
