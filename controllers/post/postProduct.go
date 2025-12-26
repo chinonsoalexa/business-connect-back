@@ -105,6 +105,53 @@ func CreatePost(c *fiber.Ctx) error {
 	})
 }
 
+func UpdateProfilePhoto(c *fiber.Ctx) error {
+	userID := c.Locals("user-id")
+	if userID == nil {
+		return c.Status(401).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	user, err := dbFunc.DBHelper.FindByUuidFromLocal(userID)
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "user not found",
+		})
+	}
+
+	// Get file
+	file, err := c.FormFile("profile_photo")
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "profile photo is required",
+		})
+	}
+
+	// Upload file (reuse your uploader)
+	uploads, err := upload.UploadFiles([]*multipart.FileHeader{file})
+	if err != nil || len(uploads) == 0 {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "upload failed",
+		})
+	}
+
+	photoURL := uploads[0] // string path returned by uploader
+
+	// Update user record
+	if err := dbFunc.DBHelper.UpdateUserProfilePhoto(user.ID, photoURL.URL); err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "failed to update profile photo",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "profile photo updated",
+		"profile_photo_url": photoURL,
+	})
+}
+
 // func PostProduct(ctx *fiber.Ctx) error {
 
 // 	// Get stored user id from request timeline

@@ -55,6 +55,14 @@ type User struct {
 
 	// Relations
 	Posts []Post `json:"posts,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	Images []ProfileImage `json:"images,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+}
+
+type ProfileImage struct {
+	gorm.Model
+	UserID           uint   `json:"user_id"`
+	URL              string `json:"url" gorm:"column:url"`
+	OriginalFilename string `json:"original_file_name" gorm:"column:original_file_name"`
 }
 
 type SignUpRequest struct {

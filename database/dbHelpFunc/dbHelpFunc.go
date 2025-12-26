@@ -51,6 +51,7 @@ type DatabaseHelper interface {
 	UpdateMaxTryNumber(number string) (err error)
 	UpdateMaxTryToZero(Email string) (err error)
 	GetStatusPostsByLimit(limit, offset int) ([]Data.Post, bool, error)
+	UpdateUserProfilePhoto(userID uint, photoURL string,) error
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
 	GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
@@ -872,6 +873,33 @@ func (d *DatabaseHelperImpl) GetStatusPostsByLimit(
 	}
 
 	return posts, hasMore, nil
+}
+
+func (d *DatabaseHelperImpl) AddProfileImage(
+	userID uint,
+	url string,
+	originalFilename string,
+) error {
+
+	image := Data.ProfileImage{
+		UserID:           userID,
+		URL:              url,
+		OriginalFilename: originalFilename,
+	}
+
+	return conn.DB.Create(&image).Error
+}
+
+func (d *DatabaseHelperImpl) UpdateUserProfilePhoto(
+	userID uint,
+	photoURL string,
+) error {
+
+	return conn.DB.
+		Model(&Data.User{}).
+		Where("id = ?", userID).
+		Update("profile_photo_url", photoURL).
+		Error
 }
 
 func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error) {
