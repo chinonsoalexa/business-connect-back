@@ -2,7 +2,7 @@ package profile
 
 import (
 	dbFunc "business-connect/database/dbHelpFunc"
-	Data "business-connect/models"
+	// Data "business-connect/models"
 	helperFunc "business-connect/paystack"
 
 	"github.com/gofiber/fiber/v2"
