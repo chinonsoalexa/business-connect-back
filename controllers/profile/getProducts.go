@@ -114,7 +114,7 @@ func GetStatusPaginated(ctx *fiber.Ctx) error {
 	return ctx.JSON(fiber.Map{
 		"page":    page,
 		"limit":   limit,
-		"posts":   posts,
+		"status":   posts,
 		"user":    user,
 		"hasMore": hasMore,
 	})
