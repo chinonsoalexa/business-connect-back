@@ -49,7 +49,7 @@ func GetFriends(ctx *fiber.Ctx) error {
 	return ctx.JSON(fiber.Map{
 		"page":    page,
 		"limit":   limit,
-		"friends":   friends,
+		"friends": friends,
 		"user":    user,
 		"hasMore": hasMore,
 	})

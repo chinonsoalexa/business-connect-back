@@ -280,11 +280,14 @@ func Routers() *fiber.App {
 	router.Get("/product/:id", NotAuthMiddleware, profile.GetBusinessConnectProductByID)
 	router.Get("/admin-product/:id", NotAuthMiddleware, profile.GetBusinessConnectAdminProductByID)
 	router.Get("/products/:page", NotAuthMiddleware, profile.GetBusinessConnectProductsByLimit)
-	router.Get("/posts", NotAuthMiddleware, mid.WebRequireAuth, profile.GetPostsPaginated)
-	router.Get("/status", NotAuthMiddleware, mid.WebRequireAuth, profile.GetStatusPaginated)
 	router.Get("/admin-products/:idLimit", NotAuthMiddleware, profile.GetBusinessConnectAdminProductsByLimit)
 	router.Post("/post-comment", NotAuthMiddleware, upload.AddBusinessConnectProductComment)
 	router.Get("/get-comment/:idLimit/:proId", NotAuthMiddleware, upload.GetBusinessConnectProductCommentsByLimit)
+
+	// Business Connect
+	router.Get("/posts", NotAuthMiddleware, mid.WebRequireAuth, profile.GetPostsPaginated)
+	router.Get("/status", NotAuthMiddleware, mid.WebRequireAuth, profile.GetStatusPaginated)
+	router.Get("/get-friends", NotAuthMiddleware, mid.WebRequireAuth, profile.GetFriends)
 
 	// blog post, retrieval and updating
 	router.Post("/publish-blog", mid.WebRequireAuth, upload.BlogPost)
