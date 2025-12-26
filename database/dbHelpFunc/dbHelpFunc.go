@@ -119,15 +119,16 @@ type DatabaseHelperImpl struct{}
 var DBHelper DatabaseHelper = &DatabaseHelperImpl{}
 
 const (
-	PostPersonal = "personal"
-	PostBusiness = "business"
-	PostGroup    = "group"
-	PostEvent    = "event"
-	PostAd       = "ad"
+	PostTypePersonal = "personal"
+	PostTypeBusiness = "business"
+	PostTypeGroup    = "group"
+	PostTypeEvent    = "event"
+	PostTypeAd       = "ad"
 
 	EntryFree = "free"
 	EntryPaid = "paid"
 )
+
 
 // the findByEmail() function accepts an email as an argument
 // and return a record of any found user else it returns an error
@@ -803,36 +804,39 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
 
 	var posts []Data.Post
 
-	fmt.Printf("🔹 DBHelper: Fetching posts with limit=%d, offset=%d\n", limit, offset)
+	allowedPostTypes := []string{
+		PostTypePersonal,
+		PostTypeBusiness,
+		PostTypeGroup,
+		PostTypeEvent,
+		PostTypeAd,
+	}
 
-	// Fetch limit+1 posts to check for "hasMore"
 	result := conn.DB.
 		Model(&Data.Post{}).
 		Preload("Images").
-		Where("is_active = ? AND approved = ?", true, true).
+		Where(`
+			is_active = ? 
+			AND approved = ? 
+			AND post_type IN ?
+		`, true, true, allowedPostTypes).
 		Order("created_at DESC").
 		Limit(limit + 1).
-		// Offset(offset).
 		Find(&posts)
 
 	if result.Error != nil {
-		fmt.Println("❌ Error fetching posts:", result.Error)
 		return nil, false, result.Error
 	}
 
 	hasMore := false
 	if len(posts) > limit {
 		hasMore = true
-		posts = posts[:limit] // return only requested limit
-	}
-
-	fmt.Printf("✅ Posts fetched: %d, hasMore: %v\n", len(posts), hasMore)
-	for i, p := range posts {
-		fmt.Printf("   Post[%d]: ID=%d, Title=%s\n", i, p.ID, p.Title)
+		posts = posts[:limit]
 	}
 
 	return posts, hasMore, nil
 }
+
 
 // func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
 // 	limit,
