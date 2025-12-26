@@ -50,6 +50,7 @@ type DatabaseHelper interface {
 	UpdateMaxTry(Email string) (err error)
 	UpdateMaxTryNumber(number string) (err error)
 	UpdateMaxTryToZero(Email string) (err error)
+	GetStatusPostsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
 	GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
@@ -837,34 +838,36 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
 	return posts, hasMore, nil
 }
 
+func (d *DatabaseHelperImpl) GetStatusPostsByLimit(
+	limit, offset int,
+) ([]Data.Post, bool, error) {
 
-// func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
-// 	limit,
-// 	offset int,
-// ) ([]Data.Post, int64, error) {
+	var posts []Data.Post
 
-// 	var postRecordsCount int64
-// 	var posts []Data.Post
+	result := conn.DB.
+		Model(&Data.Post{}).
+		Preload("Images").
+		Where(`
+			is_active = ? 
+			AND approved = ? 
+			AND post_type = ?
+		`, true, true, "status"). // only status posts
+		Order("created_at DESC").
+		Limit(limit + 1).
+		Find(&posts)
 
-// 	result := conn.DB.
-// 		Preload("Images").
-// 		// Where("is_active = ? AND approved = ?", true, true).
-// 		Order("created_at DESC").
-// 		Limit(limit).
-// 		Offset(offset).
-// 		Find(&posts)
+	if result.Error != nil {
+		return nil, false, result.Error
+	}
 
-// 	if result.Error != nil {
-// 		return []Data.Post{}, 0, result.Error
-// 	}
+	hasMore := false
+	if len(posts) > limit {
+		hasMore = true
+		posts = posts[:limit]
+	}
 
-// 	conn.DB.
-// 		Model(&Data.Post{}).
-// 		// Where("is_active = ? AND approved = ?", true, true).
-// 		Count(&postRecordsCount)
-
-// 	return posts, postRecordsCount, nil
-// }
+	return posts, hasMore, nil
+}
 
 func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error) {
 	var productRecords []Data.Post
