@@ -54,6 +54,7 @@ type DatabaseHelper interface {
 	AddProfileImage(userID uint, url string, originalFilename string) error
 	UpdateUserProfilePhoto(userID uint, photoURL string,) error
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
+	GetUsersToConnect(currentUserID uint, limit, offset int) ([]UserSummary, bool, error)
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
 	GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
 	GetProductsByCategory(category string, limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
@@ -838,6 +839,49 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
 	}
 
 	return posts, hasMore, nil
+}
+
+type UserSummary struct {
+	ID              uint   `json:"id"`
+	FullName        string `json:"full_name"`
+	BusinessName    string `json:"business_name"`
+	ProfilePhotoURL string `json:"profile_photo_url"`
+	PhoneNumber     string `json:"phone_number"`
+	Verified        bool   `json:"verified"`
+	UserType        string `json:"user_type"`
+}
+
+func (d *DatabaseHelperImpl) GetUsersToConnect(
+	currentUserID uint,
+	limit, offset int,
+) ([]UserSummary, bool, error) {
+
+	var users []UserSummary
+
+	// Subquery: all connected users
+	subQuery := conn.DB.Table("connections").
+		Select("connected_user_id").
+		Where("user_id = ?", currentUserID)
+
+	// Main query: exclude connected users + exclude self
+	result := conn.DB.Model(&Data.User{}).
+		Select("id, full_name, business_name, profile_photo_url, phone_number, verified, user_type").
+		Where("id NOT IN (?) AND id != ?", subQuery, currentUserID).
+		Limit(limit + 1).
+		Offset(offset).
+		Find(&users)
+
+	if result.Error != nil {
+		return nil, false, result.Error
+	}
+
+	hasMore := false
+	if len(users) > limit {
+		hasMore = true
+		users = users[:limit]
+	}
+
+	return users, hasMore, nil
 }
 
 func (d *DatabaseHelperImpl) GetStatusPostsByLimit(

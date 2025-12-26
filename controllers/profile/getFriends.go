@@ -38,7 +38,7 @@ func GetFriends(ctx *fiber.Ctx) error {
 	offset := (page - 1) * limit
 
 	// Fetch posts using limit+1 for hasMore
-	posts, hasMore, postErr := dbFunc.DBHelper.GetBusinessConnectProductsByLimit(limit, offset)
+	friends, hasMore, postErr := dbFunc.DBHelper.GetUsersToConnect(user.ID, limit, offset)
 	if postErr != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to fetch posts",
@@ -49,7 +49,7 @@ func GetFriends(ctx *fiber.Ctx) error {
 	return ctx.JSON(fiber.Map{
 		"page":    page,
 		"limit":   limit,
-		"posts":   posts,
+		"friends":   friends,
 		"user":    user,
 		"hasMore": hasMore,
 	})
