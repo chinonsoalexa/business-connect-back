@@ -123,12 +123,23 @@ type (
 		Approved bool `json:"approved" gorm:"default:true"`
 
 		Images []PostImage `json:"images,omitempty" gorm:"foreignKey:PostID;constraint:OnDelete:CASCADE"`
+		GroupParticipants []GroupParticipant `json:"group_participant,omitempty" gorm:"foreignKey:PostID;constraint:OnDelete:CASCADE"`
 	}
 	PostImage struct {
 		gorm.Model
 		PostID           uint   `json:"post_id"`
 		URL              string `json:"url" gorm:"column:url"`
 		OriginalFilename string `json:"original_file_name" gorm:"column:original_file_name"`
+	}
+	GroupParticipant struct {
+		gorm.Model
+
+		PostID uint `json:"group_post_id" gorm:"index"` // group post ID
+		UserID uint `json:"user_id" gorm:"index"`
+
+		FullName        string `json:"full_name"`
+		ProfilePhotoURL string `json:"profile_photo_url"`
+		Verified        bool   `json:"verified"`
 	}
 	ProductSearchResponse struct {
 		Title        string  `json:"title"`

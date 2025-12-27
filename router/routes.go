@@ -288,6 +288,8 @@ func Routers() *fiber.App {
 	router.Get("/posts", NotAuthMiddleware, mid.WebRequireAuth, profile.GetPostsPaginated)
 	router.Get("/status", NotAuthMiddleware, mid.WebRequireAuth, profile.GetStatusPaginated)
 	router.Get("/get-friends", NotAuthMiddleware, mid.WebRequireAuth, profile.GetFriends)
+	router.Get("/get-groups", NotAuthMiddleware, mid.WebRequireAuth, profile.GetGroups)
+	router.Post("/join-groups", NotAuthMiddleware, mid.WebRequireAuth, profile.JoinGroupHandler)
 
 	// blog post, retrieval and updating
 	router.Post("/publish-blog", mid.WebRequireAuth, upload.BlogPost)

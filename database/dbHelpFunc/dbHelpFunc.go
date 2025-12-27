@@ -53,6 +53,8 @@ type DatabaseHelper interface {
 	GetStatusPostsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	AddProfileImage(userID uint, url string, originalFilename string) error
 	UpdateUserProfilePhoto(userID uint, photoURL string) error
+	GetAvailableGroups(limit, offset int) ([]GroupFeedItem, bool, error)
+	JoinGroup(user Data.User, groupPostID uint) (*Data.GroupParticipant, bool, error)
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	GetUsersToConnect(currentUserID uint, limit, offset int) ([]UserSummary, bool, error)
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
@@ -949,6 +951,134 @@ func (d *DatabaseHelperImpl) UpdateUserProfilePhoto(
 		Where("id = ?", userID).
 		Update("profile_photo_url", photoURL).
 		Error
+}
+
+type GroupUserSummary struct {
+	ID              uint   `json:"id"`
+	FullName        string `json:"full_name"`
+	ProfilePhotoURL string `json:"profile_photo_url"`
+	Verified        bool   `json:"verified"`
+}
+
+type GroupFeedItem struct {
+	ID          uint                `json:"id"`
+	Title       string              `json:"title"`
+	Description string              `json:"description"`
+	CreatedAt   time.Time           `json:"created_at"`
+
+	Participants []GroupUserSummary `json:"participants"`
+}
+
+func (d *DatabaseHelperImpl) GetAvailableGroups(
+	limit, offset int,
+) ([]GroupFeedItem, bool, error) {
+
+	// 1️⃣ Fetch group posts
+	var groups []Data.Post
+
+	result := conn.DB.
+		Where(`
+			post_type = ?
+			AND is_active = ?
+			AND approved = ?
+		`, PostTypeGroup, true, true).
+		Order("created_at DESC").
+		Limit(limit + 1).
+		Offset(offset).
+		Find(&groups)
+
+	if result.Error != nil {
+		return nil, false, result.Error
+	}
+
+	// pagination flag
+	hasMore := false
+	if len(groups) > limit {
+		hasMore = true
+		groups = groups[:limit]
+	}
+
+	// 2️⃣ Collect group IDs
+	groupIDs := make([]uint, 0, len(groups))
+	for _, g := range groups {
+		groupIDs = append(groupIDs, g.ID)
+	}
+
+	// 3️⃣ Fetch participants (single query)
+	var participants []Data.GroupParticipant
+
+	if len(groupIDs) > 0 {
+		conn.DB.
+			Where("group_post_id IN ?", groupIDs).
+			Order("created_at ASC").
+			Find(&participants)
+	}
+
+	// 4️⃣ Group participants (limit 5 per group)
+	participantMap := make(map[uint][]GroupUserSummary)
+
+	for _, p := range participants {
+		if len(participantMap[p.PostID]) >= 5 {
+			continue
+		}
+
+		participantMap[p.PostID] = append(
+			participantMap[p.PostID],
+			GroupUserSummary{
+				ID:              p.UserID,
+				FullName:        p.FullName,
+				ProfilePhotoURL: p.ProfilePhotoURL,
+				Verified:        p.Verified,
+			},
+		)
+	}
+
+	// 5️⃣ Build response
+	var response []GroupFeedItem
+
+	for _, g := range groups {
+		response = append(response, GroupFeedItem{
+			ID:           g.ID,
+			Title:        g.Title,
+			Description:  g.Description,
+			CreatedAt:    g.CreatedAt,
+			Participants: participantMap[g.ID],
+		})
+	}
+
+	return response, hasMore, nil
+}
+
+// DB helper
+func (d *DatabaseHelperImpl) JoinGroup(user Data.User, groupPostID uint) (*Data.GroupParticipant, bool, error) {
+	// 1️⃣ Check if user already joined
+	var existing Data.GroupParticipant
+	err := conn.DB.
+		Where("post_id = ? AND user_id = ?", groupPostID, user.ID).
+		First(&existing).Error
+
+	if err == nil {
+		// already joined
+		return &existing, false, nil
+	} else if err != gorm.ErrRecordNotFound {
+		// some DB error
+		return nil, false, err
+	}
+
+	// 2️⃣ Create participant
+	participant := Data.GroupParticipant{
+		PostID:          groupPostID,
+		UserID:          user.ID,
+		FullName:        user.FullName,
+		ProfilePhotoURL: user.ProfilePhotoURL,
+		Verified:        user.Verified,
+	}
+
+	if err := conn.DB.Create(&participant).Error; err != nil {
+		return nil, false, err
+	}
+
+	return &participant, true, nil
 }
 
 func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error) {
