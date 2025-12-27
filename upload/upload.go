@@ -276,6 +276,124 @@ func UploadEmailFiles(htmlContent string) (string, error) {
 	return htmlContent, nil
 }
 
+func UploadBlogFiles(fileHeader []*multipart.FileHeader) ([]Data.BlogImage, error) {
+	var (
+		b2Client   *b2.Client
+		bucket     *b2.Bucket
+		results    []Data.BlogImage
+		EnvErr     error
+		B2LinkErr  error
+		bucketName string
+		// accountID      string
+		applicationKey string
+		keyID          string
+	)
+
+	// Load environment variables from the .env file
+	EnvErr = godotenv.Load(".env")
+	if EnvErr != nil {
+		return nil, errors.New("error loading .env file")
+	}
+
+	// Get B2 credentials from environment variables
+	bucketName = os.Getenv("B2_BUCKET_NAME")
+	applicationKey = os.Getenv("B2_APPLICATION_KEY")
+	keyID = os.Getenv("B2_KEY_ID")
+	// accountID = os.Getenv("B2_ACCOUNT_ID")
+
+	// Create a new B2 client
+	b2Client, B2LinkErr = b2.NewClient(context.Background(), keyID, applicationKey)
+	if B2LinkErr != nil {
+		return nil, errors.New("error occurred while setting up B2 client")
+	}
+
+	// Get the bucket instance
+	bucket, B2LinkErr = b2Client.Bucket(context.Background(), bucketName)
+	if B2LinkErr != nil {
+		return nil, errors.New("error occurred while getting B2 bucket")
+	}
+
+	// Define a temporary directory where you'll save the uploaded files
+	tempDir := "./temp"
+
+	// Create the temporary directory if it doesn't exist
+	if err := os.MkdirAll(tempDir, os.ModePerm); err != nil {
+		return nil, err
+	}
+
+	// Specify the folder inside the bucket where the files will be uploaded
+	folderPath := "business-connect-blog/"
+
+	// Iterate through the provided files and upload each one
+	for _, fileHeader := range fileHeader {
+		// Generate a unique filename for the temporary file
+		tempFilename := filepath.Join(tempDir, fileHeader.Filename)
+
+		// Open the temporary file for writing
+		tempFile, err := os.Create(tempFilename)
+		if err != nil {
+			return nil, err
+		}
+		defer tempFile.Close()
+
+		// Open the uploaded file for reading
+		uploadedFile, err := fileHeader.Open()
+		if err != nil {
+			return nil, err
+		}
+		defer uploadedFile.Close()
+
+		// Copy the contents of the uploaded file to the temporary file
+		_, err = io.Copy(tempFile, uploadedFile)
+		if err != nil {
+			return nil, err
+		}
+
+		// Open the temporary file for reading again
+		tempFileForUpload, err := os.Open(tempFilename)
+		if err != nil {
+			return nil, err
+		}
+		defer tempFileForUpload.Close()
+
+		// Generate a unique file name for the B2 object and include the folder path
+		fileName := fmt.Sprintf("%s%d_%s", folderPath, time.Now().UnixNano(), fileHeader.Filename)
+
+		// Create a new writer with attributes
+		obj := bucket.Object(fileName)
+		contentType := getContentType(fileHeader.Filename)
+		attrs := &b2.Attrs{ContentType: contentType}
+		writer := obj.NewWriter(context.Background()).WithAttrs(attrs)
+
+		// Upload the file to Backblaze B2
+		if _, err := io.Copy(writer, tempFileForUpload); err != nil {
+			return nil, errors.New("error occurred while uploading file to B2")
+		}
+		if err := writer.Close(); err != nil {
+			return nil, errors.New("error occurred while closing writer after uploading file to B2")
+		}
+
+		// Build the download URL
+		// downloadURL := fmt.Sprintf("https://shopsphereafrica.com/image/%s", fileName)
+
+		var imageResp = Data.BlogImage{
+			URL:              fileName,
+			OriginalFilename: fileHeader.Filename,
+		}
+
+		// Append the upload result to the results slice
+		results = append(results, imageResp)
+
+		// Delete the temporary file corresponding to the uploaded file
+		if err := os.Remove(tempFilename); err != nil {
+			return nil, errors.New("error occurred while removing temporary file")
+		}
+	}
+
+	// Return the results of all files uploaded
+	return results, nil
+}
+
 func UploadProfileFiles(fileHeader []*multipart.FileHeader) ([]Data.BlogImage, error) {
 	var (
 		b2Client   *b2.Client
