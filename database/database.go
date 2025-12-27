@@ -100,10 +100,10 @@ func DbMigration() {
 		panic("failed to migrate the PostImage database")
 	}
 
-	// err = DB.AutoMigrate(&Data.Blog{})
-	// if err != nil {
-	// 	panic("failed to migrate the Blog database")
-	// }
+	err = DB.AutoMigrate(&Data.ProfileImage{})
+	if err != nil {
+		panic("failed to migrate the ProfileImage database")
+	}
 
 	// err = DB.AutoMigrate(&Data.BlogImage{})
 	// if err != nil {
