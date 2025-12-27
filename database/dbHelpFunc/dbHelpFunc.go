@@ -57,6 +57,7 @@ type DatabaseHelper interface {
 	JoinGroup(user Data.User, groupPostID uint) (*Data.GroupParticipant, bool, error)
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	GetUsersToConnect(currentUserID uint, limit, offset int) ([]UserSummary, bool, error)
+	ConnectToUser(senderID, receiverID uint) error
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
 	GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
 	GetProductsByCategory(category string, limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
@@ -863,16 +864,14 @@ func (d *DatabaseHelperImpl) GetUsersToConnect(
 
 	var users []UserSummary
 
-	// Subquery: all connected users
-	// subQuery := conn.DB.Table("connections").
-	// 	Select("connected_user_id").
-	// 	Where("user_id = ?", currentUserID)
+	// Subquery: all accepted connections
+	subQuery := conn.DB.Table("connections").
+		Select("connected_user_id").
+		Where("user_id = ? AND status = ?", currentUserID, "accepted")
 
-	// Main query: exclude connected users + exclude self
 	result := conn.DB.Model(&Data.User{}).
 		Select("id, full_name, business_name, profile_photo_url, phone_number, cover_photo_url, state, city, verified, user_type, bio_description").
-		// Where("id NOT IN (?) AND id != ?", subQuery, currentUserID).
-		Where("id != ?", currentUserID).
+		Where("id NOT IN (?) AND id != ?", subQuery, currentUserID).
 		Limit(limit + 1).
 		Offset(offset).
 		Find(&users)
@@ -888,6 +887,35 @@ func (d *DatabaseHelperImpl) GetUsersToConnect(
 	}
 
 	return users, hasMore, nil
+}
+
+func (d *DatabaseHelperImpl) ConnectToUser(senderID, receiverID uint) error {
+	// Prevent self-connection
+	if senderID == receiverID {
+		return fmt.Errorf("cannot connect to yourself")
+	}
+
+	// Check if connection already exists
+	var existing Data.Connection
+	err := conn.DB.Where(
+		"(user_id = ? AND connected_user_id = ?) OR (user_id = ? AND connected_user_id = ?)",
+		senderID, receiverID, receiverID, senderID,
+	).First(&existing).Error
+
+	if err == nil {
+		return fmt.Errorf("connection already exists")
+	} else if err != gorm.ErrRecordNotFound {
+		return err
+	}
+
+	// Create new connection request (status: pending)
+	connection := Data.Connection{
+		UserID:          senderID,
+		ConnectedUserID: receiverID,
+		Status:          "pending",
+	}
+
+	return conn.DB.Create(&connection).Error
 }
 
 func (d *DatabaseHelperImpl) GetStatusPostsByLimit(

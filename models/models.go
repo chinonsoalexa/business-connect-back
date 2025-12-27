@@ -59,6 +59,13 @@ type User struct {
 	Images []ProfileImage `json:"images,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
+type Connection struct {
+	gorm.Model
+	UserID          uint `json:"user_id" gorm:"index"`          // who initiated the connection
+	ConnectedUserID uint `json:"connected_user_id" gorm:"index"` // who is connected
+	Status          string `json:"status" gorm:"size:20;default:'pending'"` // pending | accepted | blocked
+}
+
 type ProfileImage struct {
 	gorm.Model
 	UserID           uint   `json:"user_id"`
