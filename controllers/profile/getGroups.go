@@ -108,4 +108,3 @@ func JoinGroupHandler(ctx *fiber.Ctx) error {
 		"participant": participant,
 	})
 }
-
