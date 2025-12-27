@@ -105,15 +105,15 @@ func DbMigration() {
 		panic("failed to migrate the ProfileImage database")
 	}
 
-	// err = DB.AutoMigrate(&Data.BlogImage{})
-	// if err != nil {
-	// 	panic("failed to migrate the BlogImage database")
-	// }
+	err = DB.AutoMigrate(&Data.GroupParticipant{})
+	if err != nil {
+		panic("failed to migrate the GroupParticipant database")
+	}
 
-	// err = DB.AutoMigrate(&Data.CustomerBlogReview{})
-	// if err != nil {
-	// 	panic("failed to migrate the CustomerBlogReview database")
-	// }
+	err = DB.AutoMigrate(&Data.Connection{})
+	if err != nil {
+		panic("failed to migrate the Connection database")
+	}
 
 	// err = DB.AutoMigrate(&Data.SubscribeToEmail{})
 	// if err != nil {
