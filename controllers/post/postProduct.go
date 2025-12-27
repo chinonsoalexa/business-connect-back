@@ -141,7 +141,7 @@ func UpdateProfilePhoto(c *fiber.Ctx) error {
 	}
 
 	// Upload file
-	uploads, err := upload.UploadFiles([]*multipart.FileHeader{file})
+	uploads, err := upload.UploadProfileFiles([]*multipart.FileHeader{file})
 	if err != nil || len(uploads) == 0 {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "profile photo upload failed",

@@ -276,7 +276,7 @@ func UploadEmailFiles(htmlContent string) (string, error) {
 	return htmlContent, nil
 }
 
-func UploadBlogFiles(fileHeader []*multipart.FileHeader) ([]Data.BlogImage, error) {
+func UploadProfileFiles(fileHeader []*multipart.FileHeader) ([]Data.BlogImage, error) {
 	var (
 		b2Client   *b2.Client
 		bucket     *b2.Bucket
@@ -322,7 +322,7 @@ func UploadBlogFiles(fileHeader []*multipart.FileHeader) ([]Data.BlogImage, erro
 	}
 
 	// Specify the folder inside the bucket where the files will be uploaded
-	folderPath := "business-connect-blog/"
+	folderPath := "business-connect-profile-images/"
 
 	// Iterate through the provided files and upload each one
 	for _, fileHeader := range fileHeader {
