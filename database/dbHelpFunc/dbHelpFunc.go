@@ -1001,7 +1001,7 @@ type GroupFeedItem struct {
 	Title       string              `json:"title"`
 	Description string              `json:"description"`
 	CreatedAt   time.Time           `json:"created_at"`
-
+	CoverImage  string              `json:"cover_image"`
 	Participants []GroupUserSummary `json:"participants"`
 }
 
@@ -1009,11 +1009,13 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 	limit, offset int,
 ) ([]GroupFeedItem, bool, error) {
 
-	// 1️⃣ Fetch group posts
+	// 1️⃣ Fetch group posts + preload images
 	var groups []Data.Post
 
 	result := conn.DB.
-		Preload("Images").
+		Preload("Images", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at ASC").Limit(2) // preload only 1 cover image
+		}).
 		Where(`
 			post_type = ?
 			AND is_active = ?
@@ -1023,7 +1025,6 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 		Limit(limit + 1).
 		Offset(offset).
 		Find(&groups)
-
 
 	if result.Error != nil {
 		return nil, false, result.Error
@@ -1044,17 +1045,15 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 
 	// 3️⃣ Fetch participants (single query)
 	var participants []Data.GroupParticipant
-
 	if len(groupIDs) > 0 {
 		conn.DB.
-			Where("group_post_id IN ?", groupIDs).
+			Where("post_id IN ?", groupIDs).
 			Order("created_at ASC").
 			Find(&participants)
 	}
 
 	// 4️⃣ Group participants (limit 5 per group)
 	participantMap := make(map[uint][]GroupUserSummary)
-
 	for _, p := range participants {
 		if len(participantMap[p.PostID]) >= 5 {
 			continue
@@ -1073,14 +1072,19 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 
 	// 5️⃣ Build response
 	var response []GroupFeedItem
-
 	for _, g := range groups {
+		var coverImage string
+		if len(g.Images) > 0 {
+			coverImage = g.Images[0].URL
+		}
+
 		response = append(response, GroupFeedItem{
 			ID:           g.ID,
 			Title:        g.Title,
 			Description:  g.Description,
 			CreatedAt:    g.CreatedAt,
-			Participants: participantMap[g.ID],
+			CoverImage:   coverImage,            // add the preloaded cover image
+			Participants: participantMap[g.ID], // up to 5
 		})
 	}
 
