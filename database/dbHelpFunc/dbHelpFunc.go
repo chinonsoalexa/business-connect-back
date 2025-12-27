@@ -997,11 +997,13 @@ type GroupUserSummary struct {
 }
 
 type GroupFeedItem struct {
-	ID          uint                `json:"id"`
-	Title       string              `json:"title"`
-	Description string              `json:"description"`
-	CreatedAt   time.Time           `json:"created_at"`
-	CoverImage  string              `json:"cover_image"`
+	ID           uint               `json:"id"`
+	Title        string             `json:"title"`
+	Description  string             `json:"description"`
+	MaxMembers   int                `json:"max_members"`
+	WhatsappURL  string             `json:"whatsapp_url"`
+	CreatedAt    time.Time          `json:"created_at"`
+	CoverImage   string             `json:"cover_image"`
 	Participants []GroupUserSummary `json:"participants"`
 }
 
@@ -1082,8 +1084,10 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 			ID:           g.ID,
 			Title:        g.Title,
 			Description:  g.Description,
+			MaxMembers:   *g.MaxMembers,
+			WhatsappURL:  g.WhatsappURL,
 			CreatedAt:    g.CreatedAt,
-			CoverImage:   coverImage,            // add the preloaded cover image
+			CoverImage:   coverImage,           // add the preloaded cover image
 			Participants: participantMap[g.ID], // up to 5
 		})
 	}
