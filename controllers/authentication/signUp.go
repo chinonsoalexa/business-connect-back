@@ -255,7 +255,7 @@ func EmailAuthentication(ctx *fiber.Ctx) error {
 	// fmt.Println("this is the users email: ", otp.Email)
 	// fmt.Println("this is the users id: ", userEmail.ID)
 
-	role := "user"
+	role := "USER"
 
 	// now generate cookies for this user
 	authTokenString, refreshTokenString, csrfSecret, errJwt := myjwt.CreateNewTokens(ctx, strconv.FormatUint(uint64(userEmail.ID), 10), role)

@@ -113,7 +113,7 @@ func SignIn(ctx *fiber.Ctx) error {
 		})
 	}
 
-	role := "ADMIN"
+	role := "USER"
 
 	// now generate cookies for this user
 	authTokenString, refreshTokenString, csrfSecret, errJwt := myjwt.CreateNewTokens(ctx, strconv.FormatUint(uint64(user.ID), 10), role)
@@ -303,7 +303,7 @@ func VerifySignInMagicLink(ctx *fiber.Ctx) error {
 		}
 	}
 
-	role := "user"
+	role := "USER"
 
 	// fmt.Println("this is the user id id verified: ", user.ID)
 
