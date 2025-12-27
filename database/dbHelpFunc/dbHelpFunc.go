@@ -1003,7 +1003,7 @@ type GroupFeedItem struct {
 	MaxMembers   int                `json:"max_members"`
 	WhatsappURL  string             `json:"whatsapp_url"`
 	CreatedAt    time.Time          `json:"created_at"`
-	CoverImage   string             `json:"cover_image"`
+	Images       []Data.PostImage        `json:"images"`
 	Participants []GroupUserSummary `json:"participants"`
 }
 
@@ -1015,9 +1015,7 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 	var groups []Data.Post
 
 	result := conn.DB.
-		Preload("Images", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at ASC").Limit(2) // preload only 1 cover image
-		}).
+		Preload("Images").
 		Where(`
 			post_type = ?
 			AND is_active = ?
@@ -1075,10 +1073,6 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 	// 5️⃣ Build response
 	var response []GroupFeedItem
 	for _, group := range groups {
-		var coverImage string
-		if len(group.Images) > 0 {
-			coverImage = group.Images[0].URL
-		}
 
 		response = append(response, GroupFeedItem{
 			ID:           group.ID,
@@ -1087,7 +1081,7 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 			MaxMembers:   *group.MaxMembers,
 			WhatsappURL:  group.WhatsappURL,
 			CreatedAt:    group.CreatedAt,
-			CoverImage:   coverImage,           // add the preloaded cover image
+			Images:       group.Images,
 			Participants: participantMap[group.ID], // up to 5
 		})
 	}
