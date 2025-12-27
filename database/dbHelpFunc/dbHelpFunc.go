@@ -1074,21 +1074,21 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 
 	// 5️⃣ Build response
 	var response []GroupFeedItem
-	for _, g := range groups {
+	for _, group := range groups {
 		var coverImage string
-		if len(g.Images) > 0 {
-			coverImage = g.Images[0].URL
+		if len(group.Images) > 0 {
+			coverImage = group.Images[0].URL
 		}
 
 		response = append(response, GroupFeedItem{
-			ID:           g.ID,
-			Title:        g.Title,
-			Description:  g.Description,
-			MaxMembers:   *g.MaxMembers,
-			WhatsappURL:  g.WhatsappURL,
-			CreatedAt:    g.CreatedAt,
+			ID:           group.ID,
+			Title:        group.Title,
+			Description:  group.Description,
+			MaxMembers:   *group.MaxMembers,
+			WhatsappURL:  group.WhatsappURL,
+			CreatedAt:    group.CreatedAt,
 			CoverImage:   coverImage,           // add the preloaded cover image
-			Participants: participantMap[g.ID], // up to 5
+			Participants: participantMap[group.ID], // up to 5
 		})
 	}
 
