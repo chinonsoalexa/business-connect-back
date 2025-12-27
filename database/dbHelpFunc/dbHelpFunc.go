@@ -890,32 +890,40 @@ func (d *DatabaseHelperImpl) GetUsersToConnect(
 }
 
 func (d *DatabaseHelperImpl) ConnectToUser(senderID, receiverID uint) error {
-	// Prevent self-connection
 	if senderID == receiverID {
 		return fmt.Errorf("cannot connect to yourself")
 	}
 
-	// Check if connection already exists
-	var existing Data.Connection
-	err := conn.DB.Where(
-		"(user_id = ? AND connected_user_id = ?) OR (user_id = ? AND connected_user_id = ?)",
-		senderID, receiverID, receiverID, senderID,
-	).First(&existing).Error
+	return conn.DB.Transaction(func(tx *gorm.DB) error {
 
-	if err == nil {
-		return fmt.Errorf("connection already exists")
-	} else if err != gorm.ErrRecordNotFound {
-		return err
-	}
+		var existing Data.Connection
+		err := tx.Where(
+			"(user_id = ? AND connected_user_id = ?) OR (user_id = ? AND connected_user_id = ?)",
+			senderID, receiverID, receiverID, senderID,
+		).First(&existing).Error
 
-	// Create new connection request (status: pending)
-	connection := Data.Connection{
-		UserID:          senderID,
-		ConnectedUserID: receiverID,
-		Status:          "pending",
-	}
+		if err == nil {
+			return fmt.Errorf("connection already exists")
+		}
+		if err != gorm.ErrRecordNotFound {
+			return err
+		}
 
-	return conn.DB.Create(&connection).Error
+		connection := Data.Connection{
+			UserID:          senderID,
+			ConnectedUserID: receiverID,
+			Status:          "accepted",
+		}
+
+		if err := tx.Create(&connection).Error; err != nil {
+			return err
+		}
+
+		return tx.Model(&Data.User{}).
+			Where("id IN ?", []uint{senderID, receiverID}).
+			UpdateColumn("connections_count", gorm.Expr("connections_count + 1")).
+			Error
+	})
 }
 
 func (d *DatabaseHelperImpl) GetStatusPostsByLimit(

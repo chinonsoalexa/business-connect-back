@@ -42,6 +42,9 @@ type User struct {
 	Longitude     float64 `json:"longitude"`
 	Latitude      float64 `json:"latitude"`
 
+	// 🔥 Connections
+	ConnectionsCount int64 `json:"connections_count" gorm:"default:0"`
+
 	// Business Metrics
 	TotalRevenue  float64 `json:"total_revenue" gorm:"default:0"`
 	TotalSales    int64   `json:"total_sales" gorm:"default:0"`
