@@ -1013,6 +1013,7 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 	var groups []Data.Post
 
 	result := conn.DB.
+		Preload("Images").
 		Where(`
 			post_type = ?
 			AND is_active = ?
@@ -1022,6 +1023,7 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 		Limit(limit + 1).
 		Offset(offset).
 		Find(&groups)
+
 
 	if result.Error != nil {
 		return nil, false, result.Error
