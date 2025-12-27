@@ -148,13 +148,13 @@ func UpdateProfilePhoto(c *fiber.Ctx) error {
 		})
 	}
 
-	photoURL := uploads[0]
+	photo := uploads[0]
 
 	// Save image history
 	err = dbFunc.DBHelper.AddProfileImage(
 		user.ID,
-		photoURL.URL,
-		file.Filename,
+		photo.URL,
+		photo.OriginalFilename,
 	)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
@@ -163,7 +163,7 @@ func UpdateProfilePhoto(c *fiber.Ctx) error {
 	}
 
 	// Update current profile photo
-	err = dbFunc.DBHelper.UpdateUserProfilePhoto(user.ID, photoURL.URL)
+	err = dbFunc.DBHelper.UpdateUserProfilePhoto(user.ID, photo.URL)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "failed to update profile photo",
@@ -173,7 +173,7 @@ func UpdateProfilePhoto(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "profile photo updated",
-		"profile_photo_url": photoURL,
+		"profile_photo_url": photo.URL,
 	})
 }
 

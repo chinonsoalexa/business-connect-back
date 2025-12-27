@@ -394,11 +394,11 @@ func UploadBlogFiles(fileHeader []*multipart.FileHeader) ([]Data.BlogImage, erro
 	return results, nil
 }
 
-func UploadProfileFiles(fileHeader []*multipart.FileHeader) ([]Data.BlogImage, error) {
+func UploadProfileFiles(fileHeader []*multipart.FileHeader) ([]Data.ProfileImage, error) {
 	var (
 		b2Client   *b2.Client
 		bucket     *b2.Bucket
-		results    []Data.BlogImage
+		results    []Data.ProfileImage
 		EnvErr     error
 		B2LinkErr  error
 		bucketName string
@@ -494,7 +494,7 @@ func UploadProfileFiles(fileHeader []*multipart.FileHeader) ([]Data.BlogImage, e
 		// Build the download URL
 		// downloadURL := fmt.Sprintf("https://shopsphereafrica.com/image/%s", fileName)
 
-		var imageResp = Data.BlogImage{
+		var imageResp = Data.ProfileImage{
 			URL:              fileName,
 			OriginalFilename: fileHeader.Filename,
 		}
