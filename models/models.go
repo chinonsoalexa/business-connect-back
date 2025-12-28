@@ -64,8 +64,8 @@ type User struct {
 
 type Connection struct {
 	gorm.Model
-	UserID          uint `json:"user_id" gorm:"index"`          // who initiated the connection
-	ConnectedUserID uint `json:"connected_user_id" gorm:"index"` // who is connected
+	UserID          uint   `json:"user_id" gorm:"index"`                    // who initiated the connection
+	ConnectedUserID uint   `json:"connected_user_id" gorm:"index"`          // who is connected
 	Status          string `json:"status" gorm:"size:20;default:'pending'"` // pending | accepted | blocked
 }
 
@@ -122,9 +122,10 @@ type (
 		BusinessCategory *string `json:"business_category,omitempty"`
 
 		// GROUP / EVENT FIELDS
-		EntryType  *string `json:"entry_type,omitempty"`  // free | paid
-		EntryPrice *int64  `json:"entry_price,omitempty"` // store in kobo
-		MaxMembers *int    `json:"max_members,omitempty"`
+		EntryType    *string `json:"entry_type,omitempty"`  // free | paid
+		EntryPrice   *int64  `json:"entry_price,omitempty"` // store in kobo
+		MaxMembers   *int    `json:"max_members,omitempty"`
+		MembersCount *int    `json:"members_count,omitempty"`
 
 		// EVENT ONLY
 		EventDate *time.Time `json:"event_date,omitempty"`
@@ -132,7 +133,7 @@ type (
 		// Moderation
 		Approved bool `json:"approved" gorm:"default:true"`
 
-		Images []PostImage `json:"images,omitempty" gorm:"foreignKey:PostID;constraint:OnDelete:CASCADE"`
+		Images            []PostImage        `json:"images,omitempty" gorm:"foreignKey:PostID;constraint:OnDelete:CASCADE"`
 		GroupParticipants []GroupParticipant `json:"group_participant,omitempty" gorm:"foreignKey:PostID;constraint:OnDelete:CASCADE"`
 	}
 	PostImage struct {
