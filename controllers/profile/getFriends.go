@@ -3,7 +3,6 @@ package profile
 import (
 	dbFunc "business-connect/database/dbHelpFunc"
 	helperFunc "business-connect/paystack"
-	Data "business-connect/models"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -60,18 +59,21 @@ type ConnectRequest struct {
 }
 
 func ConnectFriend(ctx *fiber.Ctx) error {
-	// Get current logged in user
-	userCtx := ctx.Locals("user")
-	if userCtx == nil {
+	// Get current logged in user-id
+	userId := ctx.Locals("user-id")
+	if userId == nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "not logged in"})
 	}
-	currentUser, ok := userCtx.(Data.User)
-	if !ok {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "invalid user context"})
+
+	user, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userId)
+	if uuidErr != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "failed to get user from request",
+		})
 	}
 
-	req := new(ConnectRequest)
-	if err := ctx.BodyParser(req); err != nil {
+	var req ConnectRequest
+	if err := ctx.BodyParser(&req); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
 	}
 
@@ -79,7 +81,7 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "user_id is required"})
 	}
 
-	err := dbFunc.DBHelper.ConnectToUser(currentUser.ID, req.UserID)
+	err := dbFunc.DBHelper.ConnectToUser(user.ID, req.UserID)
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

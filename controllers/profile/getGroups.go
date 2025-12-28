@@ -1,7 +1,6 @@
 package profile
 
 import (
-	Data "business-connect/models"
 	dbFunc "business-connect/database/dbHelpFunc"
 	helperFunc "business-connect/paystack"
 
@@ -61,22 +60,24 @@ type JoinGroupRequest struct {
 
 func JoinGroupHandler(ctx *fiber.Ctx) error {
 	// Get current user from context
-	userCtx := ctx.Locals("user-id")
-	if userCtx == nil {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "user not logged in",
+	userId := ctx.Locals("user-id")
+	if userId == nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "failed to get user",
 		})
 	}
-	user, ok := userCtx.(Data.User)
-	if !ok {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to parse user",
+
+	user, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userId)
+	if uuidErr != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "failed to get user from request",
 		})
 	}
 
 	// Parse request body
-	req := new(JoinGroupRequest)
-	if err := ctx.BodyParser(req); err != nil {
+	var req JoinGroupRequest
+	
+	if err := ctx.BodyParser(&req); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid request body",
 		})
