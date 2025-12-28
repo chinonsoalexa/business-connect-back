@@ -1096,12 +1096,13 @@ func (d *DatabaseHelperImpl) JoinGroup(
 	groupPostID uint,
 ) (*Data.GroupParticipant, bool, error) {
 
+	// Begin transaction
 	tx := conn.DB.Begin()
 	if tx.Error != nil {
 		return nil, false, tx.Error
 	}
 
-	// 1️⃣ Check if already joined
+	// 1️⃣ Check if user already joined
 	var existing Data.GroupParticipant
 	err := tx.
 		Where("post_id = ? AND user_id = ?", groupPostID, user.ID).
@@ -1110,8 +1111,7 @@ func (d *DatabaseHelperImpl) JoinGroup(
 	if err == nil {
 		tx.Rollback()
 		return &existing, false, nil
-	}
-	if err != gorm.ErrRecordNotFound {
+	} else if err != gorm.ErrRecordNotFound {
 		tx.Rollback()
 		return nil, false, err
 	}
@@ -1121,20 +1121,27 @@ func (d *DatabaseHelperImpl) JoinGroup(
 	if err := tx.
 		Clauses(clause.Locking{Strength: "UPDATE"}).
 		First(&post, groupPostID).Error; err != nil {
-
 		tx.Rollback()
 		return nil, false, err
 	}
 
-	// 3️⃣ Check max members
-	if post.MaxMembers != nil && post.MembersCount != nil {
-		if *post.MembersCount >= *post.MaxMembers {
-			tx.Rollback()
-			return nil, false, errors.New("group is full")
-		}
+	// 3️⃣ Check max members safely
+	membersCount := 0
+	if post.MembersCount != nil {
+		membersCount = *post.MembersCount
 	}
 
-	// 4️⃣ Create participant
+	maxMembers := 0
+	if post.MaxMembers != nil {
+		maxMembers = *post.MaxMembers
+	}
+
+	if maxMembers > 0 && membersCount >= maxMembers {
+		tx.Rollback()
+		return nil, false, errors.New("group is full")
+	}
+
+	// 4️⃣ Create new participant
 	participant := Data.GroupParticipant{
 		PostID:          groupPostID,
 		UserID:          user.ID,
@@ -1148,19 +1155,15 @@ func (d *DatabaseHelperImpl) JoinGroup(
 		return nil, false, err
 	}
 
-	// 5️⃣ Increment members_count atomically
+	// 5️⃣ Increment members_count atomically, using COALESCE to handle NULL
 	if err := tx.Model(&Data.Post{}).
 		Where("id = ?", groupPostID).
-		UpdateColumn(
-			"members_count",
-			gorm.Expr("COALESCE(members_count, 0) + 1"),
-		).Error; err != nil {
-
+		UpdateColumn("members_count", gorm.Expr("COALESCE(members_count,0) + 1")).Error; err != nil {
 		tx.Rollback()
 		return nil, false, err
 	}
 
-	// 6️⃣ Commit
+	// 6️⃣ Commit transaction
 	if err := tx.Commit().Error; err != nil {
 		return nil, false, err
 	}
