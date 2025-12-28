@@ -61,7 +61,7 @@ type JoinGroupRequest struct {
 
 func JoinGroupHandler(ctx *fiber.Ctx) error {
 	// Get current user from context
-	userCtx := ctx.Locals("user")
+	userCtx := ctx.Locals("user-id")
 	if userCtx == nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "user not logged in",
