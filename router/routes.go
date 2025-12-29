@@ -202,10 +202,15 @@ func Routers() *fiber.App {
 	})
 
 	// Create Redis storage
-	redisStore := redis.New(redis.Config{
-		Host: "localhost:6379",
-		Database: 0,
-	})
+	    // Redis storage configured in code
+    redisStore := redis.New(redis.Config{
+        Host:     "127.0.0.1",  // e.g., "127.0.0.1" or Render Redis host
+        Port:     6379,               // default Redis port
+        Password: "",  // leave empty if none
+        Database: 0,                   // Redis DB index
+        PoolSize: 10,                  // number of connections
+    })
+
 	// securing all the web endpoint from being accessible to app cause of the origin is not included in the app requests
 
 	// payuee web authentication using email and password
