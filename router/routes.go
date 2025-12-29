@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 
@@ -155,7 +156,7 @@ func Routers() *fiber.App {
 		ReadBufferSize:  50 * 4096,
 		WriteBufferSize: 2 * 4096,
 		Prefork:         true, // Enable prefork mode for better performance
-		AppName:         "Shopsphere API",
+		AppName:         "Business Connect API",
 	})
 
 	// Configure the rate limiter
@@ -199,12 +200,18 @@ func Routers() *fiber.App {
 		}()
 		return c.Next()
 	})
-
 	// securing all the web endpoint from being accessible to app cause of the origin is not included in the app requests
 
 	// payuee web authentication using email and password
 	router.Post("/sign-up", NotAuthMiddleware, authentication.SignUp)
-	router.Get("/get-states-cities/:countryCode", NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
+	// CACHED ROUTE
+	router.Get("/get-states-cities/:countryCode", cache.New(cache.Config{
+		Expiration: 24 * time.Hour,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.OriginalURL()
+		},
+		CacheControl: true,
+	}), NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
 	router.Post("/email-verification", NotAuthMiddleware, authentication.EmailAuthentication)
 	router.Post("/resend-otp", NotAuthMiddleware, authentication.ResendEmailVerification)
 	router.Post("/sign-in", NotAuthMiddleware, authentication.SignIn)
