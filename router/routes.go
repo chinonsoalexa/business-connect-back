@@ -10,7 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-
+	"github.com/gofiber/storage/redis"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 
 	ai "business-connect/ai"
@@ -200,15 +200,22 @@ func Routers() *fiber.App {
 		}()
 		return c.Next()
 	})
+
+	// Create Redis storage
+	redisStore := redis.New(redis.Config{
+		Host: "localhost:6379",
+		Database: 0,
+	})
 	// securing all the web endpoint from being accessible to app cause of the origin is not included in the app requests
 
 	// payuee web authentication using email and password
 	router.Post("/sign-up", NotAuthMiddleware, authentication.SignUp)
 	// CACHED ROUTE
 	router.Get("/get-states-cities/:countryCode", cache.New(cache.Config{
-		Expiration: 24 * time.Hour,
+		Storage: redisStore,
+		Expiration: 0, // 0 means it never expires
 		KeyGenerator: func(c *fiber.Ctx) string {
-			return c.OriginalURL()
+			return c.OriginalURL() // cache by URL
 		},
 		CacheControl: true,
 	}), NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
