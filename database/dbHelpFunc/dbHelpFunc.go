@@ -61,6 +61,7 @@ type DatabaseHelper interface {
 	ConnectToUser(senderID, receiverID uint) error
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
 	GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
+	GetStatesAndCitiesByCountryCode(countryCode string) ([]Data.State, error)
 	GetProductsByCategory(category string, limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
 	GetBusinessConnectAdminProductsByLimit( /*userID uint64, */ limit, offset int) ([]Data.Post, int64, error)
 	// GetBusinessConnectRecommendedProductsByLimit( /*userID uint64, */ category string, limit int) ([]Data.Post, int64, error)
@@ -1004,7 +1005,7 @@ type GroupFeedItem struct {
 	MaxMembers   int                `json:"max_members"`
 	WhatsappURL  string             `json:"whatsapp_url"`
 	CreatedAt    time.Time          `json:"created_at"`
-	Images       []Data.PostImage        `json:"images"`
+	Images       []Data.PostImage   `json:"images"`
 	Participants []GroupUserSummary `json:"participants"`
 }
 
@@ -1225,6 +1226,18 @@ func (d *DatabaseHelperImpl) GetProductsAll(limit, offset int, sortField, sortOr
 	}
 
 	return products, count, nil
+}
+
+func (d *DatabaseHelperImpl) GetStatesAndCitiesByCountryCode(countryCode string) ([]Data.State, error) {
+	// Fetch all states for the country
+	var states []Data.State
+	if err := conn.DB.Preload("Cities", "country_code = ?", countryCode).
+		Where("country_code = ?", countryCode).Find(&states).Error; err != nil {
+		log.Fatal("Error fetching states:", err)
+		return nil, errors.New("Error fetching states")
+	}
+
+	return states, nil
 }
 
 func (d *DatabaseHelperImpl) GetProductsByCategory(category string, limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error) {

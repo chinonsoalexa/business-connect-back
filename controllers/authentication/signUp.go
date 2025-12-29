@@ -378,3 +378,24 @@ func CreateNewOtp(ctx *fiber.Ctx) error {
 		"success": "Transaction Code Updated Successfuly for " + NewUser.Email,
 	})
 }
+
+func GetStatesAndCitiesByCountryCode(ctx *fiber.Ctx) error {
+	countryCode := ctx.Params("countryCode")
+
+	if countryCode == "" {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Country code is required",
+		})
+	}
+
+	states, err := dbFunc.DBHelper.GetStatesAndCitiesByCountryCode(countryCode)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to retrieve states and cities",
+		})
+	}
+
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"states": states,
+	})
+}	

@@ -204,6 +204,7 @@ func Routers() *fiber.App {
 
 	// payuee web authentication using email and password
 	router.Post("/sign-up", NotAuthMiddleware, authentication.SignUp)
+	router.Get("/get-states-cities/:countryCode", NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
 	router.Post("/email-verification", NotAuthMiddleware, authentication.EmailAuthentication)
 	router.Post("/resend-otp", NotAuthMiddleware, authentication.ResendEmailVerification)
 	router.Post("/sign-in", NotAuthMiddleware, authentication.SignIn)
