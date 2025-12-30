@@ -38,7 +38,7 @@ type User struct {
 	Suspended     bool    `json:"suspended" gorm:"default:false"`
 	Address       string  `json:"address"`
 	State         string  `json:"state"`
-	City          string  `json:"city"`
+	Country       string  `json:"country"`
 	Longitude     float64 `json:"longitude"`
 	Latitude      float64 `json:"latitude"`
 
@@ -83,7 +83,7 @@ type SignUpRequest struct {
 	Password     string  `json:"password"`
 	PhoneNumber  string  `json:"phone_number"`
 	State        string  `json:"state"`
-	City         string  `json:"city"`
+	Country      string  `json:"country"`
 	Longitude    float64 `json:"longitude"`
 	Latitude     float64 `json:"latitude"`
 }
@@ -175,38 +175,38 @@ type JTI struct {
 }
 
 type Region struct {
-	ID           uint      `gorm:"primaryKey;column:id"`
-	Name         string    `gorm:"size:100;not null"`
-	Translations *string   `gorm:"type:text"`
+	ID           uint    `gorm:"primaryKey;column:id"`
+	Name         string  `gorm:"size:100;not null"`
+	Translations *string `gorm:"type:text"`
 	CreatedAt    *time.Time
 	UpdatedAt    time.Time
-	Flag         bool      `gorm:"default:true"`
-	WikiDataID   *string   `gorm:"column:wikiDataId"`
+	Flag         bool    `gorm:"default:true"`
+	WikiDataID   *string `gorm:"column:wikiDataId"`
 
 	Subregions []Subregion `gorm:"foreignKey:RegionID"`
 }
 
 type Subregion struct {
-	ID           uint      `gorm:"primaryKey;column:id"`
-	Name         string    `gorm:"size:100;not null"`
-	Translations *string   `gorm:"type:text"`
-	RegionID     uint      `gorm:"not null"`
+	ID           uint    `gorm:"primaryKey;column:id"`
+	Name         string  `gorm:"size:100;not null"`
+	Translations *string `gorm:"type:text"`
+	RegionID     uint    `gorm:"not null"`
 	CreatedAt    *time.Time
 	UpdatedAt    time.Time
-	Flag         bool      `gorm:"default:true"`
-	WikiDataID   *string   `gorm:"column:wikiDataId"`
+	Flag         bool    `gorm:"default:true"`
+	WikiDataID   *string `gorm:"column:wikiDataId"`
 
-	Region    Region     `gorm:"foreignKey:RegionID"`
-	Countries []Country  `gorm:"foreignKey:SubregionID"`
+	Region    Region    `gorm:"foreignKey:RegionID"`
+	Countries []Country `gorm:"foreignKey:SubregionID"`
 }
 
 type Country struct {
-	ID               uint       `gorm:"primaryKey;column:id"`
-	Name             string     `gorm:"size:100;not null"`
-	ISO3             *string    `gorm:"size:3"`
-	NumericCode      *string    `gorm:"size:3"`
-	ISO2             *string    `gorm:"size:2"`
-	PhoneCode        *string    `gorm:"size:255"`
+	ID               uint    `gorm:"primaryKey;column:id"`
+	Name             string  `gorm:"size:100;not null"`
+	ISO3             *string `gorm:"size:3"`
+	NumericCode      *string `gorm:"size:3"`
+	ISO2             *string `gorm:"size:2"`
+	PhoneCode        *string `gorm:"size:255"`
 	Capital          *string
 	Currency         *string
 	CurrencyName     *string
@@ -223,16 +223,16 @@ type Country struct {
 	AreaSqKm         *float64
 	PostalCodeFormat *string
 	PostalCodeRegex  *string
-	Timezones        *string    `gorm:"type:text"`
-	Translations     *string    `gorm:"type:text"`
+	Timezones        *string `gorm:"type:text"`
+	Translations     *string `gorm:"type:text"`
 	Latitude         *float64
 	Longitude        *float64
 	Emoji            *string
 	EmojiU           *string
 	CreatedAt        *time.Time
 	UpdatedAt        time.Time
-	Flag             bool       `gorm:"default:true"`
-	WikiDataID       *string    `gorm:"column:wikiDataId"`
+	Flag             bool    `gorm:"default:true"`
+	WikiDataID       *string `gorm:"column:wikiDataId"`
 
 	RegionRef    *Region    `gorm:"foreignKey:RegionID"`
 	SubregionRef *Subregion `gorm:"foreignKey:SubregionID"`
@@ -241,10 +241,10 @@ type Country struct {
 }
 
 type State struct {
-	ID           uint       `gorm:"primaryKey;column:id"`
-	Name         string     `gorm:"size:255;not null"`
-	CountryID    uint       `gorm:"not null"`
-	CountryCode  string     `gorm:"size:2;not null"`
+	ID           uint   `gorm:"primaryKey;column:id"`
+	Name         string `gorm:"size:255;not null"`
+	CountryID    uint   `gorm:"not null"`
+	CountryCode  string `gorm:"size:2;not null"`
 	FIPSCode     *string
 	ISO2         *string
 	ISO3166_2    *string
@@ -255,11 +255,11 @@ type State struct {
 	Latitude     *float64
 	Longitude    *float64
 	Timezone     *string
-	Translations *string    `gorm:"type:text"`
+	Translations *string `gorm:"type:text"`
 	CreatedAt    *time.Time
 	UpdatedAt    time.Time
-	Flag         bool       `gorm:"default:true"`
-	WikiDataID   *string    `gorm:"column:wikiDataId"`
+	Flag         bool    `gorm:"default:true"`
+	WikiDataID   *string `gorm:"column:wikiDataId"`
 	Population   *string
 
 	Country Country `gorm:"foreignKey:CountryID"`
@@ -267,25 +267,25 @@ type State struct {
 }
 
 type City struct {
-	ID           uint       `gorm:"primaryKey;column:id"`
-	Name         string     `gorm:"size:255;not null"`
-	StateID      uint       `gorm:"not null"`
-	StateCode    string     `gorm:"size:255;not null"`
-	CountryID    uint       `gorm:"not null"`
-	CountryCode  string     `gorm:"size:2;not null"`
+	ID           uint   `gorm:"primaryKey;column:id"`
+	Name         string `gorm:"size:255;not null"`
+	StateID      uint   `gorm:"not null"`
+	StateCode    string `gorm:"size:255;not null"`
+	CountryID    uint   `gorm:"not null"`
+	CountryCode  string `gorm:"size:2;not null"`
 	Type         *string
 	Level        *int
 	ParentID     *uint
-	Latitude     float64    `gorm:"not null"`
-	Longitude    float64    `gorm:"not null"`
+	Latitude     float64 `gorm:"not null"`
+	Longitude    float64 `gorm:"not null"`
 	Native       *string
 	Population   *uint64
 	Timezone     *string
-	Translations *string    `gorm:"type:text"`
-	CreatedAt    time.Time  `gorm:"default:'2014-01-01 12:01:01'"`
+	Translations *string   `gorm:"type:text"`
+	CreatedAt    time.Time `gorm:"default:'2014-01-01 12:01:01'"`
 	UpdatedAt    time.Time
-	Flag         bool       `gorm:"default:true"`
-	WikiDataID   *string    `gorm:"column:wikiDataId"`
+	Flag         bool    `gorm:"default:true"`
+	WikiDataID   *string `gorm:"column:wikiDataId"`
 
 	State   State   `gorm:"foreignKey:StateID"`
 	Country Country `gorm:"foreignKey:CountryID"`
