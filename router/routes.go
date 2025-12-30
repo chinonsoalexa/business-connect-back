@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	// "github.com/gofiber/fiber/v2/middleware/cache"
+	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	// "github.com/gofiber/storage/redis"
@@ -216,15 +216,15 @@ func Routers() *fiber.App {
 	// payuee web authentication using email and password
 	router.Post("/sign-up", NotAuthMiddleware, authentication.SignUp)
 	// CACHED ROUTE
-	// router.Get("/get-states-cities/:countryCode", cache.New(cache.Config{
-	// 	Storage: redisStore,
-	// 	Expiration: 0, // 0 means it never expires
-	// 	KeyGenerator: func(c *fiber.Ctx) string {
-	// 		return c.OriginalURL() // cache by URL
-	// 	},
-	// 	CacheControl: true,
-	// }), NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
-		router.Get("/get-states-cities/:countryCode", NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
+	router.Get("/get-states-cities/:countryCode", cache.New(cache.Config{
+		// Storage: redisStore,
+		Expiration: 0, // 0 means it never expires
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.OriginalURL() // cache by URL
+		},
+		CacheControl: true,
+	}), NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
+	router.Get("/get-states-cities/:countryCode", NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
 	router.Post("/email-verification", NotAuthMiddleware, authentication.EmailAuthentication)
 	router.Post("/resend-otp", NotAuthMiddleware, authentication.ResendEmailVerification)
 	router.Post("/sign-in", NotAuthMiddleware, authentication.SignIn)
