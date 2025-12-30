@@ -203,27 +203,28 @@ func Routers() *fiber.App {
 
 	// Create Redis storage
 	    // Redis storage configured in code
-    redisStore := redis.New(redis.Config{
-        Host:     "127.0.0.1",  // e.g., "127.0.0.1" or Render Redis host
-        Port:     6379,               // default Redis port
-        Password: "",  // leave empty if none
-        Database: 0,                   // Redis DB index
-        PoolSize: 10,                  // number of connections
-    })
+    // redisStore := redis.New(redis.Config{
+    //     Host:     "127.0.0.1",  // e.g., "127.0.0.1" or Render Redis host
+    //     Port:     6379,               // default Redis port
+    //     Password: "",  // leave empty if none
+    //     Database: 0,                   // Redis DB index
+    //     PoolSize: 10,                  // number of connections
+    // })
 
 	// securing all the web endpoint from being accessible to app cause of the origin is not included in the app requests
 
 	// payuee web authentication using email and password
 	router.Post("/sign-up", NotAuthMiddleware, authentication.SignUp)
 	// CACHED ROUTE
-	router.Get("/get-states-cities/:countryCode", cache.New(cache.Config{
-		Storage: redisStore,
-		Expiration: 0, // 0 means it never expires
-		KeyGenerator: func(c *fiber.Ctx) string {
-			return c.OriginalURL() // cache by URL
-		},
-		CacheControl: true,
-	}), NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
+	// router.Get("/get-states-cities/:countryCode", cache.New(cache.Config{
+	// 	Storage: redisStore,
+	// 	Expiration: 0, // 0 means it never expires
+	// 	KeyGenerator: func(c *fiber.Ctx) string {
+	// 		return c.OriginalURL() // cache by URL
+	// 	},
+	// 	CacheControl: true,
+	// }), NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
+		router.Get("/get-states-cities/:countryCode", NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
 	router.Post("/email-verification", NotAuthMiddleware, authentication.EmailAuthentication)
 	router.Post("/resend-otp", NotAuthMiddleware, authentication.ResendEmailVerification)
 	router.Post("/sign-in", NotAuthMiddleware, authentication.SignIn)
