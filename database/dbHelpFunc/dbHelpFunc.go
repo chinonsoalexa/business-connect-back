@@ -1231,7 +1231,7 @@ func (d *DatabaseHelperImpl) GetProductsAll(limit, offset int, sortField, sortOr
 func (d *DatabaseHelperImpl) GetStatesAndCitiesByCountryCode(countryCode string) ([]Data.State, error) {
 	// Fetch all states for the country
 	var states []Data.State
-	if err := conn.DB.Preload("Cities", "country_code = ?", countryCode).
+	if err := conn.DB./*Preload("Cities", "country_code = ?", countryCode)*/
 		Where("country_code = ?", countryCode).Find(&states).Error; err != nil {
 		log.Fatal("Error fetching states:", err)
 		return nil, errors.New("Error fetching states")
