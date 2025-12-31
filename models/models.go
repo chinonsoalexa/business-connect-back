@@ -234,10 +234,10 @@ type Country struct {
 	Flag             bool    `gorm:"default:true"`
 	WikiDataID       *string `gorm:"column:wikiDataId"`
 
-	RegionRef    *Region    `gorm:"foreignKey:RegionID"`
-	SubregionRef *Subregion `gorm:"foreignKey:SubregionID"`
-	States       []State    `gorm:"foreignKey:CountryID"`
-	Cities       []City     `gorm:"foreignKey:CountryID"`
+	RegionRef    *Region    `gorm:"foreignKey:RegionID" json:"RegionRef,omitempty"`
+	SubregionRef *Subregion `gorm:"foreignKey:SubregionID" json:"SubregionRef,omitempty"`
+	States       []State    `gorm:"foreignKey:CountryID" json:"States,omitempty"`
+	Cities       []City     `gorm:"foreignKey:CountryID" json:"Cities,omitempty"`
 }
 
 type State struct {
@@ -262,8 +262,8 @@ type State struct {
 	WikiDataID   *string `gorm:"column:wikiDataId"`
 	Population   *string
 
-	Country Country `gorm:"foreignKey:CountryID"`
-	Cities  []City  `gorm:"foreignKey:StateID"`
+	Country Country `gorm:"foreignKey:CountryID" json:"Country,omitempty"`
+	Cities  []City  `gorm:"foreignKey:StateID" json:"Cities,omitempty"`
 }
 
 type City struct {
@@ -287,8 +287,8 @@ type City struct {
 	Flag         bool    `gorm:"default:true"`
 	WikiDataID   *string `gorm:"column:wikiDataId"`
 
-	State   State   `gorm:"foreignKey:StateID"`
-	Country Country `gorm:"foreignKey:CountryID"`
+	State   State   `gorm:"foreignKey:StateID"  json:"State,omitempty"`
+	Country Country `gorm:"foreignKey:CountryID"  json:"Country,omitempty"`
 }
 
 type ChatMessages struct {

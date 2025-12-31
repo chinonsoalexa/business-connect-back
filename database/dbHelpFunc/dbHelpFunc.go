@@ -57,6 +57,7 @@ type DatabaseHelper interface {
 	GetAvailableGroups(limit, offset int) ([]GroupFeedItem, bool, error)
 	JoinGroup(user Data.User, groupPostID uint) (*Data.GroupParticipant, bool, error)
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
+	GetBusinessConnectProductsByLimitOpen(limit, offset int) ([]Data.Post, bool, error)
 	GetUsersToConnect(currentUserID uint, limit, offset int) ([]UserSummary, bool, error)
 	ConnectToUser(senderID, receiverID uint) error
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
@@ -807,6 +808,45 @@ func (d *DatabaseHelperImpl) CompareOTPHash(hash string, plainOTP string) error 
 }
 
 func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
+	limit, offset int,
+) ([]Data.Post, bool, error) {
+
+	var posts []Data.Post
+
+	allowedPostTypes := []string{
+		PostTypePersonal,
+		PostTypeBusiness,
+		PostTypeGroup,
+		PostTypeEvent,
+		PostTypeAd,
+	}
+
+	result := conn.DB.
+		Model(&Data.Post{}).
+		Preload("Images").
+		Where(`
+			is_active = ? 
+			AND approved = ? 
+			AND post_type IN ?
+		`, true, true, allowedPostTypes).
+		Order("created_at DESC").
+		Limit(limit + 1).
+		Find(&posts)
+
+	if result.Error != nil {
+		return nil, false, result.Error
+	}
+
+	hasMore := false
+	if len(posts) > limit {
+		hasMore = true
+		posts = posts[:limit]
+	}
+
+	return posts, hasMore, nil
+}
+
+func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimitOpen(
 	limit, offset int,
 ) ([]Data.Post, bool, error) {
 

@@ -307,6 +307,7 @@ func Routers() *fiber.App {
 
 	// Business Connect
 	router.Get("/posts", NotAuthMiddleware, mid.WebRequireAuth, profile.GetPostsPaginated)
+	router.Get("/posts-open", NotAuthMiddleware, profile.GetPostsPaginatedOpen)
 	router.Get("/status", NotAuthMiddleware, mid.WebRequireAuth, profile.GetStatusPaginated)
 	router.Get("/get-friends", NotAuthMiddleware, mid.WebRequireAuth, profile.GetFriends)
 	router.Post("/connect-friends", NotAuthMiddleware, mid.WebRequireAuth, profile.ConnectFriend)
