@@ -121,7 +121,7 @@ func EmailVerification(name, sendTo string) error {
 	</head>
 	<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; text-align: center;">
 		<div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: left;">
-			<img src="https://payuee.shop/assets/images/logo.png" alt="Business Connect Logo" style="display:block; margin:0 auto; width:120px; height:auto;">
+			<img src="https://businessconnectt.com/assets/images/logo.png" alt="Business Connect Logo" style="display:block; margin:0 auto; width:120px; height:auto;">
 			<h1 style="color: #333333; margin-bottom: 20px; text-align: center;">Verify Your Email Address</h1>
 
 			<p style="color: #777777;">Hi {{.Name}},</p>
@@ -138,11 +138,11 @@ func EmailVerification(name, sendTo string) error {
     `
 	// Sample data
 	data := struct {
-		Name string
-		Token  string
+		Name  string
+		Token string
 	}{
-		Name: name,
-		Token:  otp,
+		Name:  name,
+		Token: otp,
 	}
 
 	// Create a new template and parse the HTML
@@ -263,7 +263,7 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 							<table style="margin: 0 auto; margin-bottom: 30px;">
 							<tbody>
 								<tr style="display: flex; align-items: center; justify-content: space-between; width: 650px;">
-								<td><img style="max-width: 100%;" src="https://payuee.shop/assets/images/logo.png" alt="" style="display:block; margin:0 auto; width:120px; height:auto;"></td>
+								<td><img style="max-width: 100%;" src="https://businessconnectt.com/assets/images/logo.png" alt="" style="display:block; margin:0 auto; width:120px; height:auto;"></td>
 								</tr>
 							</tbody>
 							</table>
@@ -322,7 +322,7 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 		Year int
 	}{
 		Name: name,
-		URL:  "https://payuee.shop/dashboard/sign-in?email=" + sendTo + "&token=" + otp,
+		URL:  "https://businessconnectt.com/dashboard/sign-in?email=" + sendTo + "&token=" + otp,
 		Year: currentYear,
 	}
 
@@ -398,7 +398,6 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 		}
 	}
 
-
 	config := EmailConfig{
 		Name:              mustEnv("EMAIL_SENDER_NAME"),
 		FromEmailAddress:  mustEnv("EMAIL_SENDER_ACCOUNT"),
@@ -424,7 +423,7 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 	</head>
 	<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; text-align: center;">
 	<div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: left;">
-		<img src="https://payuee.shop/assets/images/logo.png" alt="Business Connect Logo" style="display:block; margin:0 auto; width:120px; height:auto;">
+		<img src="https://businessconnectt.com/assets/images/logo.png" alt="Business Connect Logo" style="display:block; margin:0 auto; width:120px; height:auto;">
 		<h1 style="color: #333333; margin-bottom: 20px; text-align: center;">Magic Login Link</h1>
 	
 		<p style="color: #777777;">Hi {{.Name}},</p>
@@ -449,7 +448,7 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 		URL  string
 	}{
 		Name: name,
-		URL:  "https://payuee.shop/dashboard/sign-in?user=" + sendTo + "&magic-code=" + otp,
+		URL:  "https://businessconnectt.com/dashboard/sign-in?user=" + sendTo + "&magic-code=" + otp,
 	}
 
 	// Create a new template and parse the HTML

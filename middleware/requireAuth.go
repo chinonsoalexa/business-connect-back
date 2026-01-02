@@ -18,7 +18,7 @@ func NullifyCookie(ctx *fiber.Ctx) {
 		Value:    "",
 		Expires:  time.Now().Add(-1000 * time.Hour),
 		Path:     "/",
-		Domain:   ".payuee.shop", // Ensure domain is set
+		Domain:   ".businessconnectt.com", // Ensure domain is set
 		HTTPOnly: true,
 		SameSite: "None",
 		Secure:   true, // Set to true if using "SameSite: None"
@@ -30,7 +30,7 @@ func NullifyCookie(ctx *fiber.Ctx) {
 		Value:    "",
 		Expires:  time.Now().Add(-1000 * time.Hour),
 		Path:     "/",
-		Domain:   ".payuee.shop", // Ensure domain is set
+		Domain:   ".businessconnectt.com", // Ensure domain is set
 		HTTPOnly: true,
 		SameSite: "None",
 		Secure:   true, // Set to true if using "SameSite: None"
@@ -42,7 +42,7 @@ func NullifyCookie(ctx *fiber.Ctx) {
 		Value:    "",
 		Expires:  time.Now().Add(-1000 * time.Hour),
 		Path:     "/",
-		Domain:   ".payuee.shop", // Ensure domain is set
+		Domain:   ".businessconnectt.com", // Ensure domain is set
 		HTTPOnly: true,
 		SameSite: "None",
 		Secure:   true, // Set to true if using "SameSite: None"
@@ -58,7 +58,7 @@ func SetAuthAndRefreshCookies(ctx *fiber.Ctx, authToken string, refreshToken str
 		Value:    authToken,
 		Expires:  time.Now().Add(14 * 24 * time.Hour),
 		Path:     "/",
-		Domain:   ".payuee.shop",
+		Domain:   ".businessconnectt.com",
 		HTTPOnly: true,
 		SameSite: "None",
 		Secure:   true,
@@ -70,7 +70,7 @@ func SetAuthAndRefreshCookies(ctx *fiber.Ctx, authToken string, refreshToken str
 		Value:    refreshToken,
 		Expires:  time.Now().Add(14 * 24 * time.Hour),
 		Path:     "/",
-		Domain:   ".payuee.shop",
+		Domain:   ".businessconnectt.com",
 		HTTPOnly: true,
 		SameSite: "None",
 		Secure:   true,
@@ -82,7 +82,7 @@ func SetAuthAndRefreshCookies(ctx *fiber.Ctx, authToken string, refreshToken str
 		Value:    csrfSecret,
 		Expires:  time.Now().Add(14 * 24 * time.Hour),
 		Path:     "/",
-		Domain:   ".payuee.shop",
+		Domain:   ".businessconnectt.com",
 		HTTPOnly: true,
 		SameSite: "None",
 		Secure:   true,
@@ -97,7 +97,7 @@ func WebRequireAuth(ctx *fiber.Ctx) error {
 	if AuthCookie == "" {
 		// send an error when cookie was not found
 		NullifyCookie(ctx)
-		// return ctx.Redirect("https://payuee.shop/page/signin-new.html")
+		// return ctx.Redirect("https://businessconnectt.com/page/signin-new.html")
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "No Authentication cookie found"})
 	}
 
@@ -106,7 +106,7 @@ func WebRequireAuth(ctx *fiber.Ctx) error {
 	// fmt.Println("this is the refresh token", RefreshCookie)
 	if RefreshCookie == "" {
 		NullifyCookie(ctx)
-		// return ctx.Redirect("https://payuee.shop/page/signin-new.html")
+		// return ctx.Redirect("https://businessconnectt.com/page/signin-new.html")
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "No Refresh cookie found"})
 	}
 
@@ -115,7 +115,7 @@ func WebRequireAuth(ctx *fiber.Ctx) error {
 	// fmt.Println("this is the csrf token", CsrfCookie)
 	if CsrfCookie == "" {
 		NullifyCookie(ctx)
-		// return ctx.Redirect("https://payuee.shop/page/signin-new.html")
+		// return ctx.Redirect("https://businessconnectt.com/page/signin-new.html")
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "No Csrf secrets found"})
 	}
 
@@ -123,7 +123,7 @@ func WebRequireAuth(ctx *fiber.Ctx) error {
 
 	if jwtErr != nil && jwtErr.Error() == "Unauthorized" {
 		NullifyCookie(ctx)
-		// return ctx.Redirect("https://payuee.shop/page/signin-new.html")
+		// return ctx.Redirect("https://businessconnectt.com/page/signin-new.html")
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized attempt! JWT's not valid!"})
 	}
 

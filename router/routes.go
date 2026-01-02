@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+
 	// "github.com/gofiber/storage/redis"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 
@@ -39,7 +40,7 @@ func NotAuthMiddleware(c *fiber.Ctx) error {
 
 	allowedOrigins := map[string]bool{
 		"https://business-connect-eta.vercel.app/": true,
-		"https://payuee.shop":                      true,
+		"https://businessconnectt.com":             true,
 	}
 
 	allowedIPs := map[string]bool{
@@ -93,7 +94,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	}
 	allowedOrigins := map[string]bool{
 		"https://business-connect-eta.vercel.app/": true,
-		"https://payuee.shop":                      true,
+		"https://businessconnectt.com":             true,
 	}
 
 	origin := c.Get("Origin")
@@ -179,7 +180,7 @@ func Routers() *fiber.App {
 	// Configure CORS.
 	CORSconfig := cors.Config{
 		// AllowOrigins:     "*", // Use a single string, not an array
-		AllowOrigins:     `https://business-connect-eta.vercel.app/, https://payuee.shop`,
+		AllowOrigins:     `https://business-connect-eta.vercel.app/, https://businessconnectt.com`,
 		AllowCredentials: true,
 		AllowMethods:     "GET, POST, PUT, DELETE",
 		// AllowHeaders:     "Content-Type, X-DORNG-APP-API-KEY",
@@ -202,14 +203,14 @@ func Routers() *fiber.App {
 	})
 
 	// Create Redis storage
-	    // Redis storage configured in code
-    // redisStore := redis.New(redis.Config{
-    //     Host:     "127.0.0.1",  // e.g., "127.0.0.1" or Render Redis host
-    //     Port:     6379,               // default Redis port
-    //     Password: "",  // leave empty if none
-    //     Database: 0,                   // Redis DB index
-    //     PoolSize: 10,                  // number of connections
-    // })
+	// Redis storage configured in code
+	// redisStore := redis.New(redis.Config{
+	//     Host:     "127.0.0.1",  // e.g., "127.0.0.1" or Render Redis host
+	//     Port:     6379,               // default Redis port
+	//     Password: "",  // leave empty if none
+	//     Database: 0,                   // Redis DB index
+	//     PoolSize: 10,                  // number of connections
+	// })
 
 	// securing all the web endpoint from being accessible to app cause of the origin is not included in the app requests
 
