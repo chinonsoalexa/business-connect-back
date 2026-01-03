@@ -39,6 +39,7 @@ type User struct {
 	Address       string  `json:"address"`
 	State         string  `json:"state"`
 	Country       string  `json:"country"`
+	Language      string  `json:"language"`
 	Longitude     float64 `json:"longitude"`
 	Latitude      float64 `json:"latitude"`
 
@@ -84,6 +85,7 @@ type SignUpRequest struct {
 	PhoneNumber  string  `json:"phone_number"`
 	State        string  `json:"state"`
 	Country      string  `json:"country"`
+	Language     string  `json:"language"`
 	Longitude    float64 `json:"longitude"`
 	Latitude     float64 `json:"latitude"`
 }

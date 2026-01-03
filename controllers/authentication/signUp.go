@@ -83,6 +83,7 @@ func SignUp(ctx *fiber.Ctx) error {
 		PhoneNumber:  req.PhoneNumber,
 		State:        req.State,
 		Country:      req.Country,
+		Language:      req.Language,
 		Longitude:    req.Longitude,
 		Latitude:     req.Latitude,
 		UserType:     "USER",
