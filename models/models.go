@@ -24,14 +24,19 @@ type User struct {
 	gorm.Model
 
 	// Basic Info
-	FullName        string `json:"full_name" gorm:"size:100;not null"`
-	BusinessName    string `json:"business_name" gorm:"size:100;not null"`
-	BioDescription  string `json:"bio_description" gorm:"size:100;not null"`
-	Email           string `json:"email" gorm:"uniqueIndex;not null"`
-	Password        string `json:"-"` // store HASHED password only
-	PhoneNumber     string `json:"phone_number" gorm:"size:15;index"`
-	ProfilePhotoURL string `json:"profile_photo_url"`
-	CoverPhotoURL   string `json:"cover_photo_url"`
+	FullName          string `json:"full_name" gorm:"size:100;not null"`
+	BusinessName      string `json:"business_name" gorm:"size:100;not null"`
+	BioDescription    string `json:"bio_description" gorm:"size:100;not null"`
+	Email             string `json:"email" gorm:"uniqueIndex;not null"`
+	Password          string `json:"-"` // store HASHED password only
+	PhoneNumber       string `json:"phone_number" gorm:"size:15;index"`
+	ProfilePhotoURL   string `json:"profile_photo_url"`
+	CoverPhotoURL     string `json:"cover_photo_url"`
+	CountryISOCode    string `json:"country_iso_code"`
+	CountryLanguages  string `json:"country_languages"`
+	CountryCurrencies string `json:"country_currencies"`
+	PreferredLanguage string `json:"preferred_language"`
+	PreferredCurrency string `json:"preferred_currency"`
 
 	EmailVerified bool    `json:"email_verified" gorm:"default:false"`
 	Verified      bool    `json:"verified" gorm:"default:false"`
