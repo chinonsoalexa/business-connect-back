@@ -74,21 +74,6 @@ func GetPostsPaginated(ctx *fiber.Ctx) error {
 }
 
 func GetPostsPaginatedOpen(ctx *fiber.Ctx) error {
-	// Get stored user id from request context
-	// userId := ctx.Locals("user-id")
-	// if userId == nil {
-	// 	return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-	// 		"error": "failed to get user",
-	// 	})
-	// }
-
-	// user, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userId)
-	// if uuidErr != nil {
-	// 	return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-	// 		"error": "failed to get user from request",
-	// 	})
-	// }
-
 	// Default pagination values
 	page := ctx.QueryInt("page", 1)
 	limit := ctx.QueryInt("limit", 10)
