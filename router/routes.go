@@ -225,6 +225,7 @@ func Routers() *fiber.App {
 		},
 		CacheControl: true,
 	}), NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
+	
 	router.Get("/get-states-cities/:countryCode", NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
 	router.Post("/email-verification", NotAuthMiddleware, authentication.EmailAuthentication)
 	router.Post("/resend-otp", NotAuthMiddleware, authentication.ResendEmailVerification)

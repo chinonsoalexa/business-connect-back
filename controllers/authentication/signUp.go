@@ -50,6 +50,7 @@ func SignUp(ctx *fiber.Ctx) error {
 					"error": "email verification failed",
 				})
 			}
+			ResendEmailVerificationInCode(req.Email)
 			return ctx.Status(http.StatusConflict).JSON(fiber.Map{
 				"error": "User exists but email is not verified",
 			})
@@ -225,7 +226,7 @@ func EmailAuthentication(ctx *fiber.Ctx) error {
 	}
 
 	// Activate user's email
-	UserBodyReturn, EmailErr = dbFunc.DBHelper.FindByEmail(OTPBody.Email)
+	UserBodyReturn, EmailErr = dbFunc.DBHelper.FindByEmail(otp.Email)
 	if EmailErr != nil {
 		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "Failed to find user by email"})
 	}
@@ -327,6 +328,25 @@ func ResendEmailVerification(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"success": "Email re-sent successfully to " + otp.Email,
 	})
+}
+
+func ResendEmailVerificationInCode(email string) error {
+
+	// Find user by email
+	existingUser, err := dbFunc.DBHelper.FindByEmail(email)
+	if err != nil {
+		if err.Error() == "user not found" {
+			return fmt.Errorf("user not found")
+		}
+		return fmt.Errorf("failed to retrieve user")
+	}
+
+	// Send verification email
+	if err := EmailVerification(existingUser.FullName, email); err != nil {
+		return fmt.Errorf("email verification failed")
+	}
+
+	return nil
 }
 
 const (
