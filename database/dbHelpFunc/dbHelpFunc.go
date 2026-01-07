@@ -59,6 +59,7 @@ type DatabaseHelper interface {
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	GetBusinessConnectProductsByLimitOpen(limit, offset int) ([]Data.Post, bool, error)
 	GetUsersToConnect(currentUserID uint, limit, offset int) ([]UserSummary, bool, error)
+	GetUsersToConnectOpen(limit, offset int) ([]UserSummary, bool, error)
 	ConnectToUser(senderID, receiverID uint) error
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
 	GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
@@ -914,6 +915,44 @@ func (d *DatabaseHelperImpl) GetUsersToConnect(
 	result := conn.DB.Model(&Data.User{}).
 		Select("id, full_name, business_name, profile_photo_url, phone_number, cover_photo_url, state, city, verified, user_type, bio_description").
 		Where("id NOT IN (?) AND id != ?", subQuery, currentUserID).
+		Limit(limit + 1).
+		Offset(offset).
+		Find(&users)
+
+	if result.Error != nil {
+		return nil, false, result.Error
+	}
+
+	hasMore := false
+	if len(users) > limit {
+		hasMore = true
+		users = users[:limit]
+	}
+
+	return users, hasMore, nil
+}
+
+func (d *DatabaseHelperImpl) GetUsersToConnectOpen(
+	limit, offset int,
+) ([]UserSummary, bool, error) {
+
+	var users []UserSummary
+
+	result := conn.DB.Model(&Data.User{}).
+		Select(`
+			id,
+			full_name,
+			business_name,
+			profile_photo_url,
+			phone_number,
+			cover_photo_url,
+			state,
+			city,
+			verified,
+			user_type,
+			bio_description
+		`).
+		Order("created_at DESC").
 		Limit(limit + 1).
 		Offset(offset).
 		Find(&users)

@@ -54,6 +54,37 @@ func GetFriends(ctx *fiber.Ctx) error {
 	})
 }
 
+func GetFriendsOpen(ctx *fiber.Ctx) error {
+	// Default pagination values
+	page := ctx.QueryInt("page", 1)
+	limit := ctx.QueryInt("limit", 10)
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 50 {
+		limit = 20
+	}
+
+	offset := (page - 1) * limit
+
+	// Fetch posts using limit+1 for hasMore
+	friends, hasMore, postErr := dbFunc.DBHelper.GetUsersToConnectOpen(limit, offset)
+	if postErr != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch posts",
+		})
+	}
+
+	// Return JSON
+	return ctx.JSON(fiber.Map{
+		"page":    page,
+		"limit":   limit,
+		"friends": friends,
+		"hasMore": hasMore,
+	})
+}
+
 type ConnectRequest struct {
 	UserID uint `json:"user_id"` // the user you want to connect to
 }
