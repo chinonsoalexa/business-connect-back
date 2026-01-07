@@ -322,7 +322,7 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 		Year int
 	}{
 		Name: name,
-		URL:  "https://businessconnectt.com/dashboard/sign-in?email=" + sendTo + "&token=" + otp,
+		URL:  "https://businessconnectt.com/sign-in?email=" + sendTo + "&token=" + otp,
 		Year: currentYear,
 	}
 
@@ -448,7 +448,7 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 		URL  string
 	}{
 		Name: name,
-		URL:  "https://businessconnectt.com/dashboard/sign-in?user=" + sendTo + "&magic-code=" + otp,
+		URL:  "https://businessconnectt.com/sign-in?user=" + sendTo + "&magic-code=" + otp,
 	}
 
 	// Create a new template and parse the HTML
