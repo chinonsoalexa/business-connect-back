@@ -225,7 +225,7 @@ func Routers() *fiber.App {
 		},
 		CacheControl: true,
 	}), NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
-	
+
 	router.Get("/get-states-cities/:countryCode", NotAuthMiddleware, authentication.GetStatesAndCitiesByCountryCode)
 	router.Post("/email-verification", NotAuthMiddleware, authentication.EmailAuthentication)
 	router.Post("/resend-otp", NotAuthMiddleware, authentication.ResendEmailVerification)
@@ -327,7 +327,7 @@ func Routers() *fiber.App {
 	router.Get("/get-blog-comment/:idLimit/:proId", NotAuthMiddleware, blog.GetBusinessConnectBlogCommentsByLimit)
 
 	// send emails and analytics
-	router.Get("/dorng-analytics", NotAuthMiddleware, profile.AddSiteVisit)
+	router.Get("/business-connect-analytics", NotAuthMiddleware, profile.AddSiteVisit)
 	router.Get("/dorng-user-fingerprint/:fingerprint", NotAuthMiddleware, profile.GetBusinessConnectUserByFingerprint)
 	router.Post("/dorng-user-analytics", NotAuthMiddleware, profile.AddClickHistory)
 	router.Post("/send-dorng-email", mid.WebRequireAuth, email.SendEmails)

@@ -93,6 +93,11 @@ type SignUpRequest struct {
 	Language     string  `json:"language"`
 	Longitude    float64 `json:"longitude"`
 	Latitude     float64 `json:"latitude"`
+	CountryISOCode    string `json:"country_iso_code"`
+	CountryLanguages  string `json:"country_languages"`
+	CountryCurrencies string `json:"country_currencies"`
+	PreferredLanguage string `json:"preferred_language"`
+	PreferredCurrency string `json:"preferred_currency"`
 }
 
 // post struct

@@ -78,16 +78,21 @@ func SignUp(ctx *fiber.Ctx) error {
 
 	// 4️⃣ Build DB model (explicit mapping)
 	newUser := Data.User{
-		FullName:     req.FullName,
-		BusinessName: req.BusinessName,
-		Email:        result.Normalized,
-		PhoneNumber:  req.PhoneNumber,
-		State:        req.State,
-		Country:      req.Country,
-		Language:      req.Language,
-		Longitude:    req.Longitude,
-		Latitude:     req.Latitude,
-		UserType:     "USER",
+		FullName:          req.FullName,
+		BusinessName:      req.BusinessName,
+		Email:             result.Normalized,
+		PhoneNumber:       req.PhoneNumber,
+		State:             req.State,
+		Country:           req.Country,
+		Language:          req.Language,
+		Longitude:         req.Longitude,
+		Latitude:          req.Latitude,
+		CountryISOCode:    req.CountryISOCode,
+		CountryLanguages:  req.CountryLanguages,
+		CountryCurrencies: req.CountryCurrencies,
+		PreferredLanguage: req.PreferredLanguage,
+		PreferredCurrency: req.PreferredCurrency,
+		UserType:          "USER",
 	}
 
 	// 5️⃣ Create user
@@ -419,4 +424,4 @@ func GetStatesAndCitiesByCountryCode(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"states": states,
 	})
-}	
+}
