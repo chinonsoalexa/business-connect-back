@@ -54,6 +54,37 @@ func GetGroups(ctx *fiber.Ctx) error {
 	})
 }
 
+func GetGroupsOpen(ctx *fiber.Ctx) error {
+	// Default pagination values
+	page := ctx.QueryInt("page", 1)
+	limit := ctx.QueryInt("limit", 10)
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 50 {
+		limit = 20
+	}
+
+	offset := (page - 1) * limit
+
+	// Fetch posts using limit+1 for hasMore
+	groups, hasMore, postErr := dbFunc.DBHelper.GetAvailableGroups(limit, offset)
+	if postErr != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch posts",
+		})
+	}
+
+	// Return JSON
+	return ctx.JSON(fiber.Map{
+		"page":    page,
+		"limit":   limit,
+		"groups": groups,
+		"hasMore": hasMore,
+	})
+}
+
 type JoinGroupRequest struct {
 	GroupPostID uint `json:"group_post_id"`
 }
