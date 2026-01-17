@@ -1,6 +1,8 @@
 package dbHelpFunc
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"sort"
@@ -31,6 +33,7 @@ type DatabaseHelper interface {
 	CheckByUserByEmail(NewEmail, OldEmail string) (err error)
 	CreatePasswordHash(password string) (string, error)
 	ComparePasswordHash(hash string, password string) error
+	GenerateUniqueName(base string) (string, error)
 	CreateNewUser(NewUser Data.User) (CreatedUser Data.User, err error)
 	DeleteUser(uuid uint) (err error)
 	FindByJti(jti string) (string, error)
@@ -298,6 +301,116 @@ func (d *DatabaseHelperImpl) ComparePasswordHash(hash string, password string) e
 
 	// Password matches
 	return nil
+}
+
+var reservedUniqueNames = map[string]bool{
+	"admin":     true,
+	"support":   true,
+	"api":       true,
+	"root":      true,
+	"system":    true,
+	"help":      true,
+	"login":     true,
+	"signup":    true,
+	"settings":  true,
+	"profile":   true,
+}
+
+func isReserved(name string) bool {
+	return reservedUniqueNames[name]
+}
+
+func limitLength(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+	return s[:max]
+}
+
+func randomSuffix(n int) string {
+	b := make([]byte, n)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)[:n]
+}
+
+func slugify(input string) string {
+	s := strings.ToLower(strings.TrimSpace(input))
+
+	// Replace spaces & underscores with hyphen
+	s = strings.ReplaceAll(s, " ", "-")
+	s = strings.ReplaceAll(s, "_", "-")
+
+	// Remove invalid characters
+	reg := regexp.MustCompile(`[^a-z0-9\-]`)
+	s = reg.ReplaceAllString(s, "")
+
+	// Remove duplicate hyphens
+	regDash := regexp.MustCompile(`-+`)
+	s = regDash.ReplaceAllString(s, "-")
+
+	return s
+}
+
+func ensureMinBaseLength(base string, min int) string {
+	if len(base) >= min {
+		return base
+	}
+
+	needed := min - len(base)
+	return base + randomSuffix(needed)
+}
+
+func (d *DatabaseHelperImpl) GenerateUniqueName(base string) (string, error) {
+
+	const (
+		minBaseLen = 5
+		maxLen     = 100
+	)
+
+	// 1️⃣ Slugify
+	slug := slugify(base)
+
+	// 2️⃣ Empty fallback
+	if slug == "" {
+		slug = "user"
+	}
+
+	// 3️⃣ Reserved words
+	if isReserved(slug) {
+		slug = slug + "-user"
+	}
+
+	// 4️⃣ Ensure base length ≥ 5
+	slug = ensureMinBaseLength(slug, minBaseLen)
+
+	// 5️⃣ Always append random suffix
+	unique := fmt.Sprintf("%s-%s", slug, randomSuffix(3))
+
+	// 6️⃣ Enforce max length
+	unique = limitLength(unique, maxLen)
+
+	// 7️⃣ Ensure DB uniqueness (extremely unlikely loop)
+	for {
+		var count int64
+		err := conn.DB.
+			Model(&Data.User{}).
+			Where("unique_name = ?", unique).
+			Count(&count).Error
+
+		if err != nil {
+			return "", err
+		}
+
+		if count == 0 {
+			return unique, nil
+		}
+
+		// regenerate suffix if collision
+		unique = limitLength(
+			fmt.Sprintf("%s-%s", slug, randomSuffix(3)),
+			maxLen,
+		)
+	}
 }
 
 func (d *DatabaseHelperImpl) CreateNewUser(NewUser Data.User) (CreatedUser Data.User, err error) {
@@ -1310,8 +1423,8 @@ func (d *DatabaseHelperImpl) GetProductsAll(limit, offset int, sortField, sortOr
 func (d *DatabaseHelperImpl) GetStatesAndCitiesByCountryCode(countryCode string) ([]Data.State, error) {
 	// Fetch all states for the country
 	var states []Data.State
-	if err := conn.DB./*Preload("Cities", "country_code = ?", countryCode)*/
-		Where("country_code = ?", countryCode).Find(&states).Error; err != nil {
+	if err := conn.DB. /*Preload("Cities", "country_code = ?", countryCode)*/
+				Where("country_code = ?", countryCode).Find(&states).Error; err != nil {
 		log.Fatal("Error fetching states:", err)
 		return nil, errors.New("Error fetching states")
 	}

@@ -26,6 +26,7 @@ type User struct {
 	// Basic Info
 	FullName          string `json:"full_name" gorm:"size:100;not null"`
 	BusinessName      string `json:"business_name" gorm:"size:100;not null"`
+	UniqueName        string `json:"unique_name" gorm:"size:100;uniqueIndex;not null"`
 	BioDescription    string `json:"bio_description" gorm:"size:100;not null"`
 	Email             string `json:"email" gorm:"uniqueIndex;not null"`
 	Password          string `json:"-"` // store HASHED password only
@@ -50,6 +51,9 @@ type User struct {
 
 	// 🔥 Connections
 	ConnectionsCount int64 `json:"connections_count" gorm:"default:0"`
+	GroupsCounts     int64 `json:"groups_counts" gorm:"default:0"`
+	PostsCounts      int64 `json:"posts_counts" gorm:"default:0"`
+	ProfileVisits    int64 `json:"profile_visits" gorm:"default:0"`
 
 	// Business Metrics
 	TotalRevenue  float64 `json:"total_revenue" gorm:"default:0"`

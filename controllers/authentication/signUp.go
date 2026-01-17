@@ -76,10 +76,24 @@ func SignUp(ctx *fiber.Ctx) error {
 		})
 	}
 
+	// 4️⃣ Determine base name
+	baseName := req.BusinessName
+	if strings.TrimSpace(baseName) == "" {
+		baseName = req.FullName
+	}
+
+	uniqueName, err := dbFunc.DBHelper.GenerateUniqueName(baseName)
+	if err != nil {
+		return ctx.Status(500).JSON(fiber.Map{
+			"error": "Failed to generate unique name",
+		})
+	}
+
 	// 4️⃣ Build DB model (explicit mapping)
 	newUser := Data.User{
 		FullName:          req.FullName,
 		BusinessName:      req.BusinessName,
+		UniqueName:        uniqueName,
 		Email:             result.Normalized,
 		PhoneNumber:       req.PhoneNumber,
 		State:             req.State,
