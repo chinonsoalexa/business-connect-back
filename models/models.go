@@ -336,18 +336,6 @@ type SiteVisit struct {
 	SiteVisitNumber uint
 }
 
-// Not all activities are equal. You can introduce weights:
-
-// click = +3
-
-// view = +1
-
-// add_to_cart = +5
-
-// purchase = +10
-
-// Track actions with a weight column and use it to influence recommendations.
-
 // blog types
 type (
 	Blog struct {
