@@ -52,19 +52,7 @@ func GetMyProfile(ctx *fiber.Ctx) error {
 
 func GetOthersProfile(ctx *fiber.Ctx) error {
 	// 1️⃣ Get logged-in user
-	userId := ctx.Locals("user-id")
-	if userId == nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "failed to get user",
-		})
-	}
-
-	user, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userId)
-	if uuidErr != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "failed to get user from request",
-		})
-	}
+	uniqueName := ctx.Params("name")
 
 	// 2️⃣ Pagination for posts and groups
 	page := ctx.QueryInt("page", 1)
@@ -78,7 +66,7 @@ func GetOthersProfile(ctx *fiber.Ctx) error {
 	offset := (page - 1) * limit
 
 	// 3️⃣ Fetch profile data
-	profile, err := dbFunc.DBHelper.GetUserProfile(user.UniqueName, limit, offset)
+	profile, err := dbFunc.DBHelper.GetUserProfile(uniqueName, limit, offset)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
