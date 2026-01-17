@@ -1445,7 +1445,7 @@ func (d *DatabaseHelperImpl) GetUserProfile(
 	var posts []Data.Post
 	if err := conn.DB.
 		Preload("Images").
-		Where("user_id = ? AND post_type = ?", user.ID, "post").
+		Where("user_id = ? AND post_type != ?", user.ID, "status").
 		Order("created_at DESC").
 		Limit(limit + 1).
 		Offset(offset).
