@@ -83,21 +83,21 @@ type ProfileImage struct {
 }
 
 type SignUpRequest struct {
-	FullName     string  `json:"full_name"`
-	BusinessName string  `json:"business_name"`
-	Email        string  `json:"email"`
-	Password     string  `json:"password"`
-	PhoneNumber  string  `json:"phone_number"`
-	State        string  `json:"state"`
-	Country      string  `json:"country"`
-	Language     string  `json:"language"`
-	Longitude    float64 `json:"longitude"`
-	Latitude     float64 `json:"latitude"`
-	CountryISOCode    string `json:"country_iso_code"`
-	CountryLanguages  string `json:"country_languages"`
-	CountryCurrencies string `json:"country_currencies"`
-	PreferredLanguage string `json:"preferred_language"`
-	PreferredCurrency string `json:"preferred_currency"`
+	FullName          string  `json:"full_name"`
+	BusinessName      string  `json:"business_name"`
+	Email             string  `json:"email"`
+	Password          string  `json:"password"`
+	PhoneNumber       string  `json:"phone_number"`
+	State             string  `json:"state"`
+	Country           string  `json:"country"`
+	Language          string  `json:"language"`
+	Longitude         float64 `json:"longitude"`
+	Latitude          float64 `json:"latitude"`
+	CountryISOCode    string  `json:"country_iso_code"`
+	CountryLanguages  string  `json:"country_languages"`
+	CountryCurrencies string  `json:"country_currencies"`
+	PreferredLanguage string  `json:"preferred_language"`
+	PreferredCurrency string  `json:"preferred_currency"`
 }
 
 // post struct

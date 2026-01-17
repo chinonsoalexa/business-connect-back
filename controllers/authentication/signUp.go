@@ -92,6 +92,7 @@ func SignUp(ctx *fiber.Ctx) error {
 		CountryCurrencies: req.CountryCurrencies,
 		PreferredLanguage: req.PreferredLanguage,
 		PreferredCurrency: req.PreferredCurrency,
+		Password:          req.Password,
 		UserType:          "USER",
 	}
 
