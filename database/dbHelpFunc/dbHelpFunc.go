@@ -58,12 +58,12 @@ type DatabaseHelper interface {
 	AddProfileImage(userID uint, url string, originalFilename string) error
 	UpdateUserProfilePhoto(userID uint, photoURL string) error
 	GetAvailableGroups(limit, offset int) ([]GroupFeedItem, bool, error)
-	JoinGroup(user Data.User, groupPostID uint) (*Data.GroupParticipant, bool, error)
+	JoinGroup(user Data.User, groupPostID uint) (*Data.GroupParticipant, bool, int, error)
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	GetBusinessConnectProductsByLimitOpen(limit, offset int) ([]Data.Post, bool, error)
 	GetUsersToConnect(currentUserID uint, limit, offset int) ([]UserSummary, bool, error)
 	GetUsersToConnectOpen(limit, offset int) ([]UserSummary, bool, error)
-	ConnectToUser(senderID, receiverID uint) error
+	FollowUser(followerID, followingID uint) error
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
 	GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
 	GetStatesAndCitiesByCountryCode(countryCode string) ([]Data.State, error)
@@ -1083,40 +1083,81 @@ func (d *DatabaseHelperImpl) GetUsersToConnectOpen(
 	return users, hasMore, nil
 }
 
-func (d *DatabaseHelperImpl) ConnectToUser(senderID, receiverID uint) error {
-	if senderID == receiverID {
-		return fmt.Errorf("cannot connect to yourself")
+func (d *DatabaseHelperImpl) UnfollowUser(followerID, followingID uint) error {
+	return conn.DB.Transaction(func(tx *gorm.DB) error {
+
+		result := tx.Where(
+			"user_id = ? AND connected_user_id = ?",
+			followerID, followingID,
+		).Delete(&Data.Connection{})
+
+		if result.RowsAffected == 0 {
+			return fmt.Errorf("not following")
+		}
+
+		if err := tx.Model(&Data.User{}).
+			Where("id = ?", followerID).
+			UpdateColumn(
+				"following_count",
+				gorm.Expr("following_count - 1"),
+			).Error; err != nil {
+			return err
+		}
+
+		return tx.Model(&Data.User{}).
+			Where("id = ?", followingID).
+			UpdateColumn(
+				"followers_count",
+				gorm.Expr("followers_count - 1"),
+			).Error
+	})
+}
+
+func (d *DatabaseHelperImpl) FollowUser(followerID, followingID uint) error {
+	if followerID == followingID {
+		return fmt.Errorf("cannot follow yourself")
 	}
 
 	return conn.DB.Transaction(func(tx *gorm.DB) error {
 
 		var existing Data.Connection
 		err := tx.Where(
-			"(user_id = ? AND connected_user_id = ?) OR (user_id = ? AND connected_user_id = ?)",
-			senderID, receiverID, receiverID, senderID,
+			"user_id = ? AND connected_user_id = ?",
+			followerID, followingID,
 		).First(&existing).Error
 
 		if err == nil {
-			return fmt.Errorf("connection already exists")
+			return fmt.Errorf("already following")
 		}
 		if err != gorm.ErrRecordNotFound {
 			return err
 		}
 
-		connection := Data.Connection{
-			UserID:          senderID,
-			ConnectedUserID: receiverID,
-			Status:          "accepted",
+		// Create follow
+		if err := tx.Create(&Data.Connection{
+			UserID:          followerID,
+			ConnectedUserID: followingID,
+			Status:          "following",
+		}).Error; err != nil {
+			return err
 		}
 
-		if err := tx.Create(&connection).Error; err != nil {
+		// Update counters
+		if err := tx.Model(&Data.User{}).
+			Where("id = ?", followerID).
+			UpdateColumn(
+				"following_count",
+				gorm.Expr("following_count + 1"),
+			).Error; err != nil {
 			return err
 		}
 
 		return tx.Model(&Data.User{}).
-			Where("id IN ?", []uint{senderID, receiverID}).
-			UpdateColumn("connections_count", gorm.Expr("connections_count + 1")).
-			Error
+			Where("id = ?", followingID).
+			UpdateColumn(
+				"followers_count",
+				gorm.Expr("followers_count + 1"),
+			).Error
 	})
 }
 
@@ -1294,38 +1335,33 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 func (d *DatabaseHelperImpl) JoinGroup(
 	user Data.User,
 	groupPostID uint,
-) (*Data.GroupParticipant, bool, error) {
+) (*Data.GroupParticipant, bool, int, error) {
 
 	// Begin transaction
 	tx := conn.DB.Begin()
 	if tx.Error != nil {
-		return nil, false, tx.Error
+		return nil, false, 0, tx.Error
 	}
 
 	// 1️⃣ Check if user already joined
 	var existing Data.GroupParticipant
-	err := tx.
-		Where("post_id = ? AND user_id = ?", groupPostID, user.ID).
-		First(&existing).Error
-
+	err := tx.Where("post_id = ? AND user_id = ?", groupPostID, user.ID).First(&existing).Error
 	if err == nil {
 		tx.Rollback()
-		return &existing, false, nil
+		return &existing, false, 0, nil
 	} else if err != gorm.ErrRecordNotFound {
 		tx.Rollback()
-		return nil, false, err
+		return nil, false, 0, err
 	}
 
-	// 2️⃣ Lock the group post row
+	// 2️⃣ Lock the post row
 	var post Data.Post
-	if err := tx.
-		Clauses(clause.Locking{Strength: "UPDATE"}).
-		First(&post, groupPostID).Error; err != nil {
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&post, groupPostID).Error; err != nil {
 		tx.Rollback()
-		return nil, false, err
+		return nil, false, 0, err
 	}
 
-	// 3️⃣ Check max members safely
+	// 3️⃣ Check max members
 	membersCount := 0
 	if post.MembersCount != nil {
 		membersCount = *post.MembersCount
@@ -1338,7 +1374,7 @@ func (d *DatabaseHelperImpl) JoinGroup(
 
 	if maxMembers > 0 && membersCount >= maxMembers {
 		tx.Rollback()
-		return nil, false, errors.New("group is full")
+		return nil, false, membersCount, errors.New("group is full")
 	}
 
 	// 4️⃣ Create new participant
@@ -1352,23 +1388,35 @@ func (d *DatabaseHelperImpl) JoinGroup(
 
 	if err := tx.Create(&participant).Error; err != nil {
 		tx.Rollback()
-		return nil, false, err
+		return nil, false, membersCount, err
 	}
 
-	// 5️⃣ Increment members_count atomically, using COALESCE to handle NULL
+	// 5️⃣ Increment members_count atomically
 	if err := tx.Model(&Data.Post{}).
 		Where("id = ?", groupPostID).
 		UpdateColumn("members_count", gorm.Expr("COALESCE(members_count,0) + 1")).Error; err != nil {
 		tx.Rollback()
-		return nil, false, err
+		return nil, false, membersCount, err
 	}
 
-	// 6️⃣ Commit transaction
+	// 6️⃣ Reload post to get updated members_count
+	if err := tx.First(&post, groupPostID).Error; err != nil {
+		tx.Rollback()
+		return nil, false, membersCount, err
+	}
+
+	// 7️⃣ Commit transaction
 	if err := tx.Commit().Error; err != nil {
-		return nil, false, err
+		return nil, false, membersCount, err
 	}
 
-	return &participant, true, nil
+	// Return participant, created=true, updated members count
+	newMembersCount := 0
+	if post.MembersCount != nil {
+		newMembersCount = *post.MembersCount
+	}
+
+	return &participant, true, newMembersCount, nil
 }
 
 func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error) {
@@ -2223,10 +2271,11 @@ func (d *DatabaseHelperImpl) AddProduct(post Data.Post, user Data.User) (Data.Po
 		return Data.Post{}, fmt.Errorf("failed to update product URL ID: %w", updateResult.Error)
 	}
 
-	// Update user with posts amount
-	updateUserResult := conn.DB.Model(&user).Update("total_product", user.TotalProduct+1)
-	if updateUserResult.Error != nil {
-		return Data.Post{}, fmt.Errorf("failed to update user's total products: %w", updateUserResult.Error)
+	if post.PostType != "status" {	// Update user with posts amount
+		updateUserResult := conn.DB.Model(&user).Update("total_product", user.TotalProduct+1)
+		if updateUserResult.Error != nil {
+			return Data.Post{}, fmt.Errorf("failed to update user's total products: %w", updateUserResult.Error)
+		}
 	}
 
 	// Return the updated product

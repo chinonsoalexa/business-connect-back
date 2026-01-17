@@ -3,6 +3,7 @@ package profile
 import (
 	dbFunc "business-connect/database/dbHelpFunc"
 	helperFunc "business-connect/paystack"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -90,19 +91,19 @@ type ConnectRequest struct {
 }
 
 func ConnectFriend(ctx *fiber.Ctx) error {
-	// Get current logged in user-id
-	userId := ctx.Locals("user-id")
-	if userId == nil {
+	// 1️⃣ Get logged in user
+	userIDInterface := ctx.Locals("user-id")
+	userID, ok := userIDInterface.(uint)
+	if !ok {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "not logged in"})
 	}
 
-	user, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userId)
+	user, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userID)
 	if uuidErr != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "failed to get user from request",
-		})
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "failed to get user from request"})
 	}
 
+	// 2️⃣ Parse request
 	var req ConnectRequest
 	if err := ctx.BodyParser(&req); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
@@ -112,10 +113,20 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "user_id is required"})
 	}
 
-	err := dbFunc.DBHelper.ConnectToUser(user.ID, req.UserID)
+	// 3️⃣ Prevent self-follow
+	if user.ID == req.UserID {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "cannot connect to yourself"})
+	}
+
+	// 4️⃣ Follow
+	err := dbFunc.DBHelper.FollowUser(user.ID, req.UserID)
 	if err != nil {
+		// Could return 409 if already following
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return ctx.JSON(fiber.Map{"message": "connection request sent"})
+	// 5️⃣ Success
+	return ctx.JSON(fiber.Map{
+		"message": fmt.Sprintf("You are now following user %d", req.UserID),
+	})
 }

@@ -24,15 +24,17 @@ type User struct {
 	gorm.Model
 
 	// Basic Info
-	FullName          string `json:"full_name" gorm:"size:100;not null"`
-	BusinessName      string `json:"business_name" gorm:"size:100;not null"`
-	UniqueName        string `json:"unique_name" gorm:"size:100;uniqueIndex;not null"`
-	BioDescription    string `json:"bio_description" gorm:"size:100;not null"`
-	Email             string `json:"email" gorm:"uniqueIndex;not null"`
-	Password          string `json:"-"` // store HASHED password only
-	PhoneNumber       string `json:"phone_number" gorm:"size:15;index"`
-	ProfilePhotoURL   string `json:"profile_photo_url"`
-	CoverPhotoURL     string `json:"cover_photo_url"`
+	FullName        string `json:"full_name" gorm:"size:100;not null"`
+	BusinessName    string `json:"business_name" gorm:"size:100;not null"`
+	UniqueName      string `json:"unique_name" gorm:"size:100;uniqueIndex;not null"`
+	BioDescription  string `json:"bio_description" gorm:"size:100;not null"`
+	Email           string `json:"email" gorm:"uniqueIndex;not null"`
+	Password        string `json:"-"` // store HASHED password only
+	PhoneNumber     string `json:"phone_number" gorm:"size:15;index"`
+	ProfilePhotoURL string `json:"profile_photo_url"`
+	CoverPhotoURL   string `json:"cover_photo_url"`
+
+	// Location info
 	CountryISOCode    string `json:"country_iso_code"`
 	CountryLanguages  string `json:"country_languages"`
 	CountryCurrencies string `json:"country_currencies"`
@@ -49,11 +51,12 @@ type User struct {
 	Longitude     float64 `json:"longitude"`
 	Latitude      float64 `json:"latitude"`
 
-	// 🔥 Connections
-	ConnectionsCount int64 `json:"connections_count" gorm:"default:0"`
-	GroupsCounts     int64 `json:"groups_counts" gorm:"default:0"`
-	PostsCounts      int64 `json:"posts_counts" gorm:"default:0"`
-	ProfileVisits    int64 `json:"profile_visits" gorm:"default:0"`
+	// 🔥 Social metrics
+	FollowersCount int64 `json:"followers_count" gorm:"default:0"`
+	FollowingCount int64 `json:"following_count" gorm:"default:0"`
+	GroupsCounts   int64 `json:"groups_counts" gorm:"default:0"`
+	PostsCounts    int64 `json:"posts_counts" gorm:"default:0"`
+	ProfileVisits  int64 `json:"profile_visits" gorm:"default:0"`
 
 	// Business Metrics
 	TotalRevenue  float64 `json:"total_revenue" gorm:"default:0"`

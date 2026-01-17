@@ -90,53 +90,47 @@ type JoinGroupRequest struct {
 }
 
 func JoinGroupHandler(ctx *fiber.Ctx) error {
-	// Get current user from context
-	userId := ctx.Locals("user-id")
-	if userId == nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "failed to get user",
-		})
+	// 1️⃣ Get current logged in user
+	userIDInterface := ctx.Locals("user-id")
+	userID, ok := userIDInterface.(uint)
+	if !ok {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "not logged in"})
 	}
 
-	user, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userId)
+	user, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userID)
 	if uuidErr != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "failed to get user from request",
 		})
 	}
 
-	// Parse request body
+	// 2️⃣ Parse request body
 	var req JoinGroupRequest
-	
 	if err := ctx.BodyParser(&req); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid request body",
-		})
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
 	}
 
 	if req.GroupPostID == 0 {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "group_post_id is required",
-		})
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "group_post_id is required"})
 	}
 
-	// Call DB helper
-	participant, created, err := dbFunc.DBHelper.JoinGroup(user, req.GroupPostID)
+	// 3️⃣ Call DB helper
+	participant, created, membersCount, err := dbFunc.DBHelper.JoinGroup(user, req.GroupPostID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to join group",
-		})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	if !created {
 		return ctx.Status(fiber.StatusConflict).JSON(fiber.Map{
-			"message":     "user already joined this group",
-			"participant": participant,
+			"message":       "user already joined this group",
+			"participant":   participant,
+			"members_count": membersCount,
 		})
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":     "successfully joined group",
-		"participant": participant,
+		"message":       "successfully joined group",
+		"participant":   participant,
+		"members_count": membersCount,
 	})
 }
