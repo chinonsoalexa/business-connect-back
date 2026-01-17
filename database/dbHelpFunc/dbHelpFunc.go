@@ -305,16 +305,16 @@ func (d *DatabaseHelperImpl) ComparePasswordHash(hash string, password string) e
 }
 
 var reservedUniqueNames = map[string]bool{
-	"admin":     true,
-	"support":   true,
-	"api":       true,
-	"root":      true,
-	"system":    true,
-	"help":      true,
-	"login":     true,
-	"signup":    true,
-	"settings":  true,
-	"profile":   true,
+	"admin":    true,
+	"support":  true,
+	"api":      true,
+	"root":     true,
+	"system":   true,
+	"help":     true,
+	"login":    true,
+	"signup":   true,
+	"settings": true,
+	"profile":  true,
 }
 
 func isReserved(name string) bool {
@@ -1421,10 +1421,10 @@ func (d *DatabaseHelperImpl) JoinGroup(
 }
 
 type UserProfile struct {
-	User        Data.User            `json:"user"`
-	Posts       []Data.Post          `json:"posts"`
-	Connections []Data.UserSummary   `json:"connections"`
-	Groups      []GroupFeedItem      `json:"groups"`
+	User        Data.User              `json:"user"`
+	Posts       []Data.Post            `json:"posts"`
+	Connections []Data.UserSummary     `json:"connections"`
+	Groups      []GroupFeedItem        `json:"groups"`
 	About       map[string]interface{} `json:"about"`
 }
 
@@ -2341,6 +2341,7 @@ func GenerateProductURL(productName string, productID int) string {
 func (d *DatabaseHelperImpl) AddProduct(post Data.Post, user Data.User) (Data.Post, error) {
 	// Create the product in the database
 	post.UserName = user.FullName
+	post.UniqueName = user.UniqueName
 	post.ProfilePhotoURL = user.ProfilePhotoURL
 	post.PhoneNumber = user.PhoneNumber
 	post.Verified = user.Verified
@@ -2371,7 +2372,7 @@ func (d *DatabaseHelperImpl) AddProduct(post Data.Post, user Data.User) (Data.Po
 		return Data.Post{}, fmt.Errorf("failed to update product URL ID: %w", updateResult.Error)
 	}
 
-	if post.PostType != "status" {	// Update user with posts amount
+	if post.PostType != "status" { // Update user with posts amount
 		updateUserResult := conn.DB.Model(&user).Update("total_product", user.TotalProduct+1)
 		if updateUserResult.Error != nil {
 			return Data.Post{}, fmt.Errorf("failed to update user's total products: %w", updateUserResult.Error)

@@ -122,6 +122,7 @@ type (
 		// Ownership
 		UserID          uint   `json:"user_id" gorm:"index"`
 		UserName        string `json:"user_name" gorm:"index"`
+		UniqueName      string `json:"unique_name" gorm:"index"`
 		ProfilePhotoURL string `json:"profile_photo_url"`
 		PhoneNumber     string `json:"phone_number" gorm:"size:15;index"`
 		Verified        bool   `json:"verified" gorm:"default:false"`
