@@ -176,6 +176,7 @@ type (
 		UserID uint `json:"user_id" gorm:"index"`
 
 		FullName        string `json:"full_name"`
+		UniqueName      string `json:"unique_name"`
 		ProfilePhotoURL string `json:"profile_photo_url"`
 		Verified        bool   `json:"verified"`
 	}

@@ -1383,6 +1383,7 @@ func (d *DatabaseHelperImpl) JoinGroup(
 		PostID:          groupPostID,
 		UserID:          user.ID,
 		FullName:        user.FullName,
+		UniqueName:      user.UniqueName,
 		ProfilePhotoURL: user.ProfilePhotoURL,
 		Verified:        user.Verified,
 	}
