@@ -59,6 +59,7 @@ type DatabaseHelper interface {
 	UpdateUserProfilePhoto(userID uint, photoURL string) error
 	GetAvailableGroups(limit, offset int) ([]GroupFeedItem, bool, error)
 	JoinGroup(user Data.User, groupPostID uint) (*Data.GroupParticipant, bool, int, error)
+	GetUserProfile(uniqueName string, limit, offset int) (*UserProfile, error)
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	GetBusinessConnectProductsByLimitOpen(limit, offset int) ([]Data.Post, bool, error)
 	GetUsersToConnect(currentUserID uint, limit, offset int) ([]UserSummary, bool, error)
@@ -1417,6 +1418,105 @@ func (d *DatabaseHelperImpl) JoinGroup(
 	}
 
 	return &participant, true, newMembersCount, nil
+}
+
+type UserProfile struct {
+	User        Data.User            `json:"user"`
+	Posts       []Data.Post          `json:"posts"`
+	Connections []Data.UserSummary   `json:"connections"`
+	Groups      []GroupFeedItem      `json:"groups"`
+	About       map[string]interface{} `json:"about"`
+}
+
+func (d *DatabaseHelperImpl) GetUserProfile(
+	uniqueName string, limit, offset int,
+) (*UserProfile, error) {
+	profile := &UserProfile{}
+
+	// 1️⃣ Get basic user info by unique_name
+	var user Data.User
+	if err := conn.DB.Where("unique_name = ?", uniqueName).First(&user).Error; err != nil {
+		return nil, err
+	}
+	profile.User = user
+
+	// 2️⃣ Home timeline: user posts
+	var posts []Data.Post
+	if err := conn.DB.
+		Preload("Images").
+		Where("user_id = ? AND post_type = ?", user.ID, "post").
+		Order("created_at DESC").
+		Limit(limit + 1).
+		Offset(offset).
+		Find(&posts).Error; err != nil {
+		return nil, err
+	}
+	profile.Posts = posts
+
+	// 3️⃣ Friends / connections (accepted)
+	var connections []Data.User
+	if err := conn.DB.
+		Joins("JOIN connections ON connections.connected_user_id = users.id").
+		Where("connections.user_id = ? AND connections.status = ?", user.ID, "accepted").
+		Find(&connections).Error; err != nil {
+		return nil, err
+	}
+
+	// Map to summary
+	profile.Connections = make([]Data.UserSummary, len(connections))
+	for i, c := range connections {
+		profile.Connections[i] = Data.UserSummary{
+			ID:              c.ID,
+			FullName:        c.FullName,
+			ProfilePhotoURL: c.ProfilePhotoURL,
+			Verified:        c.Verified,
+		}
+	}
+
+	// 4️⃣ Groups the user has joined
+	var groupParticipants []Data.GroupParticipant
+	if err := conn.DB.
+		Where("user_id = ?", user.ID).
+		Find(&groupParticipants).Error; err != nil {
+		return nil, err
+	}
+
+	groupIDs := make([]uint, len(groupParticipants))
+	for i, g := range groupParticipants {
+		groupIDs[i] = g.PostID
+	}
+
+	// Fetch group posts with images and participants
+	groups, _, err := d.GetAvailableGroups(limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter groups to only those joined by the user
+	userGroups := make([]GroupFeedItem, 0)
+	for _, g := range groups {
+		for _, gid := range groupIDs {
+			if g.ID == gid {
+				userGroups = append(userGroups, g)
+			}
+		}
+	}
+	profile.Groups = userGroups
+
+	// 5️⃣ About info
+	profile.About = map[string]interface{}{
+		"full_name":       user.FullName,
+		"business_name":   user.BusinessName,
+		"bio_description": user.BioDescription,
+		"country":         user.Country,
+		"state":           user.State,
+		"language":        user.Language,
+		"connections":     user.FollowersCount,
+		"posts":           user.PostsCounts,
+		"groups":          user.GroupsCounts,
+	}
+
+	return profile, nil
 }
 
 func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error) {

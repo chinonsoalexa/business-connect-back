@@ -75,6 +75,13 @@ type User struct {
 	Images []ProfileImage `json:"images,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
+type UserSummary struct {
+	ID              uint   `json:"id"`
+	FullName        string `json:"full_name"`
+	ProfilePhotoURL string `json:"profile_photo_url"`
+	Verified        bool   `json:"verified"`
+}
+
 type Connection struct {
 	gorm.Model
 	UserID          uint   `json:"user_id" gorm:"index"`                    // who initiated the connection

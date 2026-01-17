@@ -319,6 +319,11 @@ func Routers() *fiber.App {
 	router.Get("/get-groups-open", NotAuthMiddleware, profile.GetGroupsOpen)
 	router.Post("/join-groups", NotAuthMiddleware, mid.WebRequireAuth, profile.JoinGroupHandler)
 
+	// Busines Connect Profile View
+	router.Get("/get-my-profile", NotAuthMiddleware, mid.WebRequireAuth, profile.GetMyProfile)
+	router.Get("/get-others-profile", NotAuthMiddleware, mid.WebRequireAuth, profile.GetOthersProfile)
+	router.Get("/get-profile-open/:id", NotAuthMiddleware, profile.GetProfileOpen)
+
 	// blog post, retrieval and updating
 	router.Post("/publish-blog", mid.WebRequireAuth, upload.BlogPost)
 	router.Post("/update-dorng-blog", mid.WebRequireAuth, blog.UpdateBusinessConnectBlog)
