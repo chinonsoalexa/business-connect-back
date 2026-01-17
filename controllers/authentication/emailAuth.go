@@ -128,7 +128,22 @@ func EmailVerification(name, sendTo string) error {
 			<p style="color: #777777;">We're excited to have you on board! Just one more step to activate your Business Connect account:</p>
 			<p style="color: #777777;">Please copy the code below to verify your email address and start exploring Business Connect's features.</p>
 
-			<a href="#" style="display: block; margin: 0 auto; padding: 15px; background-color: #007bff; color: #ffffff; text-decoration: none; font-size: 24px; border-radius: 6px; width: 200px; text-align: center;">{{.Token}}</a>
+			<div
+				style="
+					margin: 16px auto;
+					padding: 12px;
+					border: 1px solid #007bff;
+					background-color: #f4f8ff;
+					color: #0d3c61;
+					font-size: 20px;
+					font-family: monospace;
+					border-radius: 4px;
+					text-align: center;
+					max-width: 260px;
+				"
+				>
+				{{.Token}}
+			</div>
 
 			<p style="color: #777777; margin-top: 20px;">For security reasons, this link will expire in 24 hours. If you have any issues, please contact us at <a href="mailto:support@businessconnectt.com">support@businessconnectt.com</a>.</p>
 			<p style="color: #777777;">Thanks,<br>The Business Connect Team</p>
@@ -277,7 +292,7 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 						<td style="padding: 30px;"> 
 							<h6 style="font-weight: 600; font-size: 16px; margin: 0 0 18px 0;">Password Reset</h6>
 							<p style="font-size: 13px; line-height: 1.7; letter-spacing: 0.7px; margin-top: 0;">Hi {{.Name}},</p>
-							<p style="font-size: 13px; line-height: 1.7; letter-spacing: 0.7px; margin-top: 0;">We've received a request to reset your Business Connect Admin password. If you didn't make this request, please ignore this email. Your account is still secure.</p>
+							<p style="font-size: 13px; line-height: 1.7; letter-spacing: 0.7px; margin-top: 0;">We've received a request to reset your Business Connect password. If you didn't make this request, please ignore this email. Your account is still secure.</p>
 							<p style="text-align: center;"><a href="{{.URL}}" style="padding: 10px; background-color: #5C61F2; color: #fff; display: inline-block; border-radius: 30px; font-weight: 700; padding: 0.6rem 1.75rem;">Reset Password</a></p>
 							<p style="font-size: 13px; line-height: 1.7; letter-spacing: 0.7px; margin-top: 0;">If you can't click the button, please copy and paste the following link into your browser:</p>
 								<textarea readonly style="display: block; margin: 0 auto; padding: 10px; background-color: #f9f9f9; border: 1px solid #ccc; border-radius: 6px; width: 100%; resize: none; font-size: 14px;">{{.URL}}</textarea>
