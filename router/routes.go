@@ -285,6 +285,7 @@ func Routers() *fiber.App {
 
 	// post a product on BusinessConnect
 	router.Post("/publish-product", NotAuthMiddleware, mid.WebRequireAuth, upload.CreatePost)
+	router.Post("/publish-status", NotAuthMiddleware, mid.WebRequireAuth, upload.CreateStatus)
 	router.Post("/upload-profile-photo", NotAuthMiddleware, mid.WebRequireAuth, upload.UpdateProfilePhoto)
 
 	// set shipping fee

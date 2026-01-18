@@ -169,6 +169,44 @@ type (
 		URL              string `json:"url" gorm:"column:url"`
 		OriginalFilename string `json:"original_file_name" gorm:"column:original_file_name"`
 	}
+	Status struct {
+		gorm.Model
+
+		// Ownership
+		UserID          uint   `json:"user_id" gorm:"index"`
+		UserName        string `json:"user_name" gorm:"index"`
+		UniqueName      string `json:"unique_name" gorm:"index"`
+		ProfilePhotoURL string `json:"profile_photo_url"`
+		PhoneNumber     string `json:"phone_number" gorm:"size:15;index"`
+		Verified        bool   `json:"verified" gorm:"default:false"`
+
+		// Core fields (COMMON)
+		PostType     string `json:"post_type" gorm:"size:20;index"` // personal | business | group | event | ad
+		Title        string `json:"title" gorm:"size:200;not null"`
+		ProductUrlID string `json:"product_url_id" gorm:"size:200;not null"`
+		Description  string `json:"description" gorm:"type:text;not null"`
+		WhatsappURL  string `json:"whatsapp_url" gorm:"not null"`
+
+		// Visibility
+		IsSponsored       bool   `json:"is_sponsored" gorm:"default:false"`
+		IsActive          bool   `json:"is_active" gorm:"default:true"`
+		Views             int64  `json:"views" gorm:"default:0"`
+		Clicks            int64  `json:"clicks" gorm:"default:0"`
+
+		// Location (used by business + event)
+		Location *string `json:"location,omitempty"`
+
+		// Moderation
+		Approved bool `json:"approved" gorm:"default:true"`
+
+		Images            []StatusImage        `json:"images,omitempty" gorm:"foreignKey:StatusID;constraint:OnDelete:CASCADE"`
+	}
+	StatusImage struct {
+		gorm.Model
+		StatusID           uint   `json:"status_id"`
+		URL              string `json:"url" gorm:"column:url"`
+		OriginalFilename string `json:"original_file_name" gorm:"column:original_file_name"`
+	}
 	GroupParticipant struct {
 		gorm.Model
 

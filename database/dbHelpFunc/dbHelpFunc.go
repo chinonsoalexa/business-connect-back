@@ -54,7 +54,7 @@ type DatabaseHelper interface {
 	UpdateMaxTry(Email string) (err error)
 	UpdateMaxTryNumber(number string) (err error)
 	UpdateMaxTryToZero(Email string) (err error)
-	GetStatusPostsByLimit(limit, offset int) ([]Data.Post, bool, error)
+	GetStatusPostsByLimit(limit, offset int) ([]Data.Status, bool, error)
 	AddProfileImage(userID uint, url string, originalFilename string) error
 	UpdateUserProfilePhoto(userID uint, photoURL string) error
 	GetAvailableGroups(limit, offset int) ([]GroupFeedItem, bool, error)
@@ -98,6 +98,8 @@ type DatabaseHelper interface {
 	UpdateSubscriptionStatus(transactionID uint64) error
 	AddProduct(post Data.Post, user Data.User) (Data.Post, error)
 	AddProductImage(image Data.PostImage, postID uint) error
+	AddStatus(post Data.Status, user Data.User) (Data.Status, error)
+	AddStatusImage(image Data.StatusImage, statusID uint) error
 	AddBlog(post Data.Blog, user Data.User) (Data.Blog, error)
 	AddBlogImage(image Data.BlogImage, postID uint) error
 	// SaveCustomerReview(productID uint, email string, name string, reviewText string, rating int) (Data.CustomerReview, error)
@@ -1166,15 +1168,15 @@ func (d *DatabaseHelperImpl) FollowUser(followerID, followingID uint) error {
 
 func (d *DatabaseHelperImpl) GetStatusPostsByLimit(
 	limit, offset int,
-) ([]Data.Post, bool, error) {
+) ([]Data.Status, bool, error) {
 
-	var posts []Data.Post
+	var posts []Data.Status
 
 	// Calculate time 24 hours ago
 	twentyFourHoursAgo := time.Now().Add(-24 * time.Hour)
 
 	result := conn.DB.
-		Model(&Data.Post{}).
+		Model(&Data.Status{}).
 		Preload("Images").
 		Where(`
 			is_active = ?
@@ -2391,6 +2393,67 @@ func (d *DatabaseHelperImpl) AddProduct(post Data.Post, user Data.User) (Data.Po
 func (d *DatabaseHelperImpl) AddProductImage(image Data.PostImage, postID uint) error {
 	// Set the post_id for the image
 	image.PostID = postID
+
+	result := conn.DB.Create(&image)
+
+	// Check if an error occurred when creating the post
+	if result.Error != nil {
+		// Some other error occurred
+		return errors.New("an unknown error occurred")
+	}
+
+	// Return the ID of the newly created post
+	return nil
+}
+
+func (d *DatabaseHelperImpl) AddStatus(post Data.Status, user Data.User) (Data.Status, error) {
+	// Create the product in the database
+	post.UserName = user.FullName
+	post.UniqueName = user.UniqueName
+	post.ProfilePhotoURL = user.ProfilePhotoURL
+	post.PhoneNumber = user.PhoneNumber
+	post.Verified = user.Verified
+	post.IsActive = true
+	post.Approved = true
+	if post.Location == nil || *post.Location == "" {
+		post.Location = &user.State
+	}
+	result := conn.DB.Create(&post)
+
+	// Check if an error occurred when creating the product
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return Data.Status{}, fmt.Errorf("failed to create product: product not found, %w", result.Error)
+		} else if errors.Is(result.Error, gorm.ErrInvalidData) {
+			return Data.Status{}, fmt.Errorf("failed to create product: invalid data provided, %w", result.Error)
+		} else {
+			return Data.Status{}, fmt.Errorf("failed to create product: %w", result.Error)
+		}
+	}
+
+	// Generate the ProductUrlID
+	post.ProductUrlID = GenerateProductURL(post.Title, int(post.ID))
+
+	// Update the product with the new ProductUrlID
+	updateResult := conn.DB.Model(&post).Update("product_url_id", post.ProductUrlID)
+	if updateResult.Error != nil {
+		return Data.Status{}, fmt.Errorf("failed to update product URL ID: %w", updateResult.Error)
+	}
+
+	if post.PostType != "status" { // Update user with posts amount
+		updateUserResult := conn.DB.Model(&user).Update("total_product", user.TotalProduct+1)
+		if updateUserResult.Error != nil {
+			return Data.Status{}, fmt.Errorf("failed to update user's total products: %w", updateUserResult.Error)
+		}
+	}
+
+	// Return the updated product
+	return post, nil
+}
+
+func (d *DatabaseHelperImpl) AddStatusImage(image Data.StatusImage, statusID uint) error {
+	// Set the post_id for the image
+	image.StatusID = statusID
 
 	result := conn.DB.Create(&image)
 

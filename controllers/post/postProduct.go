@@ -114,6 +114,66 @@ func CreatePost(c *fiber.Ctx) error {
 	})
 }
 
+func CreateStatus(c *fiber.Ctx) error {
+
+	userID := c.Locals("user-id")
+	if userID == nil {
+		return c.Status(401).JSON(fiber.Map{"error": "unauthorized"})
+	}
+
+	user, err := dbFunc.DBHelper.FindByUuidFromLocal(userID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid form"})
+	}
+
+	post := Data.Status{
+		UserID:      user.ID,
+		PostType:    c.FormValue("post_type"),
+		Title:       c.FormValue("title"),
+		Description: c.FormValue("description"),
+		WhatsappURL: c.FormValue("whatsapp_url"),
+	}
+
+	// Optional fields
+	if v := c.FormValue("location"); v != "" {
+		post.Location = &v
+	}
+
+	if post.PostType == "ad" {
+		post.IsSponsored = true
+	}
+
+	// Save post first
+	savedPost, err := dbFunc.DBHelper.AddStatus(post, user)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to save post"})
+	}
+
+	// Upload images
+	files := form.File["images"]
+	if len(files) > 0 {
+		uploads, err := upload.UploadStatusFiles(files)
+		if err != nil {
+			fmt.Println("Image upload error:", err)
+			return c.Status(500).JSON(fiber.Map{"error": "image upload failed"})
+		}
+
+		for _, img := range uploads {
+			dbFunc.DBHelper.AddStatusImage(img, savedPost.ID)
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "post created",
+		"post_id": savedPost.ID,
+	})
+}
+
 func UpdateProfilePhoto(c *fiber.Ctx) error {
 	userID := c.Locals("user-id")
 	if userID == nil {
