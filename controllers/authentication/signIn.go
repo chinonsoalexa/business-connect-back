@@ -292,6 +292,14 @@ func VerifySignInMagicLink(ctx *fiber.Ctx) error {
 	// check if user exists in the db by email in the data base
 	user, dbEmailErr = dbFunc.DBHelper.FindByEmail(SentOTPData.Email)
 
+	// let's check if the user's email is verified
+	if !user.EmailVerified {
+		// User needs to verify email address, send an error message
+		return ctx.Status(http.StatusConflict).JSON(fiber.Map{
+			"error": "User already exist, please verify your email ID",
+		})
+	}
+
 	// fmt.Println("this is the user id being verified: ", user)
 
 	if dbEmailErr != nil {
