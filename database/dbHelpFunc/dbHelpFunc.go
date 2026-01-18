@@ -1230,6 +1230,7 @@ func (d *DatabaseHelperImpl) UpdateUserProfilePhoto(
 type GroupUserSummary struct {
 	ID              uint   `json:"id"`
 	FullName        string `json:"full_name"`
+	UniqueName      string `json:"unique_name"`
 	ProfilePhotoURL string `json:"profile_photo_url"`
 	Verified        bool   `json:"verified"`
 }
@@ -1302,6 +1303,7 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 			GroupUserSummary{
 				ID:              p.UserID,
 				FullName:        p.FullName,
+				UniqueName:      p.UniqueName,
 				ProfilePhotoURL: p.ProfilePhotoURL,
 				Verified:        p.Verified,
 			},
