@@ -78,12 +78,12 @@ func SignIn(ctx *fiber.Ctx) error {
 	}
 
 	// let's check if the user's email is verified
-	// if !user.EmailActivated {
-	// 	// User needs to verify email address, send an error message
-	// 	return ctx.Status(http.StatusConflict).JSON(fiber.Map{
-	// 		"error": "User already exist, please verify your email ID",
-	// 	})
-	// }
+	if !user.EmailVerified {
+		// User needs to verify email address, send an error message
+		return ctx.Status(http.StatusConflict).JSON(fiber.Map{
+			"error": "User already exist, please verify your email ID",
+		})
+	}
 
 	// comparing existing password with user login password in form of hash
 	hashErr = dbFunc.DBHelper.ComparePasswordHash(user.Password, OldUser.Password)
