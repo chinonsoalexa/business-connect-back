@@ -1057,6 +1057,7 @@ func (d *DatabaseHelperImpl) GetUsersToConnectOpen(
 		Select(`
 			id,
 			full_name,
+			unique_name,
 			business_name,
 			profile_photo_url,
 			phone_number,
