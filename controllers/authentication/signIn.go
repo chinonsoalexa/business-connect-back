@@ -268,7 +268,7 @@ func VerifySignInMagicLink(ctx *fiber.Ctx) error {
 	}
 
 	// OTP expiry duration is 60 minutes
-	otpExpiryDuration := 5 * time.Minute
+	otpExpiryDuration := 60 * time.Minute
 
 	// Check if OTP has expired
 	createdTime := time.Unix(OTPBody.CreatedAT, 0)
@@ -294,10 +294,13 @@ func VerifySignInMagicLink(ctx *fiber.Ctx) error {
 
 	// let's check if the user's email is verified
 	if !user.EmailVerified {
-		// User needs to verify email address, send an error message
-		return ctx.Status(http.StatusConflict).JSON(fiber.Map{
-			"error": "User already exist, please verify your email ID",
-		})
+		errr := dbFunc.DBHelper.UpdateEmailStatus(user)
+		if errr != nil {
+			// User needs to verify email address, send an error message
+			return ctx.Status(http.StatusConflict).JSON(fiber.Map{
+				"error": "error updating email status",
+			})
+		}
 	}
 
 	// fmt.Println("this is the user id being verified: ", user)

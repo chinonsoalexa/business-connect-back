@@ -42,15 +42,13 @@ func SignUp(ctx *fiber.Ctx) error {
 	if err == nil {
 		if !existingUser.EmailVerified {
 			// let's send token to user to verify the user with email ID
-			emailErr := EmailVerification(existingUser.FullName, existingUser.Email)
-
-			if emailErr != nil {
-				fmt.Println("this is the email error:", emailErr)
-				return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
-					"error": "email verification failed",
+			// let's send the magic link to the existingUser's email
+			magicError := MagicLinkEmailVerification(existingUser.FullName, existingUser.Email)
+			if magicError != nil {
+				return ctx.Status(http.StatusConflict).JSON(fiber.Map{
+					"error": "there was an error sending mail",
 				})
 			}
-			ResendEmailVerificationInCode(req.Email)
 			return ctx.Status(http.StatusConflict).JSON(fiber.Map{
 				"error": "You’ve already signed up with this email, but your account isn’t verified yet. Check your email for the verification link or resend it.",
 			})

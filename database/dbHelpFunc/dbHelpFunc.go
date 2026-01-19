@@ -52,6 +52,7 @@ type DatabaseHelper interface {
 	UpdateExistingOTP(OTPBody Data.OTP, CustomID uint) (err error)
 	DeleteExistingOTPByID(ID uint) (err error)
 	UpdateMaxTry(Email string) (err error)
+	UpdateEmailStatus(user Data.User) (err error)
 	UpdateMaxTryNumber(number string) (err error)
 	UpdateMaxTryToZero(Email string) (err error)
 	GetStatusPostsByLimit(limit, offset int) ([]Data.Status, bool, error)
@@ -819,6 +820,29 @@ func (d *DatabaseHelperImpl) UpdateMaxTry(Email string) (err error) {
 		} else {
 			// Some other error occurred
 			return errors.New("error updating max_try")
+		}
+	}
+
+	return nil
+}
+
+func (d *DatabaseHelperImpl) UpdateEmailStatus(user Data.User) (err error) {
+
+	emailStatusToUpdate := &Data.User{
+		EmailVerified: true,
+	}
+
+	// Update specific fields of the OTP record based on the email
+	result := conn.DB.Model(&user).Updates(emailStatusToUpdate)
+
+	// Check if an error occurred
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			// The record with the specified email was not found
+			return errors.New("email not found")
+		} else {
+			// Some other error occurred
+			return errors.New("error updating email status")
 		}
 	}
 
