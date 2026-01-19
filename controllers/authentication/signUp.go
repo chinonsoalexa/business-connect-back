@@ -52,7 +52,7 @@ func SignUp(ctx *fiber.Ctx) error {
 			}
 			ResendEmailVerificationInCode(req.Email)
 			return ctx.Status(http.StatusConflict).JSON(fiber.Map{
-				"error": "User exists but email is not verified",
+				"error": "You’ve already signed up with this email, but your account isn’t verified yet. Check your email for the verification link or resend it.",
 			})
 		}
 
