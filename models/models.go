@@ -75,6 +75,23 @@ type User struct {
 	Images []ProfileImage `json:"images,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
+type UpdateProfileRequest struct {
+	FullName            string  `json:"full_name"`
+	BusinessName        string  `json:"business_name"`
+	BioDescription      string  `json:"bio_description"`
+	PhoneNumber         string  `json:"phone_number"`
+	Address             string  `json:"address"`
+	State               string  `json:"state"`
+	Country             string  `json:"country"`
+	Language            string  `json:"language"`
+	PreferredLanguage   string  `json:"preferred_language"`
+	PreferredCurrency   string  `json:"preferred_currency"`
+	ProfilePhotoURL     string  `json:"profile_photo_url"`
+	CoverPhotoURL       string  `json:"cover_photo_url"`
+	Latitude            float64 `json:"latitude"`
+	Longitude           float64 `json:"longitude"`
+}
+
 type UserSummary struct {
 	ID              uint   `json:"id"`
 	FullName        string `json:"full_name"`

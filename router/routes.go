@@ -322,6 +322,7 @@ func Routers() *fiber.App {
 
 	// Busines Connect Profile View
 	router.Get("/get-my-profile", NotAuthMiddleware, mid.WebRequireAuth, profile.GetMyProfile)
+	router.Patch("/update-my-profile", NotAuthMiddleware, mid.WebRequireAuth, profile.UpdateMyProfile)
 	router.Get("/get-others-profile/:name", NotAuthMiddleware, mid.WebRequireAuth, profile.GetOthersProfile)
 	router.Get("/get-profile-open/:name", NotAuthMiddleware, profile.GetProfileOpen)
 

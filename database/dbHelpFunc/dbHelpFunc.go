@@ -60,6 +60,17 @@ type DatabaseHelper interface {
 	GetAvailableGroups(limit, offset int) ([]GroupFeedItem, bool, error)
 	JoinGroup(user Data.User, groupPostID uint) (*Data.GroupParticipant, bool, int, error)
 	GetUserProfile(uniqueName string, limit, offset int) (*UserProfile, error)
+	UpdateUserProfile(
+		userID uint,
+		fullName,
+		businessName,
+		bioDescription,
+		phoneNumber,
+		address,
+		state,
+		language,
+		preferredLanguage, preferredCurrency, profilePhotoURL, coverPhotoURL string,
+	) error
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	GetBusinessConnectProductsByLimitOpen(limit, offset int) ([]Data.Post, bool, error)
 	GetUsersToConnect(currentUserID uint, limit, offset int) ([]UserSummary, bool, error)
@@ -1531,6 +1542,89 @@ func (d *DatabaseHelperImpl) GetUserProfile(
 	}
 
 	return profile, nil
+}
+
+func (d *DatabaseHelperImpl) UpdateUserProfile(
+	userID uint,
+	fullName,
+	businessName,
+	bioDescription,
+	phoneNumber,
+	address,
+	state,
+	language,
+	preferredLanguage,
+	preferredCurrency,
+	profilePhotoURL,
+	coverPhotoURL string,
+) error {
+
+	updates := map[string]interface{}{}
+
+	// Only add fields if they are provided
+	if fullName != "" {
+		updates["full_name"] = fullName
+	}
+	if businessName != "" {
+		updates["business_name"] = businessName
+	}
+	if bioDescription != "" {
+		updates["bio_description"] = bioDescription
+	}
+	if phoneNumber != "" {
+		updates["phone_number"] = phoneNumber
+	}
+	if address != "" {
+		updates["address"] = address
+	}
+	if state != "" {
+		updates["state"] = state
+	}
+	// if country != "" {
+	// 	updates["country"] = country
+	// }
+	if language != "" {
+		updates["language"] = language
+	}
+	if preferredLanguage != "" {
+		updates["preferred_language"] = preferredLanguage
+	}
+	if preferredCurrency != "" {
+		updates["preferred_currency"] = preferredCurrency
+	}
+	if profilePhotoURL != "" {
+		updates["profile_photo_url"] = profilePhotoURL
+	}
+	if coverPhotoURL != "" {
+		updates["cover_photo_url"] = coverPhotoURL
+	}
+
+	// Location (allow zero but only if explicitly passed)
+	// if latitude != 0 {
+	// 	updates["latitude"] = latitude
+	// }
+	// if longitude != 0 {
+	// 	updates["longitude"] = longitude
+	// }
+
+	if len(updates) == 0 {
+		return nil // nothing to update
+	}
+
+	result := conn.DB.
+		Model(&Data.User{}).
+		Where("id = ?", userID).
+		Updates(updates)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+
+	return nil
 }
 
 func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error) {
