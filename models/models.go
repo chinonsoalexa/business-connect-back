@@ -78,8 +78,15 @@ type User struct {
 type UserSummary struct {
 	ID              uint   `json:"id"`
 	FullName        string `json:"full_name"`
+	UniqueName      string `json:"unique_name"`
+	BioDescription  string `json:"bio_description" gorm:"size:100;not null"`
+	BusinessName    string `json:"business_name"`
 	ProfilePhotoURL string `json:"profile_photo_url"`
+	PhoneNumber     string `json:"phone_number"`
 	Verified        bool   `json:"verified"`
+	UserType        string `json:"user_type"`
+	State           string `json:"state"`
+	CoverPhotoURL   string `json:"cover_photo_url"`
 }
 
 type Connection struct {
@@ -188,10 +195,10 @@ type (
 		WhatsappURL  string `json:"whatsapp_url" gorm:"not null"`
 
 		// Visibility
-		IsSponsored       bool   `json:"is_sponsored" gorm:"default:false"`
-		IsActive          bool   `json:"is_active" gorm:"default:true"`
-		Views             int64  `json:"views" gorm:"default:0"`
-		Clicks            int64  `json:"clicks" gorm:"default:0"`
+		IsSponsored bool  `json:"is_sponsored" gorm:"default:false"`
+		IsActive    bool  `json:"is_active" gorm:"default:true"`
+		Views       int64 `json:"views" gorm:"default:0"`
+		Clicks      int64 `json:"clicks" gorm:"default:0"`
 
 		// Location (used by business + event)
 		Location *string `json:"location,omitempty"`
@@ -199,11 +206,11 @@ type (
 		// Moderation
 		Approved bool `json:"approved" gorm:"default:true"`
 
-		Images            []StatusImage        `json:"images,omitempty" gorm:"foreignKey:StatusID;constraint:OnDelete:CASCADE"`
+		Images []StatusImage `json:"images,omitempty" gorm:"foreignKey:StatusID;constraint:OnDelete:CASCADE"`
 	}
 	StatusImage struct {
 		gorm.Model
-		StatusID           uint   `json:"status_id"`
+		StatusID         uint   `json:"status_id"`
 		URL              string `json:"url" gorm:"column:url"`
 		OriginalFilename string `json:"original_file_name" gorm:"column:original_file_name"`
 	}

@@ -1464,7 +1464,7 @@ func (d *DatabaseHelperImpl) GetUserProfile(
 	var connections []Data.User
 	if err := conn.DB.
 		Joins("JOIN connections ON connections.connected_user_id = users.id").
-		Where("connections.user_id = ? AND connections.status = ?", user.ID, "accepted").
+		Where("connections.user_id = ? AND connections.status = ?", user.ID, "following").
 		Find(&connections).Error; err != nil {
 		return nil, err
 	}
@@ -1475,8 +1475,15 @@ func (d *DatabaseHelperImpl) GetUserProfile(
 		profile.Connections[i] = Data.UserSummary{
 			ID:              c.ID,
 			FullName:        c.FullName,
+			UniqueName:      c.UniqueName,
 			ProfilePhotoURL: c.ProfilePhotoURL,
+			BioDescription:  c.BioDescription,
+			BusinessName:    c.BusinessName,
+			PhoneNumber:     c.PhoneNumber,
 			Verified:        c.Verified,
+			UserType:        c.UserType,
+			State:           c.State,
+			CoverPhotoURL:   c.CoverPhotoURL,
 		}
 	}
 
