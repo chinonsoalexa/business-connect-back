@@ -277,6 +277,57 @@ func UploadStatusFiles(fileHeader []*multipart.FileHeader) ([]Data.StatusImage, 
 	return results, nil
 }
 
+func DeleteB2Files(filePaths []string) error {
+	var (
+		b2Client       *b2.Client
+		bucket         *b2.Bucket
+		B2LinkErr      error
+		bucketName     string
+		applicationKey string
+		keyID          string
+	)
+
+	// Load env (local only)
+	if os.Getenv("RENDER") == "" {
+		if err := godotenv.Load(".env"); err != nil {
+			log.Printf("Failed to load .env file: %v\n", err)
+		}
+	}
+
+	// Get credentials
+	bucketName = os.Getenv("B2_BUCKET_NAME")
+	applicationKey = os.Getenv("B2_APPLICATION_KEY")
+	keyID = os.Getenv("B2_KEY_ID")
+
+	// Create client
+	b2Client, B2LinkErr = b2.NewClient(context.Background(), keyID, applicationKey)
+	if B2LinkErr != nil {
+		return errors.New("error occurred while setting up B2 client")
+	}
+
+	// Get bucket
+	bucket, B2LinkErr = b2Client.Bucket(context.Background(), bucketName)
+	if B2LinkErr != nil {
+		return errors.New("error occurred while getting B2 bucket")
+	}
+
+	// Delete each file
+	for _, filePath := range filePaths {
+		if filePath == "" {
+			continue
+		}
+
+		obj := bucket.Object(filePath)
+
+		if err := obj.Delete(context.Background()); err != nil {
+			// IMPORTANT: Do not fail everything because of one delete
+			log.Printf("Failed to delete B2 file %s: %v\n", filePath, err)
+		}
+	}
+
+	return nil
+}
+
 func UploadEmailFiles(htmlContent string) (string, error) {
 	var (
 		b2Client       *b2.Client

@@ -2,6 +2,7 @@ package post
 
 import (
 	"fmt"
+	"log"
 	"mime/multipart"
 	"strconv"
 	"time"
@@ -200,7 +201,17 @@ func UpdateProfilePhoto(c *fiber.Ctx) error {
 		})
 	}
 
-	// Upload file
+	// Delete old profile photo if it exists
+	if user.ProfilePhotoURL != "" {
+		go func(oldPhoto string) {
+			err := upload.DeleteB2Files([]string{oldPhoto})
+			if err != nil {
+				log.Printf("Failed to delete old profile photo %s: %v", oldPhoto, err)
+			}
+		}(user.ProfilePhotoURL)
+	}
+
+	// Upload new file
 	uploads, err := upload.UploadProfileFiles([]*multipart.FileHeader{file})
 	if err != nil || len(uploads) == 0 {
 		return c.Status(500).JSON(fiber.Map{
@@ -210,16 +221,15 @@ func UpdateProfilePhoto(c *fiber.Ctx) error {
 
 	photo := uploads[0]
 
-	// Save image history
+	// Save image history (optional, can skip if you don't want history)
 	err = dbFunc.DBHelper.AddProfileImage(
 		user.ID,
 		photo.URL,
 		photo.OriginalFilename,
 	)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": "failed to save profile image",
-		})
+		log.Printf("Failed to save profile image history: %v", err)
+		// Not fatal — continue
 	}
 
 	// Update current profile photo
@@ -231,8 +241,8 @@ func UpdateProfilePhoto(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"success": true,
-		"message": "profile photo updated",
+		"success":           true,
+		"message":           "profile photo updated",
 		"profile_photo_url": photo.URL,
 	})
 }
