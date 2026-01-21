@@ -105,12 +105,13 @@ func GenerateWhatsAppLinks(phoneNumber, senderName, receiverName, businessName, 
 
 	encoded := url.QueryEscape(message)
 
-	if device == "desktop" {
-		return fmt.Sprintf("https://wa.me/%s?text=%s", phoneNumber, encoded)
-	}
+	// if device == "desktop" {
+	// 	return fmt.Sprintf("https://wa.me/%s?text=%s", phoneNumber, encoded)
+	// }
 
 	// Mobile/Tablet app-first
-	return fmt.Sprintf("whatsapp://send?phone=%s&text=%s", phoneNumber, encoded)
+	// return fmt.Sprintf("whatsapp://send?phone=%s&text=%s", phoneNumber, encoded)
+	return encoded
 }
 
 // ConnectFriend handles the friend connection + WhatsApp redirect
@@ -175,7 +176,9 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 	)
 
 	// 8️⃣ Redirect the user directly to WhatsApp (app-first or web)
-	return ctx.Redirect(whatsappLink, fiber.StatusFound)
+	return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+		"message": whatsappLink,
+	})
 }
 
 func IncrementPostViewHandler(ctx *fiber.Ctx) error {
