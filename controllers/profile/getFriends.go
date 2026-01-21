@@ -3,6 +3,8 @@ package profile
 import (
 	dbFunc "business-connect/database/dbHelpFunc"
 	helperFunc "business-connect/paystack"
+	"fmt"
+
 	// "fmt"
 	"net/url"
 
@@ -105,13 +107,13 @@ func GenerateWhatsAppLinks(phoneNumber, senderName, receiverName, businessName, 
 
 	encoded := url.QueryEscape(message)
 
-	// if device == "desktop" {
-	// 	return fmt.Sprintf("https://wa.me/%s?text=%s", phoneNumber, encoded)
-	// }
+	if device == "desktop" {
+		return fmt.Sprintf("https://wa.me/%s?text=%s", phoneNumber, encoded)
+	}
 
 	// Mobile/Tablet app-first
-	// return fmt.Sprintf("whatsapp://send?phone=%s&text=%s", phoneNumber, encoded)
-	return encoded
+	return fmt.Sprintf("whatsapp://send?phone=%s&text=%s", phoneNumber, encoded)
+	// return encoded
 }
 
 // ConnectFriend handles the friend connection + WhatsApp redirect
