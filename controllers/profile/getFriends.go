@@ -97,7 +97,7 @@ type ConnectRequest struct {
 }
 
 // Example WhatsApp link generator
-func GenerateWhatsAppLinks(phoneNumber, senderName, receiverName, businessName, device string) string {
+func GenerateWhatsAppLinks(phoneNumber, senderName, receiverName, businessName, device string) (string, string) {
 	var message string
 	if businessName != "" {
 		message = BuildBusinessMessage(senderName, receiverName, businessName)
@@ -107,12 +107,8 @@ func GenerateWhatsAppLinks(phoneNumber, senderName, receiverName, businessName, 
 
 	encoded := url.QueryEscape(message)
 
-	if device == "desktop" {
-		return fmt.Sprintf("https://wa.me/%s?text=%s", phoneNumber, encoded)
-	}
-
 	// Mobile/Tablet app-first
-	return fmt.Sprintf("whatsapp://send?phone=%s&text=%s", phoneNumber, encoded)
+	return fmt.Sprintf("whatsapp://send?phone=%s&text=%s", phoneNumber, encoded), fmt.Sprintf("https://wa.me/%s?text=%s", phoneNumber, encoded)
 	// return encoded
 }
 
@@ -169,7 +165,7 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 	}
 
 	// 7️⃣ Generate WhatsApp link
-	whatsappLink := GenerateWhatsAppLinks(
+	appLink, webLink := GenerateWhatsAppLinks(
 		userRec.PhoneNumber,
 		user.FullName,
 		userRec.FullName,
@@ -177,9 +173,11 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 		device,
 	)
 
-	// 8️⃣ Redirect the user directly to WhatsApp (app-first or web)
-	return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-		"message": whatsappLink,
+		// 8️⃣ Redirect the user directly to WhatsApp (app-first or web)
+	return ctx.JSON(fiber.Map{
+		"appLink": appLink,
+		"webLink": webLink,
+		"status": "ok",
 	})
 }
 
