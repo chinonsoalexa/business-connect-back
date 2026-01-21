@@ -313,6 +313,7 @@ func Routers() *fiber.App {
 	router.Get("/posts-open", NotAuthMiddleware, profile.GetPostsPaginatedOpen)
 	router.Post("/posts-view/:postId", NotAuthMiddleware, profile.IncrementPostViewHandler)
 	router.Post("/posts-view-open/:postId", NotAuthMiddleware, profile.IncrementPostViewHandler)
+	router.Post("/posts-click/:postId", NotAuthMiddleware, profile.IncrementPostClickHandler)
 	router.Get("/status", NotAuthMiddleware, mid.WebRequireAuth, profile.GetStatusPaginated)
 	router.Get("/status-open", NotAuthMiddleware, profile.GetStatusPaginatedOpen)
 	router.Get("/get-friends", NotAuthMiddleware, mid.WebRequireAuth, profile.GetFriends)
