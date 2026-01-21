@@ -3,7 +3,7 @@ package profile
 import (
 	dbFunc "business-connect/database/dbHelpFunc"
 	helperFunc "business-connect/paystack"
-	"fmt"
+	// "fmt"
 	"net/url"
 
 	"github.com/gofiber/fiber/v2"
