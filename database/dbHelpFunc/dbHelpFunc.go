@@ -1067,7 +1067,7 @@ func (d *DatabaseHelperImpl) GetUsersToConnect(
 		Where("user_id = ? AND status = ?", currentUserID, "accepted")
 
 	result := conn.DB.Model(&Data.User{}).
-		Select("id, full_name, unique_name, business_name, profile_photo_url, phone_number, cover_photo_url, state, city, verified, user_type, bio_description").
+		Select("id, full_name, unique_name, business_name, profile_photo_url, cover_photo_url, state, city, verified, user_type, bio_description").
 		Where("id NOT IN (?) AND id != ?", subQuery, currentUserID).
 		Limit(limit + 1).
 		Offset(offset).
@@ -1099,7 +1099,6 @@ func (d *DatabaseHelperImpl) GetUsersToConnectOpen(
 			unique_name,
 			business_name,
 			profile_photo_url,
-			phone_number,
 			cover_photo_url,
 			state,
 			city,

@@ -1,9 +1,7 @@
 package profile
 
 import (
-	"fmt"
 	"math/rand"
-	"net/url"
 	"strings"
 	"time"
 )
@@ -141,37 +139,6 @@ func BuildProfileMessage(senderName, receiverName string) string {
 	}
 
 	return strings.Join(parts, " ")
-}
-
-func GenerateWhatsAppLinks(
-	phoneNumber,
-	senderName,
-	receiverName,
-	businessName string,
-) (appLink string, webLink string) {
-
-	var message string
-	if businessName != "" {
-		message = BuildBusinessMessage(senderName, receiverName, businessName)
-	} else {
-		message = BuildProfileMessage(senderName, receiverName)
-	}
-
-	encoded := url.QueryEscape(message)
-
-	appLink = fmt.Sprintf(
-		"whatsapp://send?phone=%s&text=%s",
-		phoneNumber,
-		encoded,
-	)
-
-	webLink = fmt.Sprintf(
-		"https://wa.me/%s?text=%s",
-		phoneNumber,
-		encoded,
-	)
-
-	return
 }
 
 // app, web := GenerateWhatsAppLinks(

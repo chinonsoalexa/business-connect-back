@@ -4,6 +4,7 @@ import (
 	dbFunc "business-connect/database/dbHelpFunc"
 	helperFunc "business-connect/paystack"
 	"fmt"
+	"net/url"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -44,6 +45,8 @@ func GetFriends(ctx *fiber.Ctx) error {
 			"error": "Failed to fetch posts",
 		})
 	}
+
+	user.PhoneNumber = "-"
 
 	// Return JSON
 	return ctx.JSON(fiber.Map{
@@ -87,48 +90,92 @@ func GetFriendsOpen(ctx *fiber.Ctx) error {
 }
 
 type ConnectRequest struct {
-	UserID uint `json:"user_id"` // the user you want to connect to
+	UserID uint   `json:"user_id"` // the user you want to connect to
+	Device string `json:"device"`  // "mobile", "tablet", "desktop"
 }
 
-func ConnectFriend(ctx *fiber.Ctx) error {
-	// 1️⃣ Get logged in user
-	userIDInterface := ctx.Locals("user-id")
-	userID, ok := userIDInterface.(uint)
-	if !ok {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "not logged in"})
+// Example WhatsApp link generator
+func GenerateWhatsAppLinks(phoneNumber, senderName, receiverName, businessName, device string) string {
+	var message string
+	if businessName != "" {
+		message = BuildBusinessMessage(senderName, receiverName, businessName)
+	} else {
+		message = BuildProfileMessage(senderName, receiverName)
 	}
 
-	user, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userID)
+	encoded := url.QueryEscape(message)
+
+	if device == "desktop" {
+		return fmt.Sprintf("https://wa.me/%s?text=%s", phoneNumber, encoded)
+	}
+
+	// Mobile/Tablet app-first
+	return fmt.Sprintf("whatsapp://send?phone=%s&text=%s", phoneNumber, encoded)
+}
+
+// ConnectFriend handles the friend connection + WhatsApp redirect
+func ConnectFriend(ctx *fiber.Ctx) error {
+	// 1️⃣ Get logged in user
+	// Get stored user id from request context
+	userId := ctx.Locals("user-id")
+	if userId == nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "failed to get user",
+		})
+	}
+
+	user, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userId)
 	if uuidErr != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "failed to get user from request"})
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "failed to get user from request",
+		})
 	}
 
 	// 2️⃣ Parse request
 	var req ConnectRequest
 	if err := ctx.BodyParser(&req); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+		return ctx.Status(fiber.StatusBadRequest).SendString("Invalid request body")
 	}
 
 	if req.UserID == 0 {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "user_id is required"})
+		return ctx.Status(fiber.StatusBadRequest).SendString("user_id is required")
 	}
 
 	// 3️⃣ Prevent self-follow
 	if user.ID == req.UserID {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "cannot connect to yourself"})
+		return ctx.Status(fiber.StatusBadRequest).SendString("Cannot connect to yourself")
 	}
 
-	// 4️⃣ Follow
-	err := dbFunc.DBHelper.FollowUser(user.ID, req.UserID)
-	if err != nil {
-		// Could return 409 if already following
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	// 4️⃣ Follow/connect
+	if err := dbFunc.DBHelper.FollowUser(user.ID, req.UserID); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 	}
 
-	// 5️⃣ Success
-	return ctx.JSON(fiber.Map{
-		"message": fmt.Sprintf("You are now following user %d", req.UserID),
-	})
+	// 5️⃣ Lookup the receiver
+	userRec, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(req.UserID)
+	if uuidErr != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "failed to get user from request",
+		})
+	}
+
+	// 6️⃣ Determine device type, default to desktop if invalid
+	device := req.Device
+	if device != "mobile" && device != "tablet" && device != "desktop" {
+		device = "desktop"
+	}
+
+	// 7️⃣ Generate WhatsApp link
+	whatsappLink := GenerateWhatsAppLinks(
+		userRec.PhoneNumber,
+		user.FullName,
+		userRec.FullName,
+		userRec.BusinessName,
+		device,
+	)
+
+	// 8️⃣ Redirect the user directly to WhatsApp (app-first or web)
+	return ctx.Redirect(whatsappLink, fiber.StatusFound)
 }
 
 func IncrementPostViewHandler(ctx *fiber.Ctx) error {
