@@ -111,15 +111,11 @@ func GenerateWhatsAppLinks(phoneNumber, senderName, receiverName, businessName, 
 	return fmt.Sprintf("whatsapp://send?phone=%s&text=%s", phoneNumber, encoded), fmt.Sprintf("https://wa.me/%s?text=%s", phoneNumber, encoded)
 	// return encoded
 }
-
-// ConnectFriend handles the friend connection + WhatsApp redirect
 func ConnectFriend(ctx *fiber.Ctx) error {
-	// 1️⃣ Get logged in user
-	// Get stored user id from request context
 	userId := ctx.Locals("user-id")
 	if userId == nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "failed to get user",
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "not logged in",
 		})
 	}
 
@@ -130,27 +126,42 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 		})
 	}
 
-	// 2️⃣ Parse request
 	var req ConnectRequest
 	if err := ctx.BodyParser(&req); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString("Invalid request body")
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
 	}
 
 	if req.UserID == 0 {
-		return ctx.Status(fiber.StatusBadRequest).SendString("user_id is required")
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "user_id is required",
+		})
 	}
 
-	// 3️⃣ Prevent self-follow
-	if user.ID == req.UserID {
-		return ctx.Status(fiber.StatusBadRequest).SendString("Cannot connect to yourself")
+	// Follow/connect
+	err := dbFunc.DBHelper.FollowUser(user.ID, req.UserID)
+	if err != nil {
+		switch err {
+		case dbFunc.ErrAlreadyFollowing:
+			// User is already connected
+			return ctx.JSON(fiber.Map{
+				"status": "already_following",
+			})
+		case dbFunc.ErrSelfFollow:
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"status": "self_follow",
+				"error":  err.Error(),
+			})
+		default:
+			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"status": "error",
+				"error":  err.Error(),
+			})
+		}
 	}
 
-	// 4️⃣ Follow/connect
-	if err := dbFunc.DBHelper.FollowUser(user.ID, req.UserID); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
-	}
-
-	// 5️⃣ Lookup the receiver
+	// Lookup receiver
 	userRec, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(req.UserID)
 	if uuidErr != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -158,13 +169,13 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 		})
 	}
 
-	// 6️⃣ Determine device type, default to desktop if invalid
+	// Determine device type
 	device := req.Device
 	if device != "mobile" && device != "tablet" && device != "desktop" {
 		device = "desktop"
 	}
 
-	// 7️⃣ Generate WhatsApp link
+	// Generate WhatsApp links
 	appLink, webLink := GenerateWhatsAppLinks(
 		userRec.PhoneNumber,
 		user.FullName,
@@ -173,11 +184,10 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 		device,
 	)
 
-		// 8️⃣ Redirect the user directly to WhatsApp (app-first or web)
 	return ctx.JSON(fiber.Map{
+		"status":  "ok",
 		"appLink": appLink,
 		"webLink": webLink,
-		"status": "ok",
 	})
 }
 

@@ -1154,9 +1154,12 @@ func (d *DatabaseHelperImpl) UnfollowUser(followerID, followingID uint) error {
 	})
 }
 
+var ErrAlreadyFollowing = errors.New("already following")
+var ErrSelfFollow = errors.New("cannot follow yourself")
+
 func (d *DatabaseHelperImpl) FollowUser(followerID, followingID uint) error {
 	if followerID == followingID {
-		return fmt.Errorf("cannot follow yourself")
+		return ErrSelfFollow
 	}
 
 	return conn.DB.Transaction(func(tx *gorm.DB) error {
@@ -1168,7 +1171,7 @@ func (d *DatabaseHelperImpl) FollowUser(followerID, followingID uint) error {
 		).First(&existing).Error
 
 		if err == nil {
-			return fmt.Errorf("already following")
+			return ErrAlreadyFollowing
 		}
 		if err != gorm.ErrRecordNotFound {
 			return err
@@ -1201,6 +1204,7 @@ func (d *DatabaseHelperImpl) FollowUser(followerID, followingID uint) error {
 			).Error
 	})
 }
+
 
 func (d *DatabaseHelperImpl) IncrementPostView(postID uint) error {
 	return conn.DB.Transaction(func(tx *gorm.DB) error {
