@@ -130,3 +130,81 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 		"message": fmt.Sprintf("You are now following user %d", req.UserID),
 	})
 }
+
+func IncrementPostViewHandler(ctx *fiber.Ctx) error {
+	// Get stored user id from request context
+	// userId := ctx.Locals("user-id")
+	// if userId == nil {
+	// 	return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+	// 		"error": "failed to get user",
+	// 	})
+	// }
+
+	// // Validate user (optional but recommended)
+	// _, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userId)
+	// if uuidErr != nil {
+	// 	return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+	// 		"error": "failed to get user from request",
+	// 	})
+	// }
+
+	// Get post ID from params
+	postID, err := ctx.ParamsInt("postId")
+	if err != nil || postID <= 0 {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid post id",
+		})
+	}
+
+	// Increment view count
+	if err := dbFunc.DBHelper.IncrementPostView(uint(postID)); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to increment post view",
+		})
+	}
+
+	return ctx.JSON(fiber.Map{
+		"success": true,
+		"post_id": postID,
+		"type":    "view",
+	})
+}
+
+func IncrementPostClickHandler(ctx *fiber.Ctx) error {
+	// // Get stored user id from request context
+	// userId := ctx.Locals("user-id")
+	// if userId == nil {
+	// 	return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+	// 		"error": "failed to get user",
+	// 	})
+	// }
+
+	// // Validate user
+	// _, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userId)
+	// if uuidErr != nil {
+	// 	return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+	// 		"error": "failed to get user from request",
+	// 	})
+	// }
+
+	// Get post ID from params
+	postID, err := ctx.ParamsInt("postId")
+	if err != nil || postID <= 0 {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid post id",
+		})
+	}
+
+	// Increment click count
+	if err := dbFunc.DBHelper.IncrementPostClick(uint(postID)); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to increment post click",
+		})
+	}
+
+	return ctx.JSON(fiber.Map{
+		"success": true,
+		"post_id": postID,
+		"type":    "click",
+	})
+}

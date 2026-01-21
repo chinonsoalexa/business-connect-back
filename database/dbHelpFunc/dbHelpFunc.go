@@ -77,6 +77,8 @@ type DatabaseHelper interface {
 	GetUsersToConnect(currentUserID uint, limit, offset int) ([]UserSummary, bool, error)
 	GetUsersToConnectOpen(limit, offset int) ([]UserSummary, bool, error)
 	FollowUser(followerID, followingID uint) error
+	IncrementPostView(postID uint) error
+	IncrementPostClick(postID uint) error
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
 	GetProductsAll(limit, offset int, sortField, sortOrder string) ([]Data.Post, int64, error)
 	GetStatesAndCitiesByCountryCode(countryCode string) ([]Data.State, error)
@@ -1198,6 +1200,32 @@ func (d *DatabaseHelperImpl) FollowUser(followerID, followingID uint) error {
 				"followers_count",
 				gorm.Expr("followers_count + 1"),
 			).Error
+	})
+}
+
+func (d *DatabaseHelperImpl) IncrementPostView(postID uint) error {
+	return conn.DB.Transaction(func(tx *gorm.DB) error {
+		// Update Views atomically
+		if err := tx.Model(&Data.Post{}).
+			Where("id = ?", postID).
+			UpdateColumn("views", gorm.Expr("views + ?", 1)).
+			Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (d *DatabaseHelperImpl) IncrementPostClick(postID uint) error {
+	return conn.DB.Transaction(func(tx *gorm.DB) error {
+		// Update Clicks atomically
+		if err := tx.Model(&Data.Post{}).
+			Where("id = ?", postID).
+			UpdateColumn("clicks", gorm.Expr("clicks + ?", 1)).
+			Error; err != nil {
+			return err
+		}
+		return nil
 	})
 }
 
