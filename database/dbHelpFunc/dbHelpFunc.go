@@ -3320,8 +3320,11 @@ func (d *DatabaseHelperImpl) AddProduct(post Data.Post, user Data.User) (Data.Po
 	post.Verified = user.Verified
 	post.IsActive = true
 	post.Approved = true
+	post.Country = &user.Country
+	post.State = &user.State
 	if post.Location == nil || *post.Location == "" {
-		post.Location = &user.State
+		location := fmt.Sprintf("%s %s", *post.State, *post.Country)
+		post.Location = &location
 	}
 	result := conn.DB.Create(&post)
 

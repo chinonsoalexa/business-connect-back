@@ -176,6 +176,8 @@ type (
 
 		// Location (used by business + event)
 		Location *string `json:"location,omitempty"`
+		State    *string `json:"state,omitempty"`
+		Country  *string `json:"country,omitempty"`
 
 		// BUSINESS FIELDS
 		BusinessCategory *string `json:"business_category,omitempty"`
