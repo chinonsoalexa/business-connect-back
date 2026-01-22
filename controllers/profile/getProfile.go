@@ -186,4 +186,3 @@ func GetProfileOpen(ctx *fiber.Ctx) error {
 		"about":    profile.About,
 	})
 }
-

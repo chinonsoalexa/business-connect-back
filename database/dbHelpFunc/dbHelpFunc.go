@@ -1479,16 +1479,16 @@ func (d *DatabaseHelperImpl) GetRecommendedUsersWithFallback(
 	seen := map[uint]bool{}
 
 	// 1️⃣ Same state + country
-	l1, _ := d.getUsersSameState(user, limit)
-	for _, u := range l1 {
-		if len(result) >= limit {
-			break
-		}
-		if !seen[u.ID] {
-			result = append(result, u)
-			seen[u.ID] = true
-		}
-	}
+	// l1, _ := d.getUsersSameState(user, limit)
+	// for _, u := range l1 {
+	// 	if len(result) >= limit {
+	// 		break
+	// 	}
+	// 	if !seen[u.ID] {
+	// 		result = append(result, u)
+	// 		seen[u.ID] = true
+	// 	}
+	// }
 
 	// 2️⃣ Same country fallback
 	if len(result) < limit {
