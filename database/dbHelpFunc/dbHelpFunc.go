@@ -60,6 +60,7 @@ type DatabaseHelper interface {
 	UpdateUserProfilePhoto(userID uint, photoURL string) error
 	GetAvailableGroups(limit, offset int) ([]GroupFeedItem, bool, error)
 	GetRecommendedGroupsWithFallback(user Data.User, limit, offset int) ([]GroupFeedItem, bool, error)
+	GetOpenRecommendedGroups(limit, offset int) ([]GroupFeedItem, bool, error)
 	JoinGroup(user Data.User, groupPostID uint) (*Data.GroupParticipant, bool, int, error)
 	GetUserProfile(uniqueName string, limit, offset int) (*UserProfile, error)
 	UpdateUserProfile(
@@ -76,9 +77,11 @@ type DatabaseHelper interface {
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	GetRecommendedPostsWithFallback(user Data.User, limit, offset int) ([]Data.Post, bool, error)
 	GetBusinessConnectProductsByLimitOpen(limit, offset int) ([]Data.Post, bool, error)
+	GetOpenRecommendedPosts(limit, offset int) ([]Data.Post, bool, error)
 	GetUsersToConnect(currentUserID uint, limit, offset int) ([]UserSummary, bool, error)
 	GetRecommendedUsersWithFallback(user Data.User, limit, offset int) ([]UserSummary, bool, error)
 	GetUsersToConnectOpen(limit, offset int) ([]UserSummary, bool, error)
+	GetOpenRecommendedUsers(limit, offset int) ([]UserSummary, bool, error)
 	FollowUser(followerID, followingID uint) error
 	IncrementPostView(postID uint) error
 	IncrementPostClick(postID uint) error
@@ -1157,6 +1160,99 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimitOpen(
 	return posts, hasMore, nil
 }
 
+func (d *DatabaseHelperImpl) GetOpenRecommendedPosts(
+	limit, offset int,
+) ([]Data.Post, bool, error) {
+
+	var result []Data.Post
+	seen := make(map[uint]bool)
+
+	allowedPostTypes := []string{
+		PostTypePersonal,
+		PostTypeBusiness,
+		PostTypeGroup,
+		PostTypeEvent,
+		PostTypeAd,
+	}
+
+	// 1️⃣ TRENDING POSTS
+	var trending []Data.Post
+	conn.DB.
+		Preload("Images").
+		Where(`
+			is_active = true 
+			AND approved = true 
+			AND post_type IN ?
+		`, allowedPostTypes).
+		Order(`
+			((views * 1) + (likes * 2) + (comments * 3)) 
+			/ POW(EXTRACT(EPOCH FROM NOW() - created_at)/3600 + 2, 1.5) DESC
+		`).
+		Limit(limit).
+		Find(&trending)
+
+	for _, p := range trending {
+		if !seen[p.ID] {
+			seen[p.ID] = true
+			result = append(result, p)
+		}
+	}
+
+	// 2️⃣ POPULAR POSTS
+	if len(result) < limit {
+		var popular []Data.Post
+		conn.DB.
+			Preload("Images").
+			Where(`
+				is_active = true 
+				AND approved = true 
+				AND post_type IN ?
+			`, allowedPostTypes).
+			Order("views DESC").
+			Limit(limit).
+			Find(&popular)
+
+		for _, p := range popular {
+			if len(result) >= limit {
+				break
+			}
+			if !seen[p.ID] {
+				seen[p.ID] = true
+				result = append(result, p)
+			}
+		}
+	}
+
+	// 3️⃣ FRESH FALLBACK
+	if len(result) < limit {
+		var fresh []Data.Post
+		conn.DB.
+			Preload("Images").
+			Where(`
+				is_active = true 
+				AND approved = true 
+				AND post_type IN ?
+			`, allowedPostTypes).
+			Order("created_at DESC").
+			Limit(limit).
+			Find(&fresh)
+
+		for _, p := range fresh {
+			if len(result) >= limit {
+				break
+			}
+			if !seen[p.ID] {
+				result = append(result, p)
+			}
+		}
+	}
+
+	hasMore := len(result) == limit
+	return result, hasMore, nil
+}
+
+
+
 type UserSummary struct {
 	ID              uint   `json:"id"`
 	FullName        string `json:"full_name"`
@@ -1360,6 +1456,84 @@ func (d *DatabaseHelperImpl) GetUsersToConnectOpen(
 	}
 
 	return users, hasMore, nil
+}
+
+func (d *DatabaseHelperImpl) GetOpenRecommendedUsers(
+	limit, offset int,
+) ([]UserSummary, bool, error) {
+
+	var result []UserSummary
+	seen := make(map[uint]bool)
+
+	// 1️⃣ TRENDING USERS (followers)
+	var trending []UserSummary
+	conn.DB.Model(&Data.User{}).
+		Select(`
+			id, full_name, unique_name, business_name,
+			profile_photo_url, cover_photo_url,
+			state, city, verified, user_type, bio_description
+		`).
+		Order("followers_count DESC").
+		Limit(limit).
+		Find(&trending)
+
+	for _, u := range trending {
+		if !seen[u.ID] {
+			seen[u.ID] = true
+			result = append(result, u)
+		}
+	}
+
+	// 2️⃣ POPULAR (VERIFIED / BUSINESS)
+	if len(result) < limit {
+		var popular []UserSummary
+		conn.DB.Model(&Data.User{}).
+			Select(`
+				id, full_name, unique_name, business_name,
+				profile_photo_url, cover_photo_url,
+				state, city, verified, user_type, bio_description
+			`).
+			Where("verified = true OR user_type = ?", "business").
+			Order("followers_count DESC").
+			Limit(limit).
+			Find(&popular)
+
+		for _, u := range popular {
+			if len(result) >= limit {
+				break
+			}
+			if !seen[u.ID] {
+				seen[u.ID] = true
+				result = append(result, u)
+			}
+		}
+	}
+
+	// 3️⃣ FRESH USERS
+	if len(result) < limit {
+		var fresh []UserSummary
+		conn.DB.Model(&Data.User{}).
+			Select(`
+				id, full_name, unique_name, business_name,
+				profile_photo_url, cover_photo_url,
+				state, city, verified, user_type, bio_description
+			`).
+			Order("created_at DESC").
+			Limit(limit).
+			Find(&fresh)
+
+		for _, u := range fresh {
+			if len(result) >= limit {
+				break
+			}
+			if !seen[u.ID] {
+				result = append(result, u)
+			}
+		}
+	}
+
+	hasMore := len(result) == limit
+	return result, hasMore, nil
 }
 
 func (d *DatabaseHelperImpl) UnfollowUser(followerID, followingID uint) error {
@@ -1674,6 +1848,78 @@ func (d *DatabaseHelperImpl) GetRecommendedGroupsWithFallback(
 		for _, g := range l3 {
 			if !seen[g.ID] {
 				result = append(result, g)
+			}
+		}
+	}
+
+	hasMore := len(result) == limit
+	return result, hasMore, nil
+}
+
+func (d *DatabaseHelperImpl) GetOpenRecommendedGroups(
+	limit, offset int,
+) ([]GroupFeedItem, bool, error) {
+
+	var groups []Data.Post
+	seen := make(map[uint]bool)
+	var result []GroupFeedItem
+
+	// 1️⃣ TRENDING GROUPS
+	conn.DB.
+		Where(`
+			post_type = ?
+			AND is_active = true
+			AND approved = true
+		`, PostTypeGroup).
+		Order("participants_count DESC").
+		Limit(limit).
+		Find(&groups)
+
+	// fallback if participants_count not stored
+	if len(groups) == 0 {
+		conn.DB.
+			Where("post_type = ?", PostTypeGroup).
+			Order("created_at DESC").
+			Limit(limit).
+			Find(&groups)
+	}
+
+	for _, g := range groups {
+		if !seen[g.ID] {
+			seen[g.ID] = true
+			result = append(result, GroupFeedItem{
+				ID:          g.ID,
+				Title:       g.Title,
+				Description: g.Description,
+				WhatsappURL: g.WhatsappURL,
+				CreatedAt:   g.CreatedAt,
+				Images:      g.Images,
+			})
+		}
+	}
+
+	// 2️⃣ FRESH GROUP FALLBACK
+	if len(result) < limit {
+		var fresh []Data.Post
+		conn.DB.
+			Where("post_type = ?", PostTypeGroup).
+			Order("created_at DESC").
+			Limit(limit).
+			Find(&fresh)
+
+		for _, g := range fresh {
+			if len(result) >= limit {
+				break
+			}
+			if !seen[g.ID] {
+				result = append(result, GroupFeedItem{
+					ID:          g.ID,
+					Title:       g.Title,
+					Description: g.Description,
+					WhatsappURL: g.WhatsappURL,
+					CreatedAt:   g.CreatedAt,
+					Images:      g.Images,
+				})
 			}
 		}
 	}

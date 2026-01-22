@@ -75,7 +75,7 @@ func GetFriendsOpen(ctx *fiber.Ctx) error {
 	offset := (page - 1) * limit
 
 	// Fetch posts using limit+1 for hasMore
-	friends, hasMore, postErr := dbFunc.DBHelper.GetUsersToConnectOpen(limit, offset)
+	friends, hasMore, postErr := dbFunc.DBHelper.GetOpenRecommendedUsers(limit, offset)
 	if postErr != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to fetch posts",

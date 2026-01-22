@@ -69,7 +69,7 @@ func GetGroupsOpen(ctx *fiber.Ctx) error {
 	offset := (page - 1) * limit
 
 	// Fetch posts using limit+1 for hasMore
-	groups, hasMore, postErr := dbFunc.DBHelper.GetAvailableGroups(limit, offset)
+	groups, hasMore, postErr := dbFunc.DBHelper.GetOpenRecommendedGroups(limit, offset)
 	if postErr != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to fetch posts",
