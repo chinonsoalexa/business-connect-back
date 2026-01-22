@@ -30,12 +30,11 @@ func handleReferral(tx *gorm.DB, referralCode string, newUserID uint) error {
 
 	// 1️⃣ Find referrer
 	var referrer Data.User
-	if err := tx.Where("unique_name = ?", referralCode).
-		First(&referrer).Error; err != nil {
+	if err := tx.Where("unique_name = ?", referralCode).First(&referrer).Error; err != nil {
 		return errors.New("invalid referral code")
 	}
 
-	// 2️⃣ Prevent self-referral (extra safety)
+	// 2️⃣ Prevent self-referral
 	if referrer.ID == newUserID {
 		return errors.New("self referral not allowed")
 	}
@@ -43,28 +42,41 @@ func handleReferral(tx *gorm.DB, referralCode string, newUserID uint) error {
 	// 3️⃣ Update referrer stats
 	if err := tx.Model(&Data.User{}).
 		Where("id = ?", referrer.ID).
-		Updates(map[string]interface{}{
-			"referral_count": gorm.Expr("referral_count + ?", 1),
-		}).Error; err != nil {
+		UpdateColumn("referral_count", gorm.Expr("referral_count + ?", 1)).Error; err != nil {
 		return err
 	}
 
-	// 4️⃣ Update / create referral credit record
+	// 4️⃣ Update / create referral credit record for referrer
 	var limit Data.UserConnectLimit
 	err := tx.Where("user_id = ?", referrer.ID).First(&limit).Error
-
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		limit = Data.UserConnectLimit{
-			UserID:           referrer.ID,
-			ReferralCredits:  1, // initial credit
-			LastReset:        time.Now(),
+			UserID:          referrer.ID,
+			ReferralCredits: 5, // 5 extra connections per referral
+			LastReset:       time.Now(),
 		}
-		return tx.Create(&limit).Error
+		if err := tx.Create(&limit).Error; err != nil {
+			return err
+		}
+	} else if err == nil {
+		if err := tx.Model(&limit).
+			UpdateColumn("referral_credits", gorm.Expr("referral_credits + ?", 5)).
+			Error; err != nil {
+			return err
+		}
+	} else {
+		return err
 	}
 
-	return tx.Model(&limit).
-		Update("referral_credits", gorm.Expr("referral_credits + ?", 1)).
-		Error
+	// 5️⃣ Update the referred_by field for the new user
+	if err := tx.Model(&Data.User{}).
+		Where("id = ?", newUserID).
+		Update("referred_by", referrer.UniqueName).
+		Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func SignUp(ctx *fiber.Ctx) error {
