@@ -168,6 +168,14 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 		})
 	}
 
+	err = dbFunc.DBHelper.CreateNotification(
+		userRec.ID,          // recipient
+		user.ID,             // actor
+		"connect",           // type
+		fmt.Sprintf("%s has connected with you!", user.FullName),
+		user.ProfilePhotoURL, // avatar
+	)
+
 	device := req.Device
 	if device != "mobile" && device != "tablet" && device != "desktop" {
 		device = "desktop"
@@ -303,3 +311,15 @@ func SearchUsers(ctx *fiber.Ctx) error {
         "hasMore": hasMore,
     })
 }
+
+// Get Notifications Handler
+// func GetNotifications(ctx *fiber.Ctx) error {
+// 	userID := ctx.Locals("user-id").(uint)
+// 	var notifs []Data.Notification
+// 	if err := conn.DB.Where("user_id = ?", userID).
+// 		Order("created_at desc").
+// 		Find(&notifs).Error; err != nil {
+// 		return ctx.Status(500).JSON(fiber.Map{"error": "failed to fetch notifications"})
+// 	}
+// 	return ctx.JSON(notifs)
+// }

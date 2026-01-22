@@ -277,6 +277,17 @@ type (
 	}
 )
 
+type Notification struct {
+	ID        uint      `gorm:"primaryKey"`
+	UserID    uint      `gorm:"index"` // recipient
+	ActorID   uint      `gorm:"index"` // the user who triggered this
+	Type      string    `gorm:"size:50"` // "connect", "group_join", etc.
+	Message   string    `gorm:"size:255"`
+	AvatarURL string    `gorm:"size:255"` // image of actor
+	Read      bool      `gorm:"default:false"`
+	CreatedAt time.Time
+}
+
 type BusinessTag struct {
 	ID     uint   `gorm:"primaryKey"`
 	UserID uint   `gorm:"index"` // business user

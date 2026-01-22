@@ -128,6 +128,7 @@ func JoinGroupHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
+	// 4️⃣ Return response
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":       "successfully joined group",
 		"participant":   participant,

@@ -90,6 +90,7 @@ type DatabaseHelper interface {
 	CanAndConsumeConnect(userID uint) (bool, int, error)
 	AddReferralReward(userID uint) error
 	FollowUser(followerID, followingID uint) error
+	CreateNotification(userID, actorID uint, notifType, message, avatarURL string) error
 	IncrementPostView(postID uint) error
 	IncrementPostClick(postID uint) error
 	GetBusinessConnectProductsByLimit2( /*userID uint64, */ fingerprintHash string, limit, offset int) ([]Data.Post, int64, error)
@@ -1831,6 +1832,17 @@ func (d *DatabaseHelperImpl) FollowUser(followerID, followingID uint) error {
 				gorm.Expr("followers_count + 1"),
 			).Error
 	})
+}
+
+func (d *DatabaseHelperImpl) CreateNotification(userID, actorID uint, notifType, message, avatarURL string) error {
+	notif := Data.Notification{
+		UserID:    userID,
+		ActorID:   actorID,
+		Type:      notifType,
+		Message:   message,
+		AvatarURL: avatarURL,
+	}
+	return conn.DB.Create(&notif).Error
 }
 
 func (d *DatabaseHelperImpl) getOrCreateConnectLimit(userID uint) (*Data.UserConnectLimit, error) {
