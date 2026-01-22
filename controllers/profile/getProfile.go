@@ -42,9 +42,6 @@ func GetMyProfile(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	// 4️⃣ Increment profile visits
-	go dbFunc.DBHelper.IncrementProfileVisits(profile.User.ID)
-
 	// 4️⃣ Return JSON
 	return ctx.JSON(fiber.Map{
 		"user":     profile.User,
