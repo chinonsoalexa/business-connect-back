@@ -1948,7 +1948,6 @@ func (d *DatabaseHelperImpl) GetStatusPostsByLimit(
 	result := conn.DB.
 		Model(&Data.Status{}).
 		Preload("Images").
-		Preload("GroupParticipants").
 		Where(`
 			is_active = ?
 			AND approved = ?
