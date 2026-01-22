@@ -1267,7 +1267,7 @@ func (d *DatabaseHelperImpl) GetPopularWhatsAppGroups(
 			AND whatsapp_url IS NOT NULL
 			AND whatsapp_url != ''
 		`, PostTypeGroup).
-		Order("participants_count DESC").
+		Order("groups_counts DESC").
 		Limit(limit).
 		Find(&groups)
 
@@ -1696,28 +1696,28 @@ func (d *DatabaseHelperImpl) GetOpenRecommendedUsers(
 }
 
 func (d *DatabaseHelperImpl) SearchUsers(query string, limit, offset int) ([]UserSummary, bool, error) {
-    var users []UserSummary
+	var users []UserSummary
 
-    // Filter by name, business name, or unique_name
-    res := conn.DB.Model(&Data.User{}).
-        Select(`
+	// Filter by name, business name, or unique_name
+	res := conn.DB.Model(&Data.User{}).
+		Select(`
             id, full_name, unique_name, business_name,
             profile_photo_url, cover_photo_url,
             state, city, verified, user_type, bio_description
         `).
-        Where("full_name ILIKE ? OR business_name ILIKE ? OR unique_name ILIKE ?",
-            "%"+query+"%", "%"+query+"%", "%"+query+"%").
-        Order("followers_count DESC").
-        Limit(limit).
-        Offset(offset).
-        Find(&users)
-    
-    if res.Error != nil {
-        return nil, false, res.Error
-    }
+		Where("full_name ILIKE ? OR business_name ILIKE ? OR unique_name ILIKE ?",
+			"%"+query+"%", "%"+query+"%", "%"+query+"%").
+		Order("followers_count DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&users)
 
-    hasMore := len(users) == limit
-    return users, hasMore, nil
+	if res.Error != nil {
+		return nil, false, res.Error
+	}
+
+	hasMore := len(users) == limit
+	return users, hasMore, nil
 }
 
 func (d *DatabaseHelperImpl) UnfollowUser(followerID, followingID uint) error {
@@ -2054,11 +2054,11 @@ func (d *DatabaseHelperImpl) GetOpenRecommendedGroups(
 			AND is_active = true
 			AND approved = true
 		`, PostTypeGroup).
-		Order("participants_count DESC").
+		Order("groups_counts DESC").
 		Limit(limit).
 		Find(&groups)
 
-	// fallback if participants_count not stored
+	// fallback if groups_counts not stored
 	if len(groups) == 0 {
 		conn.DB.
 			Where("post_type = ?", PostTypeGroup).
