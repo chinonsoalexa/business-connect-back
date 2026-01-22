@@ -380,4 +380,3 @@ func GetNotifications(ctx *fiber.Ctx) error {
 		"notifications": notifications,
 	})
 }
-
