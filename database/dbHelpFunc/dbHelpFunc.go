@@ -1470,14 +1470,22 @@ func (d *DatabaseHelperImpl) GetRecommendedUsersWithFallback(
 	// 1️⃣ Same state + country
 	l1, _ := d.getUsersSameState(user, limit)
 	for _, u := range l1 {
-		result = append(result, u)
-		seen[u.ID] = true
+		if len(result) >= limit {
+			break
+		}
+		if !seen[u.ID] {
+			result = append(result, u)
+			seen[u.ID] = true
+		}
 	}
 
 	// 2️⃣ Same country fallback
 	if len(result) < limit {
 		l2, _ := d.getUsersSameCountry(user, limit-len(result))
 		for _, u := range l2 {
+			if len(result) >= limit {
+				break
+			}
 			if !seen[u.ID] {
 				result = append(result, u)
 				seen[u.ID] = true
@@ -1485,12 +1493,19 @@ func (d *DatabaseHelperImpl) GetRecommendedUsersWithFallback(
 		}
 	}
 
-	// 3️⃣ Global popular users
+	// 3️⃣ Global popular users (exclude self + existing connections)
 	if len(result) < limit {
-		l3, _ := d.getGlobalPopularUsers(limit - len(result))
+		l3, _ := d.getGlobalPopularUsersExcludingConnections(
+			user.ID,
+			limit-len(result),
+		)
 		for _, u := range l3 {
+			if len(result) >= limit {
+				break
+			}
 			if !seen[u.ID] {
 				result = append(result, u)
+				seen[u.ID] = true
 			}
 		}
 	}
@@ -1559,7 +1574,8 @@ func (d *DatabaseHelperImpl) getUsersSameCountry(
 	return users, nil
 }
 
-func (d *DatabaseHelperImpl) getGlobalPopularUsers(
+func (d *DatabaseHelperImpl) getGlobalPopularUsersExcludingConnections(
+	userID uint,
 	limit int,
 ) ([]UserSummary, error) {
 
@@ -1572,6 +1588,14 @@ func (d *DatabaseHelperImpl) getGlobalPopularUsers(
 			profile_photo_url, cover_photo_url,
 			state, verified, user_type, bio_description
 		`).
+		Where(`
+			id != ?
+			AND id NOT IN (
+				SELECT connected_user_id
+				FROM connections
+				WHERE user_id = ?
+			)
+		`, userID, userID).
 		Order("followers_count DESC").
 		Limit(limit).
 		Find(&users)
