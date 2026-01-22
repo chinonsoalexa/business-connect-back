@@ -317,10 +317,18 @@ func SearchUsers(ctx *fiber.Ctx) error {
 
 // GetNotifications Handler with Load More / Pagination
 func GetNotifications(ctx *fiber.Ctx) error {
-	userID := ctx.Locals("user-id")
-	if userID == nil {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "not logged in",
+		// Get stored user id from request context
+	userId := ctx.Locals("user-id")
+	if userId == nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "failed to get user",
+		})
+	}
+
+	user, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userId)
+	if uuidErr != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "failed to get user from request",
 		})
 	}
 
@@ -340,13 +348,13 @@ func GetNotifications(ctx *fiber.Ctx) error {
 
 	// Count total notifications
 	if err := conn.DB.Model(&Data.Notification{}).
-		Where("user_id = ?", userID).
+		Where("user_id = ?", user.ID).
 		Count(&total).Error; err != nil {
 		return ctx.Status(500).JSON(fiber.Map{"error": "failed to count notifications"})
 	}
 
 	// Fetch notifications with limit + offset, newest first
-	if err := conn.DB.Where("user_id = ?", userID).
+	if err := conn.DB.Where("user_id = ?", user.ID).
 		Order("created_at desc").
 		Limit(limit).
 		Offset(offset).
@@ -379,5 +387,6 @@ func GetNotifications(ctx *fiber.Ctx) error {
 		"hasMore":       hasMore,
 		"total":         total,
 		"notifications": notifications,
+		"user":          user,
 	})
 }
