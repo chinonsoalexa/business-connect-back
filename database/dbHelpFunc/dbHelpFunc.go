@@ -2290,14 +2290,27 @@ func (d *DatabaseHelperImpl) mapGroupFeed(
 			max = *g.MaxMembers
 		}
 
+		// 🔹 Map GroupParticipants to GroupUserSummary
+		participants := make([]GroupUserSummary, 0, len(g.GroupParticipants))
+		for _, p := range g.GroupParticipants {
+			participants = append(participants, GroupUserSummary{
+				ID:              p.UserID,
+				FullName:        p.FullName,
+				UniqueName:      p.UniqueName,
+				ProfilePhotoURL: p.ProfilePhotoURL,
+				Verified:        p.Verified,
+			})
+		}
+
 		response = append(response, GroupFeedItem{
-			ID:          g.ID,
-			Title:       g.Title,
-			Description: g.Description,
-			MaxMembers:  max,
-			WhatsappURL: g.WhatsappURL,
-			CreatedAt:   g.CreatedAt,
-			Images:      g.Images,
+			ID:           g.ID,
+			Title:        g.Title,
+			Description:  g.Description,
+			MaxMembers:   max,
+			WhatsappURL:  g.WhatsappURL,
+			CreatedAt:    g.CreatedAt,
+			Images:       g.Images,
+			Participants: participants,
 		})
 	}
 
