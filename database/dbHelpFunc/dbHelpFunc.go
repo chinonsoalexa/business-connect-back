@@ -2162,63 +2162,67 @@ func (d *DatabaseHelperImpl) GetOpenRecommendedGroups(
 	var result []GroupFeedItem
 
 	// 1️⃣ TRENDING GROUPS
-	conn.DB.
-		Where(`
-			post_type = ?
-			AND is_active = true
-			AND approved = true
-		`, PostTypeGroup).
+	err := conn.DB.
+		Preload("GroupParticipants"). // preload participants
+		Preload("Images").            // preload images
+		Where(`post_type = ? AND is_active = true AND approved = true`, PostTypeGroup).
 		Order("members_count DESC").
 		Limit(limit).
-		Find(&groups)
+		Offset(offset).
+		Find(&groups).Error
+	if err != nil {
+		return nil, false, err
+	}
 
-	// fallback if members_count not stored
+	// fallback if trending empty
 	if len(groups) == 0 {
-		conn.DB.
+		err = conn.DB.
+			Preload("GroupParticipants").
+			Preload("Images").
 			Where("post_type = ?", PostTypeGroup).
 			Order("created_at DESC").
 			Limit(limit).
-			Find(&groups)
+			Offset(offset).
+			Find(&groups).Error
+		if err != nil {
+			return nil, false, err
+		}
 	}
 
+	// Build feed items
 	for _, g := range groups {
-		if !seen[g.ID] {
-			seen[g.ID] = true
-			result = append(result, GroupFeedItem{
-				ID:          g.ID,
-				Title:       g.Title,
-				Description: g.Description,
-				WhatsappURL: g.WhatsappURL,
-				CreatedAt:   g.CreatedAt,
-				Images:      g.Images,
-			})
+		if seen[g.ID] {
+			continue
 		}
-	}
+		seen[g.ID] = true
 
-	// 2️⃣ FRESH GROUP FALLBACK
-	if len(result) < limit {
-		var fresh []Data.Post
-		conn.DB.
-			Where("post_type = ?", PostTypeGroup).
-			Order("created_at DESC").
-			Limit(limit).
-			Find(&fresh)
-
-		for _, g := range fresh {
-			if len(result) >= limit {
-				break
-			}
-			if !seen[g.ID] {
-				result = append(result, GroupFeedItem{
-					ID:          g.ID,
-					Title:       g.Title,
-					Description: g.Description,
-					WhatsappURL: g.WhatsappURL,
-					CreatedAt:   g.CreatedAt,
-					Images:      g.Images,
-				})
+		// Map participants
+		participants := make([]GroupUserSummary, len(g.GroupParticipants))
+		for i, p := range g.GroupParticipants {
+			participants[i] = GroupUserSummary{
+				ID:              p.UserID,
+				FullName:        p.FullName,
+				UniqueName:      p.UniqueName,
+				ProfilePhotoURL: p.ProfilePhotoURL,
+				Verified:        p.Verified,
 			}
 		}
+
+		maxMembers := 0
+		if g.MaxMembers != nil {
+			maxMembers = *g.MaxMembers
+		}
+
+		result = append(result, GroupFeedItem{
+			ID:           g.ID,
+			Title:        g.Title,
+			Description:  g.Description,
+			MaxMembers:   maxMembers,
+			WhatsappURL:  g.WhatsappURL,
+			CreatedAt:    g.CreatedAt,
+			Images:       g.Images,
+			Participants: participants,
+		})
 	}
 
 	hasMore := len(result) == limit
