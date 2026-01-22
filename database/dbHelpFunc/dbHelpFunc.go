@@ -62,6 +62,7 @@ type DatabaseHelper interface {
 	GetRecommendedGroupsWithFallback(user Data.User, limit, offset int) ([]GroupFeedItem, bool, error)
 	GetOpenRecommendedGroups(limit, offset int) ([]GroupFeedItem, bool, error)
 	JoinGroup(user Data.User, groupPostID uint) (*Data.GroupParticipant, bool, int, error)
+	GetGroupByID(groupPostID uint) (*Data.Post, error)
 	GetUserProfile(uniqueName string, limit, offset int) (*UserProfile, error)
 	IncrementProfileVisits(userID uint) error
 	UpdateUserProfile(
@@ -2411,6 +2412,17 @@ func (d *DatabaseHelperImpl) JoinGroup(
 	}
 
 	return &participant, true, newMembersCount, nil
+}
+
+func (d *DatabaseHelperImpl) GetGroupByID(groupPostID uint) (*Data.Post, error) {
+	var post Data.Post
+	if err := conn.DB.First(&post, groupPostID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, errors.New("group not found")
+		}
+		return nil, err
+	}
+	return &post, nil
 }
 
 type UserProfile struct {

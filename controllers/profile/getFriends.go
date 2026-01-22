@@ -112,6 +112,7 @@ func GenerateWhatsAppLinks(phoneNumber, senderName, receiverName, businessName, 
 	// return encoded
 }
 
+
 func ConnectFriend(ctx *fiber.Ctx) error {
 	userId := ctx.Locals("user-id")
 	if userId == nil {

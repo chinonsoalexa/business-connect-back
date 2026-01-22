@@ -3,6 +3,7 @@ package profile
 import (
 	dbFunc "business-connect/database/dbHelpFunc"
 	helperFunc "business-connect/paystack"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -114,7 +115,7 @@ func JoinGroupHandler(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "group_post_id is required"})
 	}
 
-	// 3️⃣ Call DB helper
+	// 3️⃣ Call DB helper to join group
 	participant, created, membersCount, err := dbFunc.DBHelper.JoinGroup(user, req.GroupPostID)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -128,10 +129,29 @@ func JoinGroupHandler(ctx *fiber.Ctx) error {
 		})
 	}
 
-	// 4️⃣ Return response
+	// 4️⃣ Create notification for group owner
+	group, err := dbFunc.DBHelper.GetGroupByID(req.GroupPostID)
+	if err != nil {
+		// Non-fatal, just log and continue
+		fmt.Println("Failed to fetch group for notification:", err)
+	} else {
+		err = dbFunc.DBHelper.CreateNotification(
+			group.UserID,                     // recipient = group owner
+			user.ID,                           // actor = user who joined
+			"group_join",                      // type
+			fmt.Sprintf("%s has joined your group %s!", user.FullName, group.Title),
+			user.ProfilePhotoURL,              // actor avatar
+		)
+		if err != nil {
+			fmt.Println("Failed to create group join notification:", err)
+		}
+	}
+
+	// 5️⃣ Return success response
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":       "successfully joined group",
 		"participant":   participant,
 		"members_count": membersCount,
 	})
 }
+
