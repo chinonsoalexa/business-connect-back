@@ -7,6 +7,8 @@ import (
 	"net/url"
 
 	"github.com/gofiber/fiber/v2"
+	Data "business-connect/models"
+	conn "business-connect/database"
 )
 
 func GetFriends(ctx *fiber.Ctx) error {
@@ -312,14 +314,70 @@ func SearchUsers(ctx *fiber.Ctx) error {
     })
 }
 
-// Get Notifications Handler
-// func GetNotifications(ctx *fiber.Ctx) error {
-// 	userID := ctx.Locals("user-id").(uint)
-// 	var notifs []Data.Notification
-// 	if err := conn.DB.Where("user_id = ?", userID).
-// 		Order("created_at desc").
-// 		Find(&notifs).Error; err != nil {
-// 		return ctx.Status(500).JSON(fiber.Map{"error": "failed to fetch notifications"})
-// 	}
-// 	return ctx.JSON(notifs)
-// }
+// GetNotifications Handler with Load More / Pagination
+func GetNotifications(ctx *fiber.Ctx) error {
+	userID := ctx.Locals("user-id")
+	if userID == nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "not logged in",
+		})
+	}
+
+	// Default pagination values
+	page := ctx.QueryInt("page", 1)
+	limit := ctx.QueryInt("limit", 10)
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 50 {
+		limit = 20
+	}
+	offset := (page - 1) * limit
+
+	var notifications []Data.Notification
+	var total int64
+
+	// Count total notifications
+	if err := conn.DB.Model(&Data.Notification{}).
+		Where("user_id = ?", userID).
+		Count(&total).Error; err != nil {
+		return ctx.Status(500).JSON(fiber.Map{"error": "failed to count notifications"})
+	}
+
+	// Fetch notifications with limit + offset, newest first
+	if err := conn.DB.Where("user_id = ?", userID).
+		Order("created_at desc").
+		Limit(limit).
+		Offset(offset).
+		Find(&notifications).Error; err != nil {
+		return ctx.Status(500).JSON(fiber.Map{"error": "failed to fetch notifications"})
+	}
+
+	hasMore := int64(page*limit) < total
+
+	// Default message if no notifications
+	if len(notifications) == 0 {
+		return ctx.JSON(fiber.Map{
+			"page":          page,
+			"limit":         limit,
+			"hasMore":       false,
+			"total":         0,
+			"notifications": []map[string]string{
+				{
+					"message":   "No notifications yet! Connect with friends, post a product, or check out items to purchase.",
+					"avatarURL": "/assets/images/default-notif.png", // default placeholder
+					"type":      "info",
+				},
+			},
+		})
+	}
+
+	return ctx.JSON(fiber.Map{
+		"page":          page,
+		"limit":         limit,
+		"hasMore":       hasMore,
+		"total":         total,
+		"notifications": notifications,
+	})
+}
+

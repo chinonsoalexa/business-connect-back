@@ -85,10 +85,10 @@ func DbMigration() {
 		panic("failed to migrate the UserConnectLimit to the database")
 	}
 
-	// err = DB.AutoMigrate(&Data.UserProfile{})
-	// if err != nil {
-	// 	panic("failed to migrate the UserProfile to the database")
-	// }
+	err = DB.AutoMigrate(&Data.Notification{})
+	if err != nil {
+		panic("failed to migrate the Notification database")
+	}
 
 	err = DB.AutoMigrate(&Data.Post{})
 	if err != nil {
