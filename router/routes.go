@@ -320,7 +320,7 @@ func Routers() *fiber.App {
 	router.Get("/get-friends", NotAuthMiddleware, mid.WebRequireAuth, profile.GetFriends)
 	router.Get("/get-friends-open", NotAuthMiddleware, profile.GetFriendsOpen)
 	router.Post("/connect-friends", NotAuthMiddleware, mid.WebRequireAuth, profile.ConnectFriend)
-	router.Post("/get-notifications", NotAuthMiddleware, mid.WebRequireAuth, profile.GetNotifications)
+	router.Get("/get-notifications", NotAuthMiddleware, mid.WebRequireAuth, profile.GetNotifications)
 	router.Get("/get-groups", NotAuthMiddleware, mid.WebRequireAuth, profile.GetGroups)
 	router.Get("/get-groups-open", NotAuthMiddleware, profile.GetGroupsOpen)
 	router.Post("/join-groups", NotAuthMiddleware, mid.WebRequireAuth, profile.JoinGroupHandler)
