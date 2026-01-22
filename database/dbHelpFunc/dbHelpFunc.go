@@ -59,6 +59,7 @@ type DatabaseHelper interface {
 	AddProfileImage(userID uint, url string, originalFilename string) error
 	UpdateUserProfilePhoto(userID uint, photoURL string) error
 	GetAvailableGroups(limit, offset int) ([]GroupFeedItem, bool, error)
+	GetRecommendedGroupsWithFallback(user Data.User, limit, offset int) ([]GroupFeedItem, bool, error)
 	JoinGroup(user Data.User, groupPostID uint) (*Data.GroupParticipant, bool, int, error)
 	GetUserProfile(uniqueName string, limit, offset int) (*UserProfile, error)
 	UpdateUserProfile(
@@ -73,8 +74,10 @@ type DatabaseHelper interface {
 		preferredLanguage, preferredCurrency, profilePhotoURL, coverPhotoURL string,
 	) error
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
+	GetRecommendedPostsWithFallback(user Data.User, limit, offset int) ([]Data.Post, bool, error)
 	GetBusinessConnectProductsByLimitOpen(limit, offset int) ([]Data.Post, bool, error)
 	GetUsersToConnect(currentUserID uint, limit, offset int) ([]UserSummary, bool, error)
+	GetRecommendedUsersWithFallback(user Data.User, limit, offset int) ([]UserSummary, bool, error)
 	GetUsersToConnectOpen(limit, offset int) ([]UserSummary, bool, error)
 	FollowUser(followerID, followingID uint) error
 	IncrementPostView(postID uint) error
@@ -1000,6 +1003,121 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
 	return posts, hasMore, nil
 }
 
+
+// +40  same state
+// +25  same country
+// +20  business category match
+// +10  verified business
+// +log(views + clicks)
+
+func (d *DatabaseHelperImpl) GetRecommendedPostsWithFallback(
+	user Data.User,
+	limit, offset int,
+) ([]Data.Post, bool, error) {
+
+	var posts []Data.Post
+	seen := make(map[uint]bool)
+
+	// 1️⃣ Personalized
+	personalized, _, _ := d.getPersonalizedPosts(user, limit, offset)
+
+	for _, p := range personalized {
+		posts = append(posts, p)
+		seen[p.ID] = true
+	}
+
+	// 2️⃣ Country trending fallback
+	if len(posts) < limit {
+		trendingCountry, _, _ := d.getTrendingPostsByCountry(
+			user.Country,
+			limit-len(posts),
+		)
+
+		for _, p := range trendingCountry {
+			if !seen[p.ID] {
+				posts = append(posts, p)
+				seen[p.ID] = true
+			}
+		}
+	}
+
+	// 3️⃣ Global trending fallback
+	if len(posts) < limit {
+		global, _, _ := d.getGlobalTrendingPosts(
+			limit-len(posts),
+		)
+
+		for _, p := range global {
+			if !seen[p.ID] {
+				posts = append(posts, p)
+			}
+		}
+	}
+
+	hasMore := len(posts) == limit
+	return posts, hasMore, nil
+}
+
+func (d *DatabaseHelperImpl) getPersonalizedPosts(
+	user Data.User,
+	limit, offset int,
+) ([]Data.Post, bool, error) {
+
+	var posts []Data.Post
+
+	conn.DB.
+		Preload("Images").
+		Select(`
+			posts.*,
+			(
+				CASE WHEN location = ? THEN 40 ELSE 0 END +
+				CASE WHEN location = ? THEN 25 ELSE 0 END +
+				LOG(views + clicks + 1)
+			) AS score
+		`, user.State, user.Country).
+		Where("is_active = true AND approved = true").
+		Order("score DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&posts)
+
+	return posts, false, nil
+}
+
+func (d *DatabaseHelperImpl) getTrendingPostsByCountry(
+	country string,
+	limit int,
+) ([]Data.Post, bool, error) {
+
+	var posts []Data.Post
+
+	conn.DB.
+		Preload("Images").
+		Where("country = ? AND is_active = true", country).
+		Order("(views + clicks) DESC").
+		Limit(limit).
+		Find(&posts)
+
+	return posts, false, nil
+}
+
+func (d *DatabaseHelperImpl) getGlobalTrendingPosts(
+	limit int,
+) ([]Data.Post, bool, error) {
+
+	var posts []Data.Post
+
+	conn.DB.
+		Preload("Images").
+		Where("is_active = true AND approved = true").
+		Order("(views + clicks) DESC").
+		Limit(limit).
+		Find(&posts)
+
+	return posts, false, nil
+}
+
+
 func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimitOpen(
 	limit, offset int,
 ) ([]Data.Post, bool, error) {
@@ -1084,6 +1202,126 @@ func (d *DatabaseHelperImpl) GetUsersToConnect(
 	}
 
 	return users, hasMore, nil
+}
+
+func (d *DatabaseHelperImpl) GetRecommendedUsersWithFallback(
+	user Data.User,
+	limit, offset int,
+) ([]UserSummary, bool, error) {
+
+	var result []UserSummary
+	seen := map[uint]bool{}
+
+	// 1️⃣ Same state + country
+	l1, _ := d.getUsersSameState(user, limit)
+	for _, u := range l1 {
+		result = append(result, u)
+		seen[u.ID] = true
+	}
+
+	// 2️⃣ Same country fallback
+	if len(result) < limit {
+		l2, _ := d.getUsersSameCountry(user, limit-len(result))
+		for _, u := range l2 {
+			if !seen[u.ID] {
+				result = append(result, u)
+				seen[u.ID] = true
+			}
+		}
+	}
+
+	// 3️⃣ Global popular users
+	if len(result) < limit {
+		l3, _ := d.getGlobalPopularUsers(limit-len(result))
+		for _, u := range l3 {
+			if !seen[u.ID] {
+				result = append(result, u)
+			}
+		}
+	}
+
+	hasMore := len(result) == limit
+	return result, hasMore, nil
+}
+
+func (d *DatabaseHelperImpl) getUsersSameState(
+	user Data.User,
+	limit int,
+) ([]UserSummary, error) {
+
+	var users []UserSummary
+
+	conn.DB.
+		Model(&Data.User{}).
+		Select(`
+			id, full_name, unique_name, business_name,
+			profile_photo_url, cover_photo_url,
+			state, verified, user_type, bio_description
+		`).
+		Where(`
+			state = ? AND country = ?
+			AND id != ?
+			AND id NOT IN (
+				SELECT connected_user_id
+				FROM connections
+				WHERE user_id = ?
+			)
+		`, user.State, user.Country, user.ID, user.ID).
+		Order("followers_count DESC").
+		Limit(limit).
+		Find(&users)
+
+	return users, nil
+}
+
+func (d *DatabaseHelperImpl) getUsersSameCountry(
+	user Data.User,
+	limit int,
+) ([]UserSummary, error) {
+
+	var users []UserSummary
+
+	conn.DB.
+		Model(&Data.User{}).
+		Select(`
+			id, full_name, unique_name, business_name,
+			profile_photo_url, cover_photo_url,
+			state, verified, user_type, bio_description
+		`).
+		Where(`
+			country = ?
+			AND id != ?
+			AND id NOT IN (
+				SELECT connected_user_id
+				FROM connections
+				WHERE user_id = ?
+			)
+		`, user.Country, user.ID, user.ID).
+		Order("followers_count DESC").
+		Limit(limit).
+		Find(&users)
+
+	return users, nil
+}
+
+func (d *DatabaseHelperImpl) getGlobalPopularUsers(
+	limit int,
+) ([]UserSummary, error) {
+
+	var users []UserSummary
+
+	conn.DB.
+		Model(&Data.User{}).
+		Select(`
+			id, full_name, unique_name, business_name,
+			profile_photo_url, cover_photo_url,
+			state, verified, user_type, bio_description
+		`).
+		Order("followers_count DESC").
+		Limit(limit).
+		Find(&users)
+
+	return users, nil
 }
 
 func (d *DatabaseHelperImpl) GetUsersToConnectOpen(
@@ -1402,6 +1640,125 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 	}
 
 	return response, hasMore, nil
+}
+
+func (d *DatabaseHelperImpl) GetRecommendedGroupsWithFallback(
+	user Data.User,
+	limit, offset int,
+) ([]GroupFeedItem, bool, error) {
+
+	var result []GroupFeedItem
+	seen := map[uint]bool{}
+
+	// 1️⃣ Same location
+	l1, _ := d.getGroupsByLocation(user, limit)
+	for _, g := range l1 {
+		result = append(result, g)
+		seen[g.ID] = true
+	}
+
+	// 2️⃣ Popular groups
+	if len(result) < limit {
+		l2, _ := d.getPopularGroups(limit-len(result))
+		for _, g := range l2 {
+			if !seen[g.ID] {
+				result = append(result, g)
+				seen[g.ID] = true
+			}
+		}
+	}
+
+	// 3️⃣ New groups
+	if len(result) < limit {
+		l3, _ := d.getNewGroups(limit-len(result))
+		for _, g := range l3 {
+			if !seen[g.ID] {
+				result = append(result, g)
+			}
+		}
+	}
+
+	hasMore := len(result) == limit
+	return result, hasMore, nil
+}
+
+func (d *DatabaseHelperImpl) getGroupsByLocation(
+	user Data.User,
+	limit int,
+) ([]GroupFeedItem, error) {
+
+	var groups []Data.Post
+
+	conn.DB.
+		Preload("Images").
+		Where(`
+			post_type = ?
+			AND location = ?
+			AND is_active = true
+		`, PostTypeGroup, user.State).
+		Order("created_at DESC").
+		Limit(limit).
+		Find(&groups)
+
+	return d.mapGroupFeed(groups), nil
+}
+
+func (d *DatabaseHelperImpl) getPopularGroups(
+	limit int,
+) ([]GroupFeedItem, error) {
+
+	var groups []Data.Post
+
+	conn.DB.
+		Preload("Images").
+		Where("post_type = ? AND is_active = true", PostTypeGroup).
+		Order("members_count DESC").
+		Limit(limit).
+		Find(&groups)
+
+	return d.mapGroupFeed(groups), nil
+}
+
+func (d *DatabaseHelperImpl) getNewGroups(
+	limit int,
+) ([]GroupFeedItem, error) {
+
+	var groups []Data.Post
+
+	conn.DB.
+		Preload("Images").
+		Where("post_type = ? AND is_active = true", PostTypeGroup).
+		Order("created_at DESC").
+		Limit(limit).
+		Find(&groups)
+
+	return d.mapGroupFeed(groups), nil
+}
+
+func (d *DatabaseHelperImpl) mapGroupFeed(
+	groups []Data.Post,
+) []GroupFeedItem {
+
+	var response []GroupFeedItem
+
+	for _, g := range groups {
+		max := 0
+		if g.MaxMembers != nil {
+			max = *g.MaxMembers
+		}
+
+		response = append(response, GroupFeedItem{
+			ID:          g.ID,
+			Title:       g.Title,
+			Description: g.Description,
+			MaxMembers:  max,
+			WhatsappURL: g.WhatsappURL,
+			CreatedAt:   g.CreatedAt,
+			Images:      g.Images,
+		})
+	}
+
+	return response
 }
 
 // DB helper
@@ -3909,3 +4266,4 @@ func (d *DatabaseHelperImpl) LogUserClickData(fingerprintHash string, productID 
 	}
 	return err
 }
+

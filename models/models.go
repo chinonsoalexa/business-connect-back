@@ -76,6 +76,12 @@ type User struct {
 	Images []ProfileImage `json:"images,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
+type UserInterest struct {
+	ID     uint   `gorm:"primaryKey"`
+	UserID uint   `gorm:"index"`
+	Tag    string `gorm:"size:50;index"` // e.g. "restaurant", "fashion", "electronics"
+}
+
 type UpdateProfileRequest struct {
 	FullName          string  `json:"full_name"`
 	BusinessName      string  `json:"business_name"`
@@ -252,6 +258,12 @@ type (
 		ImageUrl     string  `json:"image"`         // The first image URL
 	}
 )
+
+type BusinessTag struct {
+	ID     uint   `gorm:"primaryKey"`
+	UserID uint   `gorm:"index"` // business user
+	Tag    string `gorm:"size:50;index"`
+}
 
 type TokenClaims struct {
 	gorm.Model
