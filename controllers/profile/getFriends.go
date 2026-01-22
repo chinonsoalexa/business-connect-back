@@ -4,8 +4,6 @@ import (
 	dbFunc "business-connect/database/dbHelpFunc"
 	helperFunc "business-connect/paystack"
 	"fmt"
-
-	// "fmt"
 	"net/url"
 
 	"github.com/gofiber/fiber/v2"
@@ -120,63 +118,61 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 		})
 	}
 
-	user, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(userId)
-	if uuidErr != nil {
+	user, err := helperFunc.PaystackHelper.FindByUuidFromLocal(userId)
+	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "failed to get user from request",
+			"error": "failed to get user",
 		})
 	}
 
 	var req ConnectRequest
-	if err := ctx.BodyParser(&req); err != nil {
+	if err := ctx.BodyParser(&req); err != nil || req.UserID == 0 {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid request body",
+			"error": "invalid request",
 		})
 	}
 
-	if req.UserID == 0 {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "user_id is required",
-		})
-	}
-
-	// Follow/connect
-	err := dbFunc.DBHelper.FollowUser(user.ID, req.UserID)
+	// 🔒 CHECK CONNECT LIMIT
+	allowed, remaining, err := dbFunc.DBHelper.CanAndConsumeConnect(user.ID)
 	if err != nil {
-		switch err {
-		case dbFunc.ErrAlreadyFollowing:
-			// User is already connected
+		return ctx.Status(500).JSON(fiber.Map{
+			"error": "limit check failed",
+		})
+	}
+
+	if !allowed {
+		return ctx.Status(403).JSON(fiber.Map{
+			"status": "limit_reached",
+			"message": "Daily connect limit reached. Refer a friend to unlock 5 more connects.",
+		})
+	}
+
+	// Proceed with follow
+	err = dbFunc.DBHelper.FollowUser(user.ID, req.UserID)
+	if err != nil {
+		if err == dbFunc.ErrAlreadyFollowing {
 			return ctx.JSON(fiber.Map{
 				"status": "already_following",
 			})
-		case dbFunc.ErrSelfFollow:
-			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"status": "self_follow",
-				"error":  err.Error(),
-			})
-		default:
-			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"status": "error",
-				"error":  err.Error(),
-			})
 		}
-	}
-
-	// Lookup receiver
-	userRec, uuidErr := helperFunc.PaystackHelper.FindByUuidFromLocal(req.UserID)
-	if uuidErr != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "failed to get user from request",
+		return ctx.Status(500).JSON(fiber.Map{
+			"error": err.Error(),
 		})
 	}
 
-	// Determine device type
+	// Receiver
+	userRec, err := helperFunc.PaystackHelper.FindByUuidFromLocal(req.UserID)
+	if err != nil {
+		return ctx.Status(400).JSON(fiber.Map{
+			"error": "receiver not found",
+		})
+	}
+
 	device := req.Device
 	if device != "mobile" && device != "tablet" && device != "desktop" {
 		device = "desktop"
 	}
 
-	// Generate WhatsApp links
 	appLink, webLink := GenerateWhatsAppLinks(
 		userRec.PhoneNumber,
 		user.FullName,
@@ -186,9 +182,10 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 	)
 
 	return ctx.JSON(fiber.Map{
-		"status":  "ok",
-		"appLink": appLink,
-		"webLink": webLink,
+		"status":          "ok",
+		"remainingSlots":  remaining,
+		"appLink":         appLink,
+		"webLink":         webLink,
 	})
 }
 

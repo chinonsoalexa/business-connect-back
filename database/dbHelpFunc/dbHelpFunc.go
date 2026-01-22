@@ -86,6 +86,9 @@ type DatabaseHelper interface {
 	GetUsersToConnectOpen(limit, offset int) ([]UserSummary, bool, error)
 	GetOpenRecommendedUsers(limit, offset int) ([]UserSummary, bool, error)
 	SearchUsers(query string, limit, offset int) ([]UserSummary, bool, error)
+	getOrCreateConnectLimit(userID uint) (*Data.UserConnectLimit, error)
+	CanAndConsumeConnect(userID uint) (bool, int, error)
+	AddReferralReward(userID uint) error
 	FollowUser(followerID, followingID uint) error
 	IncrementPostView(postID uint) error
 	IncrementPostClick(postID uint) error
@@ -1823,6 +1826,71 @@ func (d *DatabaseHelperImpl) FollowUser(followerID, followingID uint) error {
 				gorm.Expr("followers_count + 1"),
 			).Error
 	})
+}
+
+func (d *DatabaseHelperImpl) getOrCreateConnectLimit(userID uint) (*Data.UserConnectLimit, error) {
+	var limit Data.UserConnectLimit
+
+	err := conn.DB.Where("user_id = ?", userID).First(&limit).Error
+	if err == gorm.ErrRecordNotFound {
+		limit = Data.UserConnectLimit{
+			UserID:    userID,
+			LastReset: time.Now(),
+		}
+		if err := conn.DB.Create(&limit).Error; err != nil {
+			return nil, err
+		}
+		return &limit, nil
+	}
+	return &limit, err
+}
+
+func resetDailyIfNeeded(limit *Data.UserConnectLimit) {
+	now := time.Now()
+
+	if limit.LastReset.Format("2006-01-02") != now.Format("2006-01-02") {
+		limit.DailyCount = 0
+		limit.LastReset = now
+	}
+}
+
+func (d *DatabaseHelperImpl) CanAndConsumeConnect(userID uint) (bool, int, error) {
+	limit, err := d.getOrCreateConnectLimit(userID)
+	if err != nil {
+		return false, 0, err
+	}
+
+	resetDailyIfNeeded(limit)
+
+	dailyRemaining := 15 - limit.DailyCount
+	totalAvailable := dailyRemaining + limit.ReferralCredits
+
+	if totalAvailable <= 0 {
+		return false, 0, nil
+	}
+
+	// Consume
+	if dailyRemaining > 0 {
+		limit.DailyCount++
+	} else {
+		limit.ReferralCredits--
+	}
+
+	if err := conn.DB.Save(limit).Error; err != nil {
+		return false, 0, err
+	}
+
+	return true, totalAvailable - 1, nil
+}
+
+func (d *DatabaseHelperImpl) AddReferralReward(userID uint) error {
+	limit, err := d.getOrCreateConnectLimit(userID)
+	if err != nil {
+		return err
+	}
+
+	limit.ReferralCredits += 5
+	return conn.DB.Save(limit).Error
 }
 
 func (d *DatabaseHelperImpl) IncrementPostView(postID uint) error {

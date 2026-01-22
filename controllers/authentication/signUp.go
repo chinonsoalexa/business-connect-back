@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 
 	dbFunc "business-connect/database/dbHelpFunc"
 	emailValid "business-connect/email"
@@ -19,7 +20,52 @@ import (
 	myjwt "business-connect/middleware/myjwt"
 	Data "business-connect/models"
 	helperFunc "business-connect/paystack"
+	conn "business-connect/database"
 )
+
+func handleReferral(tx *gorm.DB, referralCode string, newUserID uint) error {
+	if strings.TrimSpace(referralCode) == "" {
+		return nil // no referral used
+	}
+
+	// 1️⃣ Find referrer
+	var referrer Data.User
+	if err := tx.Where("unique_name = ?", referralCode).
+		First(&referrer).Error; err != nil {
+		return errors.New("invalid referral code")
+	}
+
+	// 2️⃣ Prevent self-referral (extra safety)
+	if referrer.ID == newUserID {
+		return errors.New("self referral not allowed")
+	}
+
+	// 3️⃣ Update referrer stats
+	if err := tx.Model(&Data.User{}).
+		Where("id = ?", referrer.ID).
+		Updates(map[string]interface{}{
+			"referral_count": gorm.Expr("referral_count + ?", 1),
+		}).Error; err != nil {
+		return err
+	}
+
+	// 4️⃣ Update / create referral credit record
+	var limit Data.UserConnectLimit
+	err := tx.Where("user_id = ?", referrer.ID).First(&limit).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		limit = Data.UserConnectLimit{
+			UserID:           referrer.ID,
+			ReferralCredits:  1, // initial credit
+			LastReset:        time.Now(),
+		}
+		return tx.Create(&limit).Error
+	}
+
+	return tx.Model(&limit).
+		Update("referral_credits", gorm.Expr("referral_credits + ?", 1)).
+		Error
+}
 
 func SignUp(ctx *fiber.Ctx) error {
 	var req Data.SignUpRequest
@@ -36,6 +82,18 @@ func SignUp(ctx *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+
+	tx := conn.DB.Begin()
+	if tx.Error != nil {
+		return ctx.Status(500).JSON(fiber.Map{
+			"error": "could not start transaction",
+		})
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
 	// 2️⃣ Check existing user
 	existingUser, err := dbFunc.DBHelper.FindByEmail(req.Email)
@@ -105,6 +163,21 @@ func SignUp(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to create user",
+		})
+	}
+
+
+	// 🔥 Handle referral credit
+	if err := handleReferral(tx, req.ReferralCode, newUser.ID); err != nil {
+		tx.Rollback()
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return ctx.Status(500).JSON(fiber.Map{
+			"error": "could not complete signup",
 		})
 	}
 

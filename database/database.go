@@ -80,10 +80,10 @@ func DbMigration() {
 	}
 
 	// // AutoMigrate the jti model
-	// err = DB.AutoMigrate(&Data.OrderHistory{})
-	// if err != nil {
-	// 	panic("failed to migrate the OrderHistory to the database")
-	// }
+	err = DB.AutoMigrate(&Data.UserConnectLimit{})
+	if err != nil {
+		panic("failed to migrate the UserConnectLimit to the database")
+	}
 
 	// err = DB.AutoMigrate(&Data.UserProfile{})
 	// if err != nil {

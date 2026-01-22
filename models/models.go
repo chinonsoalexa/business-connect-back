@@ -53,11 +53,13 @@ type User struct {
 	Latitude      float64 `json:"latitude"`
 
 	// 🔥 Social metrics
-	FollowersCount int64 `json:"followers_count" gorm:"default:0"`
-	FollowingCount int64 `json:"following_count" gorm:"default:0"`
-	GroupsCounts   int64 `json:"groups_counts" gorm:"default:0"`
-	PostsCounts    int64 `json:"posts_counts" gorm:"default:0"`
-	ProfileVisits  int64 `json:"profile_visits" gorm:"default:0"`
+	FollowersCount int64  `json:"followers_count" gorm:"default:0"`
+	FollowingCount int64  `json:"following_count" gorm:"default:0"`
+	GroupsCounts   int64  `json:"groups_counts" gorm:"default:0"`
+	PostsCounts    int64  `json:"posts_counts" gorm:"default:0"`
+	ProfileVisits  int64  `json:"profile_visits" gorm:"default:0"`
+	ReferralCount  int64  `json:"referral_count" gorm:"default:0"`
+	ReferredBy     string `json:"referred_by" gorm:"size:100"`
 
 	// Business Metrics
 	TotalRevenue  float64 `json:"total_revenue" gorm:"default:0"`
@@ -74,6 +76,19 @@ type User struct {
 	// Relations
 	Posts  []Post         `json:"posts,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 	Images []ProfileImage `json:"images,omitempty" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+}
+
+type UserConnectLimit struct {
+	ID uint `gorm:"primaryKey"`
+
+	UserID uint `gorm:"uniqueIndex"`
+
+	// Daily tracking
+	DailyCount int       `gorm:"default:0"`
+	LastReset  time.Time `gorm:"index"`
+
+	// Referral credits
+	ReferralCredits int `gorm:"default:0"`
 }
 
 type UserInterest struct {
@@ -144,6 +159,7 @@ type SignUpRequest struct {
 	CountryCurrencies string  `json:"country_currencies"`
 	PreferredLanguage string  `json:"preferred_language"`
 	PreferredCurrency string  `json:"preferred_currency"`
+	ReferralCode      string  `json:"referral_code"` // UniqueName of referrer
 }
 
 // post struct
