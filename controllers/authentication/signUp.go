@@ -31,11 +31,11 @@ func SignUp(ctx *fiber.Ctx) error {
 	}
 
 	// 1️⃣ Validate input FIRST
-	// if err := validateSignup(&req); err != nil {
-	// 	return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
-	// 		"error": err.Error(),
-	// 	})
-	// }
+	if err := validateSignup(&req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
 
 	// 2️⃣ Check existing user
 	existingUser, err := dbFunc.DBHelper.FindByEmail(req.Email)
@@ -60,19 +60,19 @@ func SignUp(ctx *fiber.Ctx) error {
 	}
 
 	// 3️⃣ Disposable email check
-	err = emailValid.LoadDisposableList("fakeEmails.json")
-	if err != nil {
-		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Email validation service error",
-		})
-	}
+	// err = emailValid.LoadDisposableList("fakeEmails.json")
+	// if err != nil {
+	// 	return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
+	// 		"error": "Email validation service error",
+	// 	})
+	// }
 
-	result, err := emailValid.ValidateEmail(req.Email)
-	if err != nil || result.RiskScore >= 75 {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid or disposable email address",
-		})
-	}
+	// result, err := emailValid.ValidateEmail(req.Email)
+	// if err != nil || result.RiskScore >= 75 {
+	// 	return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+	// 		"error": "Invalid or disposable email address",
+	// 	})
+	// }
 
 	// 4️⃣ Determine base name
 	baseName := req.BusinessName
