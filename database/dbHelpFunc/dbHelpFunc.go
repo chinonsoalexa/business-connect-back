@@ -1263,6 +1263,7 @@ func (d *DatabaseHelperImpl) GetPopularWhatsAppGroups(
 	var groups []Data.Post
 	conn.DB.
 		Preload("Images").
+		Preload("GroupParticipants").
 		Where(`
 			post_type = ?
 			AND is_active = true
@@ -1270,7 +1271,7 @@ func (d *DatabaseHelperImpl) GetPopularWhatsAppGroups(
 			AND whatsapp_url IS NOT NULL
 			AND whatsapp_url != ''
 		`, PostTypeGroup).
-		Order("groups_counts DESC").
+		Order("members_count DESC").
 		Limit(limit).
 		Find(&groups)
 
@@ -1293,6 +1294,7 @@ func (d *DatabaseHelperImpl) GetPopularWhatsAppGroups(
 		var fresh []Data.Post
 		conn.DB.
 			Preload("Images").
+			Preload("GroupParticipants").
 			Where(`
 				post_type = ?
 				AND is_active = true
@@ -1343,6 +1345,7 @@ func (d *DatabaseHelperImpl) GetOpenRecommendedPosts(
 	var trending []Data.Post
 	conn.DB.
 		Preload("Images").
+		Preload("GroupParticipants").
 		Where(`
 			is_active = true 
 			AND approved = true 
@@ -1367,6 +1370,7 @@ func (d *DatabaseHelperImpl) GetOpenRecommendedPosts(
 		var popular []Data.Post
 		conn.DB.
 			Preload("Images").
+			Preload("GroupParticipants").
 			Where(`
 				is_active = true 
 				AND approved = true 
@@ -1392,6 +1396,7 @@ func (d *DatabaseHelperImpl) GetOpenRecommendedPosts(
 		var fresh []Data.Post
 		conn.DB.
 			Preload("Images").
+			Preload("GroupParticipants").
 			Where(`
 				is_active = true 
 				AND approved = true 
@@ -1931,6 +1936,7 @@ func (d *DatabaseHelperImpl) GetStatusPostsByLimit(
 	result := conn.DB.
 		Model(&Data.Status{}).
 		Preload("Images").
+		Preload("GroupParticipants").
 		Where(`
 			is_active = ?
 			AND approved = ?
@@ -2010,6 +2016,7 @@ func (d *DatabaseHelperImpl) GetAvailableGroups(
 
 	result := conn.DB.
 		Preload("Images").
+		Preload("GroupParticipants").
 		Where(`
 			post_type = ?
 			AND is_active = ?
@@ -2146,11 +2153,11 @@ func (d *DatabaseHelperImpl) GetOpenRecommendedGroups(
 			AND is_active = true
 			AND approved = true
 		`, PostTypeGroup).
-		Order("groups_counts DESC").
+		Order("members_count DESC").
 		Limit(limit).
 		Find(&groups)
 
-	// fallback if groups_counts not stored
+	// fallback if members_count not stored
 	if len(groups) == 0 {
 		conn.DB.
 			Where("post_type = ?", PostTypeGroup).
@@ -2212,6 +2219,7 @@ func (d *DatabaseHelperImpl) getGroupsByLocation(
 
 	conn.DB.
 		Preload("Images").
+		Preload("GroupParticipants").
 		Where(`
 			post_type = ?
 			AND location = ?
@@ -2232,6 +2240,7 @@ func (d *DatabaseHelperImpl) getPopularGroups(
 
 	conn.DB.
 		Preload("Images").
+		Preload("GroupParticipants").
 		Where("post_type = ? AND is_active = true", PostTypeGroup).
 		Order("members_count DESC").
 		Limit(limit).
@@ -2248,6 +2257,7 @@ func (d *DatabaseHelperImpl) getNewGroups(
 
 	conn.DB.
 		Preload("Images").
+		Preload("GroupParticipants").
 		Where("post_type = ? AND is_active = true", PostTypeGroup).
 		Order("created_at DESC").
 		Limit(limit).
@@ -2395,6 +2405,7 @@ func (d *DatabaseHelperImpl) GetUserProfile(
 	var posts []Data.Post
 	if err := conn.DB.
 		Preload("Images").
+		Preload("GroupParticipants").
 		Where("user_id = ? AND post_type != ?", user.ID, "status").
 		Order("created_at DESC").
 		Limit(limit + 1).
