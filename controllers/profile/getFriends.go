@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/gofiber/fiber/v2"
-	Data "business-connect/models"
 	conn "business-connect/database"
+	Data "business-connect/models"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func GetFriends(ctx *fiber.Ctx) error {
@@ -112,7 +113,6 @@ func GenerateWhatsAppLinks(phoneNumber, senderName, receiverName, businessName, 
 	// return encoded
 }
 
-
 func ConnectFriend(ctx *fiber.Ctx) error {
 	userId := ctx.Locals("user-id")
 	if userId == nil {
@@ -145,7 +145,7 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 
 	if !allowed {
 		return ctx.Status(403).JSON(fiber.Map{
-			"status": "limit_reached",
+			"status":  "limit_reached",
 			"message": "Daily connect limit reached. Refer a friend to unlock 5 more connects.",
 		})
 	}
@@ -172,9 +172,9 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 	}
 
 	err = dbFunc.DBHelper.CreateNotification(
-		userRec.ID,          // recipient
-		user.ID,             // actor
-		"connect",           // type
+		userRec.ID, // recipient
+		user.ID,    // actor
+		"connect",  // type
 		fmt.Sprintf("%s has connected with you!", user.FullName),
 		user.ProfilePhotoURL, // avatar
 	)
@@ -193,10 +193,10 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 	)
 
 	return ctx.JSON(fiber.Map{
-		"status":          "ok",
-		"remainingSlots":  remaining,
-		"appLink":         appLink,
-		"webLink":         webLink,
+		"status":         "ok",
+		"remainingSlots": remaining,
+		"appLink":        appLink,
+		"webLink":        webLink,
 	})
 }
 
@@ -279,45 +279,45 @@ func IncrementPostClickHandler(ctx *fiber.Ctx) error {
 }
 
 func SearchUsers(ctx *fiber.Ctx) error {
-    // Get query and pagination
-    query := ctx.Query("q", "")
-    page := ctx.QueryInt("page", 1)
-    limit := ctx.QueryInt("limit", 10)
+	// Get query and pagination
+	query := ctx.Query("q", "")
+	page := ctx.QueryInt("page", 1)
+	limit := ctx.QueryInt("limit", 10)
 
-    if page < 1 {
-        page = 1
-    }
-    if limit < 1 || limit > 50 {
-        limit = 20
-    }
-    offset := (page - 1) * limit
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 50 {
+		limit = 20
+	}
+	offset := (page - 1) * limit
 
-    if query == "" {
-        return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-            "error": "Query parameter 'q' is required",
-        })
-    }
+	if query == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Query parameter 'q' is required",
+		})
+	}
 
-    // Call database helper
-    users, hasMore, err := dbFunc.DBHelper.SearchUsers(query, limit, offset)
-    if err != nil {
-        return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-            "error": "Failed to search users",
-        })
-    }
+	// Call database helper
+	users, hasMore, err := dbFunc.DBHelper.SearchUsers(query, limit, offset)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to search users",
+		})
+	}
 
-    return ctx.JSON(fiber.Map{
-        "page":    page,
-        "limit":   limit,
-        "query":   query,
-        "friends": users,
-        "hasMore": hasMore,
-    })
+	return ctx.JSON(fiber.Map{
+		"page":    page,
+		"limit":   limit,
+		"query":   query,
+		"friends": users,
+		"hasMore": hasMore,
+	})
 }
 
 // GetNotifications Handler with Load More / Pagination
 func GetNotifications(ctx *fiber.Ctx) error {
-		// Get stored user id from request context
+	// Get stored user id from request context
 	userId := ctx.Locals("user-id")
 	if userId == nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -367,10 +367,10 @@ func GetNotifications(ctx *fiber.Ctx) error {
 	// Default message if no notifications
 	if len(notifications) == 0 {
 		return ctx.JSON(fiber.Map{
-			"page":          page,
-			"limit":         limit,
-			"hasMore":       false,
-			"total":         0,
+			"page":    page,
+			"limit":   limit,
+			"hasMore": false,
+			"total":   0,
 			"notifications": []map[string]string{
 				{
 					"message":   "No notifications yet! Connect with friends, post a product, or check out items to purchase.",
@@ -387,6 +387,6 @@ func GetNotifications(ctx *fiber.Ctx) error {
 		"hasMore":       hasMore,
 		"total":         total,
 		"notifications": notifications,
-		"user":          user,
+		"user_profile":  user.ProfilePhotoURL,
 	})
 }
