@@ -31,11 +31,11 @@ func SignUp(ctx *fiber.Ctx) error {
 	}
 
 	// 1️⃣ Validate input FIRST
-	if err := validateSignup(&req); err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
-		})
-	}
+	// if err := validateSignup(&req); err != nil {
+	// 	return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+	// 		"error": err.Error(),
+	// 	})
+	// }
 
 	// 2️⃣ Check existing user
 	existingUser, err := dbFunc.DBHelper.FindByEmail(req.Email)
