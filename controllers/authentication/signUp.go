@@ -180,7 +180,7 @@ func SignUp(ctx *fiber.Ctx) error {
 
 
 	// 🔥 Handle referral credit
-	if err := handleReferral(tx, req.ReferralCode, newUser.ID); err != nil {
+	if err := handleReferral(tx, req.ReferralCode, createdUser.ID); err != nil {
 		tx.Rollback()
 		// return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
 		// 	"error": err.Error(),
