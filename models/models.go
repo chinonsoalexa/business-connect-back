@@ -31,7 +31,7 @@ type User struct {
 	Email           string `json:"email" gorm:"uniqueIndex;not null"`
 	Password        string `json:"-"` // store HASHED password only
 	PhoneNumber     string `json:"phone_number" gorm:"size:15;index"`
-	ShowNumber      string `json:"show_number"`
+	ShowNumber      bool   `json:"show_number"`
 	ProfilePhotoURL string `json:"profile_photo_url"`
 	CoverPhotoURL   string `json:"cover_photo_url"`
 
@@ -278,13 +278,13 @@ type (
 )
 
 type Notification struct {
-	ID        uint      `gorm:"primaryKey"`
-	UserID    uint      `gorm:"index"` // recipient
-	ActorID   uint      `gorm:"index"` // the user who triggered this
-	Type      string    `gorm:"size:50"` // "connect", "group_join", etc.
-	Message   string    `gorm:"size:255"`
-	AvatarURL string    `gorm:"size:255"` // image of actor
-	Read      bool      `gorm:"default:false"`
+	ID        uint   `gorm:"primaryKey"`
+	UserID    uint   `gorm:"index"`   // recipient
+	ActorID   uint   `gorm:"index"`   // the user who triggered this
+	Type      string `gorm:"size:50"` // "connect", "group_join", etc.
+	Message   string `gorm:"size:255"`
+	AvatarURL string `gorm:"size:255"` // image of actor
+	Read      bool   `gorm:"default:false"`
 	CreatedAt time.Time
 }
 
