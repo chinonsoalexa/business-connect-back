@@ -63,6 +63,7 @@ type DatabaseHelper interface {
 	GetOpenRecommendedGroups(limit, offset int) ([]GroupFeedItem, bool, error)
 	JoinGroup(user Data.User, groupPostID uint) (*Data.GroupParticipant, bool, int, error)
 	GetUserProfile(uniqueName string, limit, offset int) (*UserProfile, error)
+	IncrementProfileVisits(userID uint) error
 	UpdateUserProfile(
 		userID uint,
 		fullName,
@@ -2510,6 +2511,13 @@ func (d *DatabaseHelperImpl) GetUserProfile(
 	}
 
 	return profile, nil
+}
+
+func (d *DatabaseHelperImpl) IncrementProfileVisits(userID uint) error {
+	return conn.DB.Model(&Data.User{}).
+		Where("id = ?", userID).
+		UpdateColumn("profile_visits", gorm.Expr("profile_visits + ?", 1)).
+		Error
 }
 
 func (d *DatabaseHelperImpl) UpdateUserProfile(

@@ -115,10 +115,13 @@ func UpdateMyProfile(ctx *fiber.Ctx) error {
 }
 
 func GetOthersProfile(ctx *fiber.Ctx) error {
-	// 1️⃣ Get logged-in user
+	// 1️⃣ Get logged-in user (optional, for self-check)
+	userID := ctx.Locals("user-id")
+
+	// 2️⃣ Get target profile
 	uniqueName := ctx.Params("name")
 
-	// 2️⃣ Pagination for posts and groups
+	// 3️⃣ Pagination
 	page := ctx.QueryInt("page", 1)
 	limit := ctx.QueryInt("limit", 10)
 	if page < 1 {
@@ -129,13 +132,18 @@ func GetOthersProfile(ctx *fiber.Ctx) error {
 	}
 	offset := (page - 1) * limit
 
-	// 3️⃣ Fetch profile data
+	// 4️⃣ Fetch profile data
 	profile, err := dbFunc.DBHelper.GetUserProfile(uniqueName, limit, offset)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	// 4️⃣ Return JSON
+	// 5️⃣ Increment profile visits (skip if self)
+	if userID != nil && profile.User.ID != userID.(uint) {
+		go dbFunc.DBHelper.IncrementProfileVisits(profile.User.ID)
+	}
+
+	// 6️⃣ Return JSON
 	return ctx.JSON(fiber.Map{
 		"user":     profile.User,
 		"timeline": profile.Posts,
@@ -146,10 +154,10 @@ func GetOthersProfile(ctx *fiber.Ctx) error {
 }
 
 func GetProfileOpen(ctx *fiber.Ctx) error {
-	// 1️⃣ Get target user ID from query param
+	// 1️⃣ Get target profile
 	uniqueName := ctx.Params("name")
 
-	// 2️⃣ Pagination for posts and groups
+	// 2️⃣ Pagination
 	page := ctx.QueryInt("page", 1)
 	limit := ctx.QueryInt("limit", 10)
 	if page < 1 {
@@ -166,7 +174,10 @@ func GetProfileOpen(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	// 4️⃣ Return JSON (no sensitive info)
+	// 4️⃣ Increment profile visits
+	go dbFunc.DBHelper.IncrementProfileVisits(profile.User.ID)
+
+	// 5️⃣ Return JSON
 	return ctx.JSON(fiber.Map{
 		"user":     profile.User,
 		"timeline": profile.Posts,
@@ -175,3 +186,4 @@ func GetProfileOpen(ctx *fiber.Ctx) error {
 		"about":    profile.About,
 	})
 }
+
