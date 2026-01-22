@@ -126,9 +126,9 @@ func validateSignup(req *Data.SignUpRequest) error {
 		return errors.New("full name is required")
 	}
 
-	if strings.TrimSpace(req.BusinessName) == "" {
-		return errors.New("business name is required")
-	}
+	// if strings.TrimSpace(req.BusinessName) == "" {
+	// 	return errors.New("business name is required")
+	// }
 
 	if strings.TrimSpace(req.Email) == "" {
 		return errors.New("email is required")
