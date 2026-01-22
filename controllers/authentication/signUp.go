@@ -182,15 +182,15 @@ func SignUp(ctx *fiber.Ctx) error {
 	// 🔥 Handle referral credit
 	if err := handleReferral(tx, req.ReferralCode, newUser.ID); err != nil {
 		tx.Rollback()
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		// return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+		// 	"error": err.Error(),
+		// })
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return ctx.Status(500).JSON(fiber.Map{
-			"error": "could not complete signup",
-		})
+		// return ctx.Status(500).JSON(fiber.Map{
+		// 	"error": "could not complete signup",
+		// })
 	}
 
 	// 6️⃣ Send verification email
