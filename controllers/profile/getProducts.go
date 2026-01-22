@@ -63,13 +63,29 @@ func GetPostsPaginated(ctx *fiber.Ctx) error {
 		})
 	}
 
+	business, postErr := dbFunc.DBHelper.GetSuggestedBusinesses(limit)
+	if postErr != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch suggestedbusinesses",
+		})
+	}
+
+	trending, postErr := dbFunc.DBHelper.GetPopularWhatsAppGroups(limit)
+	if postErr != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch suggestedbusinesses",
+		})
+	}
+
 	// Return JSON
 	return ctx.JSON(fiber.Map{
-		"page":    page,
-		"limit":   limit,
-		"posts":   posts,
-		"user":    user,
-		"hasMore": hasMore,
+		"page":     page,
+		"limit":    limit,
+		"posts":    posts,
+		"user":     user,
+		"business": business,
+		"trending": trending,
+		"hasMore":  hasMore,
 	})
 }
 
@@ -95,12 +111,28 @@ func GetPostsPaginatedOpen(ctx *fiber.Ctx) error {
 		})
 	}
 
+	business, postErr := dbFunc.DBHelper.GetSuggestedBusinesses(limit)
+	if postErr != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch suggestedbusinesses",
+		})
+	}
+
+	trending, postErr := dbFunc.DBHelper.GetPopularWhatsAppGroups(limit)
+	if postErr != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch suggestedbusinesses",
+		})
+	}
+
 	// Return JSON
 	return ctx.JSON(fiber.Map{
-		"page":    page,
-		"limit":   limit,
-		"posts":   posts,
-		"hasMore": hasMore,
+		"page":     page,
+		"limit":    limit,
+		"posts":    posts,
+		"business": business,
+		"trending": trending,
+		"hasMore":  hasMore,
 	})
 }
 
@@ -145,7 +177,7 @@ func GetStatusPaginated(ctx *fiber.Ctx) error {
 	return ctx.JSON(fiber.Map{
 		"page":    page,
 		"limit":   limit,
-		"status":   posts,
+		"status":  posts,
 		"user":    user,
 		"hasMore": hasMore,
 	})
@@ -190,9 +222,9 @@ func GetStatusPaginatedOpen(ctx *fiber.Ctx) error {
 
 	// Return JSON
 	return ctx.JSON(fiber.Map{
-		"page":    page,
-		"limit":   limit,
-		"status":   posts,
+		"page":   page,
+		"limit":  limit,
+		"status": posts,
 		// "user":    user,
 		"hasMore": hasMore,
 	})

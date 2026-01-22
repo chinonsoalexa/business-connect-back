@@ -77,6 +77,9 @@ type DatabaseHelper interface {
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
 	GetRecommendedPostsWithFallback(user Data.User, limit, offset int) ([]Data.Post, bool, error)
 	GetBusinessConnectProductsByLimitOpen(limit, offset int) ([]Data.Post, bool, error)
+	GetSuggestedBusinesses(limit int) ([]UserSummary, error)
+	GetPopularWhatsAppGroups(limit int) ([]GroupFeedItem, error)
+	getGlobalTrendingPosts(limit int) ([]Data.Post, bool, error)
 	GetOpenRecommendedPosts(limit, offset int) ([]Data.Post, bool, error)
 	GetUsersToConnect(currentUserID uint, limit, offset int) ([]UserSummary, bool, error)
 	GetRecommendedUsersWithFallback(user Data.User, limit, offset int) ([]UserSummary, bool, error)
@@ -1006,7 +1009,6 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
 	return posts, hasMore, nil
 }
 
-
 // +40  same state
 // +25  same country
 // +20  business category match
@@ -1047,7 +1049,7 @@ func (d *DatabaseHelperImpl) GetRecommendedPostsWithFallback(
 	// 3️⃣ Global trending fallback
 	if len(posts) < limit {
 		global, _, _ := d.getGlobalTrendingPosts(
-			limit-len(posts),
+			limit - len(posts),
 		)
 
 		for _, p := range global {
@@ -1120,7 +1122,6 @@ func (d *DatabaseHelperImpl) getGlobalTrendingPosts(
 	return posts, false, nil
 }
 
-
 func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimitOpen(
 	limit, offset int,
 ) ([]Data.Post, bool, error) {
@@ -1158,6 +1159,165 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimitOpen(
 	}
 
 	return posts, hasMore, nil
+}
+
+func (d *DatabaseHelperImpl) GetSuggestedBusinesses(
+	limit int,
+) ([]UserSummary, error) {
+
+	if limit <= 0 {
+		limit = 3
+	}
+
+	var result []UserSummary
+	seen := make(map[uint]bool)
+
+	// 1️⃣ VERIFIED BUSINESSES
+	var verified []UserSummary
+	conn.DB.Model(&Data.User{}).
+		Select(`
+			id, full_name, unique_name, business_name,
+			profile_photo_url, cover_photo_url,
+			state, city, verified, user_type, bio_description
+		`).
+		Where("user_type = ? AND verified = true", "business").
+		Order("followers_count DESC").
+		Limit(limit).
+		Find(&verified)
+
+	for _, u := range verified {
+		if !seen[u.ID] {
+			seen[u.ID] = true
+			result = append(result, u)
+		}
+	}
+
+	// 2️⃣ POPULAR BUSINESSES
+	if len(result) < limit {
+		var popular []UserSummary
+		conn.DB.Model(&Data.User{}).
+			Select(`
+				id, full_name, unique_name, business_name,
+				profile_photo_url, cover_photo_url,
+				state, city, verified, user_type, bio_description
+			`).
+			Where("user_type = ?", "business").
+			Order("followers_count DESC").
+			Limit(limit).
+			Find(&popular)
+
+		for _, u := range popular {
+			if len(result) >= limit {
+				break
+			}
+			if !seen[u.ID] {
+				seen[u.ID] = true
+				result = append(result, u)
+			}
+		}
+	}
+
+	// 3️⃣ FALLBACK – NEW BUSINESSES
+	if len(result) < limit {
+		var fresh []UserSummary
+		conn.DB.Model(&Data.User{}).
+			Select(`
+				id, full_name, unique_name, business_name,
+				profile_photo_url, cover_photo_url,
+				state, city, verified, user_type, bio_description
+			`).
+			Where("user_type = ?", "business").
+			Order("created_at DESC").
+			Limit(limit).
+			Find(&fresh)
+
+		for _, u := range fresh {
+			if len(result) >= limit {
+				break
+			}
+			if !seen[u.ID] {
+				result = append(result, u)
+			}
+		}
+	}
+
+	return result, nil
+}
+
+func (d *DatabaseHelperImpl) GetPopularWhatsAppGroups(
+	limit int,
+) ([]GroupFeedItem, error) {
+
+	if limit <= 0 {
+		limit = 3
+	}
+
+	var result []GroupFeedItem
+	seen := make(map[uint]bool)
+
+	// 1️⃣ POPULAR GROUPS
+	var groups []Data.Post
+	conn.DB.
+		Preload("Images").
+		Where(`
+			post_type = ?
+			AND is_active = true
+			AND approved = true
+			AND whatsapp_url IS NOT NULL
+			AND whatsapp_url != ''
+		`, PostTypeGroup).
+		Order("participants_count DESC").
+		Limit(limit).
+		Find(&groups)
+
+	for _, g := range groups {
+		if !seen[g.ID] {
+			seen[g.ID] = true
+			result = append(result, GroupFeedItem{
+				ID:          g.ID,
+				Title:       g.Title,
+				Description: g.Description,
+				WhatsappURL: g.WhatsappURL,
+				CreatedAt:   g.CreatedAt,
+				Images:      g.Images,
+			})
+		}
+	}
+
+	// 2️⃣ FALLBACK – NEW GROUPS
+	if len(result) < limit {
+		var fresh []Data.Post
+		conn.DB.
+			Preload("Images").
+			Where(`
+				post_type = ?
+				AND is_active = true
+				AND approved = true
+				AND whatsapp_url IS NOT NULL
+				AND whatsapp_url != ''
+			`, PostTypeGroup).
+			Order("created_at DESC").
+			Limit(limit).
+			Find(&fresh)
+
+		for _, g := range fresh {
+			if len(result) >= limit {
+				break
+			}
+			if !seen[g.ID] {
+				result = append(result, GroupFeedItem{
+					ID:          g.ID,
+					Title:       g.Title,
+					Description: g.Description,
+					WhatsappURL: g.WhatsappURL,
+					CreatedAt:   g.CreatedAt,
+					Images:      g.Images,
+				})
+			}
+		}
+	}
+
+	return result, nil
 }
 
 func (d *DatabaseHelperImpl) GetOpenRecommendedPosts(
@@ -1251,8 +1411,6 @@ func (d *DatabaseHelperImpl) GetOpenRecommendedPosts(
 	return result, hasMore, nil
 }
 
-
-
 type UserSummary struct {
 	ID              uint   `json:"id"`
 	FullName        string `json:"full_name"`
@@ -1328,7 +1486,7 @@ func (d *DatabaseHelperImpl) GetRecommendedUsersWithFallback(
 
 	// 3️⃣ Global popular users
 	if len(result) < limit {
-		l3, _ := d.getGlobalPopularUsers(limit-len(result))
+		l3, _ := d.getGlobalPopularUsers(limit - len(result))
 		for _, u := range l3 {
 			if !seen[u.ID] {
 				result = append(result, u)
@@ -1617,7 +1775,6 @@ func (d *DatabaseHelperImpl) FollowUser(followerID, followingID uint) error {
 	})
 }
 
-
 func (d *DatabaseHelperImpl) IncrementPostView(postID uint) error {
 	return conn.DB.Transaction(func(tx *gorm.DB) error {
 		// Update Views atomically
@@ -1833,7 +1990,7 @@ func (d *DatabaseHelperImpl) GetRecommendedGroupsWithFallback(
 
 	// 2️⃣ Popular groups
 	if len(result) < limit {
-		l2, _ := d.getPopularGroups(limit-len(result))
+		l2, _ := d.getPopularGroups(limit - len(result))
 		for _, g := range l2 {
 			if !seen[g.ID] {
 				result = append(result, g)
@@ -1844,7 +2001,7 @@ func (d *DatabaseHelperImpl) GetRecommendedGroupsWithFallback(
 
 	// 3️⃣ New groups
 	if len(result) < limit {
-		l3, _ := d.getNewGroups(limit-len(result))
+		l3, _ := d.getNewGroups(limit - len(result))
 		for _, g := range l3 {
 			if !seen[g.ID] {
 				result = append(result, g)
@@ -4512,4 +4669,3 @@ func (d *DatabaseHelperImpl) LogUserClickData(fingerprintHash string, productID 
 	}
 	return err
 }
-
