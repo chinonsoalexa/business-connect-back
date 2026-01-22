@@ -85,6 +85,7 @@ type DatabaseHelper interface {
 	GetRecommendedUsersWithFallback(user Data.User, limit, offset int) ([]UserSummary, bool, error)
 	GetUsersToConnectOpen(limit, offset int) ([]UserSummary, bool, error)
 	GetOpenRecommendedUsers(limit, offset int) ([]UserSummary, bool, error)
+	SearchUsers(query string, limit, offset int) ([]UserSummary, bool, error)
 	FollowUser(followerID, followingID uint) error
 	IncrementPostView(postID uint) error
 	IncrementPostClick(postID uint) error
@@ -1692,6 +1693,31 @@ func (d *DatabaseHelperImpl) GetOpenRecommendedUsers(
 
 	hasMore := len(result) == limit
 	return result, hasMore, nil
+}
+
+func (d *DatabaseHelperImpl) SearchUsers(query string, limit, offset int) ([]UserSummary, bool, error) {
+    var users []UserSummary
+
+    // Filter by name, business name, or unique_name
+    res := conn.DB.Model(&Data.User{}).
+        Select(`
+            id, full_name, unique_name, business_name,
+            profile_photo_url, cover_photo_url,
+            state, city, verified, user_type, bio_description
+        `).
+        Where("full_name ILIKE ? OR business_name ILIKE ? OR unique_name ILIKE ?",
+            "%"+query+"%", "%"+query+"%", "%"+query+"%").
+        Order("followers_count DESC").
+        Limit(limit).
+        Offset(offset).
+        Find(&users)
+    
+    if res.Error != nil {
+        return nil, false, res.Error
+    }
+
+    hasMore := len(users) == limit
+    return users, hasMore, nil
 }
 
 func (d *DatabaseHelperImpl) UnfollowUser(followerID, followingID uint) error {

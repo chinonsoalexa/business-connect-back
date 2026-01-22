@@ -316,6 +316,7 @@ func Routers() *fiber.App {
 	router.Post("/posts-click/:postId", NotAuthMiddleware, profile.IncrementPostClickHandler)
 	router.Get("/status", NotAuthMiddleware, mid.WebRequireAuth, profile.GetStatusPaginated)
 	router.Get("/status-open", NotAuthMiddleware, profile.GetStatusPaginatedOpen)
+	router.Get("/search-profiles", NotAuthMiddleware, profile.SearchUsers)
 	router.Get("/get-friends", NotAuthMiddleware, mid.WebRequireAuth, profile.GetFriends)
 	router.Get("/get-friends-open", NotAuthMiddleware, profile.GetFriendsOpen)
 	router.Post("/connect-friends", NotAuthMiddleware, mid.WebRequireAuth, profile.ConnectFriend)

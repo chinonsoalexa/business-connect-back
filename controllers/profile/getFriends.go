@@ -269,3 +269,40 @@ func IncrementPostClickHandler(ctx *fiber.Ctx) error {
 		"type":    "click",
 	})
 }
+
+func SearchUsers(ctx *fiber.Ctx) error {
+    // Get query and pagination
+    query := ctx.Query("q", "")
+    page := ctx.QueryInt("page", 1)
+    limit := ctx.QueryInt("limit", 10)
+
+    if page < 1 {
+        page = 1
+    }
+    if limit < 1 || limit > 50 {
+        limit = 20
+    }
+    offset := (page - 1) * limit
+
+    if query == "" {
+        return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+            "error": "Query parameter 'q' is required",
+        })
+    }
+
+    // Call database helper
+    users, hasMore, err := dbFunc.DBHelper.SearchUsers(query, limit, offset)
+    if err != nil {
+        return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "error": "Failed to search users",
+        })
+    }
+
+    return ctx.JSON(fiber.Map{
+        "page":    page,
+        "limit":   limit,
+        "query":   query,
+        "friends": users,
+        "hasMore": hasMore,
+    })
+}
