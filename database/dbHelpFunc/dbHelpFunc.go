@@ -3440,6 +3440,34 @@ func GenerateProductURL(productName string, productID int) string {
 	return productURL
 }
 
+func (d *DatabaseHelperImpl) IncrementUserPostCounters(
+	userID uint,
+	postType string,
+) error {
+
+	updates := map[string]interface{}{}
+
+	// Increment post count (non-status posts)
+	if postType != "status" {
+		updates["total_product"] = gorm.Expr("total_product + ?", 1)
+	}
+
+	// Increment group count ONLY for group posts
+	if postType == "group" {
+		updates["groups_count"] = gorm.Expr("groups_count + ?", 1)
+	}
+
+	if len(updates) == 0 {
+		return nil // nothing to update
+	}
+
+	return conn.DB.
+		Model(&Data.User{}).
+		Where("id = ?", userID).
+		Updates(updates).
+		Error
+}
+
 // AddProduct adds a product and updates its ProductUrlID
 func (d *DatabaseHelperImpl) AddProduct(post Data.Post, user Data.User) (Data.Post, error) {
 	// Create the product in the database
@@ -3478,11 +3506,8 @@ func (d *DatabaseHelperImpl) AddProduct(post Data.Post, user Data.User) (Data.Po
 		return Data.Post{}, fmt.Errorf("failed to update product URL ID: %w", updateResult.Error)
 	}
 
-	if post.PostType != "status" { // Update user with posts amount
-		updateUserResult := conn.DB.Model(&user).Update("total_product", user.TotalProduct+1)
-		if updateUserResult.Error != nil {
-			return Data.Post{}, fmt.Errorf("failed to update user's total products: %w", updateUserResult.Error)
-		}
+	if err := d.IncrementUserPostCounters(user.ID, post.PostType); err != nil {
+		return Data.Post{}, fmt.Errorf("failed to update user counters: %w", err)
 	}
 
 	// Return the updated product

@@ -374,7 +374,6 @@ func GetNotifications(ctx *fiber.Ctx) error {
 			"notifications": []map[string]string{
 				{
 					"message":   "No notifications yet! Connect with friends, post a product, or check out items to purchase.",
-					"avatarURL": "/assets/images/default-notif.png", // default placeholder
 					"type":      "info",
 				},
 			},
