@@ -4,12 +4,12 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"net"
-	"net/smtp"
+	// "fmt"
+	// "net"
+	// "net/smtp"
 	"os"
 	"strings"
-	"time"
+	// "time"
 )
 
 var disposableDomains = map[string]bool{}
@@ -73,47 +73,47 @@ func IsDisposable(email string) bool {
 // ------------------------------------------------------------
 // 4. MX Check
 // ------------------------------------------------------------
-func HasMX(email string) bool {
-	parts := strings.Split(email, "@")
-	if len(parts) != 2 {
-		return false
-	}
-	_, err := net.LookupMX(parts[1])
-	return err == nil
-}
+// func HasMX(email string) bool {
+// 	parts := strings.Split(email, "@")
+// 	if len(parts) != 2 {
+// 		return false
+// 	}
+// 	_, err := net.LookupMX(parts[1])
+// 	return err == nil
+// }
 
 // ------------------------------------------------------------
 // 5. Catch-all Detection (Accept-all)
 // ------------------------------------------------------------
-func IsCatchAll(domain string) bool {
-	testEmail := "does-not-exist-" + fmt.Sprint(time.Now().Unix()) + "@" + domain
+// func IsCatchAll(domain string) bool {
+// 	testEmail := "does-not-exist-" + fmt.Sprint(time.Now().Unix()) + "@" + domain
 
-	mxRecords, err := net.LookupMX(domain)
-	if err != nil || len(mxRecords) == 0 {
-		return false
-	}
+// 	mxRecords, err := net.LookupMX(domain)
+// 	if err != nil || len(mxRecords) == 0 {
+// 		return false
+// 	}
 
-	// Try SMTP check
-	mxHost := mxRecords[0].Host
-	conn, err := net.DialTimeout("tcp", mxHost+":25", 3*time.Second)
-	if err != nil {
-		return false
-	}
-	defer conn.Close()
+// 	// Try SMTP check
+// 	mxHost := mxRecords[0].Host
+// 	conn, err := net.DialTimeout("tcp", mxHost+":25", 3*time.Second)
+// 	if err != nil {
+// 		return false
+// 	}
+// 	defer conn.Close()
 
-	// Fake SMTP session
-	c, err := smtp.NewClient(conn, mxHost)
-	if err != nil {
-		return false
-	}
-	defer c.Close()
+// 	// Fake SMTP session
+// 	c, err := smtp.NewClient(conn, mxHost)
+// 	if err != nil {
+// 		return false
+// 	}
+// 	defer c.Close()
 
-	c.Mail("validator@" + domain)
-	err = c.Rcpt(testEmail)
+// 	c.Mail("validator@" + domain)
+// 	err = c.Rcpt(testEmail)
 
-	// If RCPT does NOT return error → catch-all domain
-	return err == nil
-}
+// 	// If RCPT does NOT return error → catch-all domain
+// 	return err == nil
+// }
 
 // ------------------------------------------------------------
 // 6. Username Pattern Risk Score
@@ -190,8 +190,8 @@ func longConsonantRun(s string) bool {
 type EmailCheckResult struct {
 	Normalized     string
 	IsDisposable   bool
-	HasMX          bool
-	IsCatchAll     bool
+	// HasMX          bool
+	// IsCatchAll     bool
 	RiskScore      int
 }
 
@@ -201,33 +201,27 @@ func ValidateEmail(email string) (EmailCheckResult, error) {
 	}
 
 	normalized := NormalizeEmail(email)
-	parts := strings.Split(normalized, "@")
-	domain := parts[1]
 
 	result := EmailCheckResult{
-		Normalized: normalized,
+		Normalized:   normalized,
 		IsDisposable: IsDisposable(normalized),
-		HasMX:        HasMX(normalized),
-		IsCatchAll:   IsCatchAll(domain),
 	}
 
-	// Combine scoring
+	// HARD FAIL
 	if result.IsDisposable {
-		result.RiskScore += 80
-	}
-	if !result.HasMX {
-		result.RiskScore += 80
-	}
-	if result.IsCatchAll {
-		result.RiskScore += 40
-	}
-
-	// Add username scoring
-	result.RiskScore += UsernameRiskScore(normalized)
-
-	if result.RiskScore > 100 {
 		result.RiskScore = 100
+		return result, nil
 	}
+
+	// Username heuristics (soft scoring)
+	usernameScore := UsernameRiskScore(normalized)
+
+	// Clamp username contribution
+	if usernameScore > 40 {
+		usernameScore = 40
+	}
+
+	result.RiskScore += usernameScore
 
 	return result, nil
 }

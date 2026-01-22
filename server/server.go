@@ -1,7 +1,6 @@
 package server
 
 import (
-	// "fmt"
 	"log"
 	"os"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 
 	myjwt "business-connect/middleware/myjwt"
+	emailValid "business-connect/email"
 )
 
 func LoadEnv() {
@@ -17,6 +17,12 @@ func LoadEnv() {
 		if err := godotenv.Load(".env"); err != nil {
 			log.Println("No .env file found, using system env")
 		}
+	}
+
+		// 3️⃣ Disposable email check
+	err := emailValid.LoadDisposableList("fakeEmails.json")
+	if err != nil {
+			log.Println("Email validation service error")
 	}
 }
 

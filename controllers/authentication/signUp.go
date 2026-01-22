@@ -59,20 +59,12 @@ func SignUp(ctx *fiber.Ctx) error {
 		})
 	}
 
-	// 3️⃣ Disposable email check
-	// err = emailValid.LoadDisposableList("fakeEmails.json")
-	// if err != nil {
-	// 	return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{
-	// 		"error": "Email validation service error",
-	// 	})
-	// }
-
-	// result, err := emailValid.ValidateEmail(req.Email)
-	// if err != nil || result.RiskScore >= 75 {
-	// 	return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
-	// 		"error": "Invalid or disposable email address",
-	// 	})
-	// }
+	result, err := emailValid.ValidateEmail(req.Email)
+	if result.RiskScore >= 60 {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "Email address looks suspicious",
+		})
+	}
 
 	// 4️⃣ Determine base name
 	baseName := req.BusinessName
