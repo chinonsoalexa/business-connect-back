@@ -1732,15 +1732,18 @@ func (d *DatabaseHelperImpl) GetOpenRecommendedUsers(
 func (d *DatabaseHelperImpl) SearchUsers(query string, limit, offset int) ([]UserSummary, bool, error) {
 	var users []UserSummary
 
-	// Filter by name, business name, or unique_name
 	res := conn.DB.Model(&Data.User{}).
 		Select(`
             id, full_name, unique_name, business_name,
             profile_photo_url, cover_photo_url,
             state, city, verified, user_type, bio_description
         `).
-		Where("full_name ILIKE ? OR business_name ILIKE ? OR unique_name ILIKE ?",
-			"%"+query+"%", "%"+query+"%", "%"+query+"%").
+		Where(
+			"full_name LIKE ? OR business_name LIKE ? OR unique_name LIKE ?",
+			"%"+query+"%",
+			"%"+query+"%",
+			"%"+query+"%",
+		).
 		Order("followers_count DESC").
 		Limit(limit).
 		Offset(offset).
