@@ -14,12 +14,12 @@ import (
 	// "github.com/gofiber/storage/redis"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 
-	ai "business-connect/ai"
+	// ai "business-connect/ai"
 	"business-connect/controllers/authentication"
 	"business-connect/controllers/blog"
-	email "business-connect/controllers/emails"
+	// email "business-connect/controllers/emails"
 	"business-connect/controllers/home"
-	"business-connect/controllers/order"
+	// "business-connect/controllers/order"
 	upload "business-connect/controllers/post"
 	"business-connect/controllers/profile"
 	initTrans "business-connect/paystack/initTransactionForPaystack"
@@ -245,14 +245,14 @@ func Routers() *fiber.App {
 	// router.Post("/profile/update/password", mid.WebRequireAuth, profile.UpdatePassword)
 
 	// all this are open routes to get products and make order
-	router.Get("/next-product/:id", NotAuthMiddleware, profile.GetNextProductID)
-	router.Get("/previous-product/:id", NotAuthMiddleware, profile.GetPreviousProductID)
-	router.Get("/search-products", NotAuthMiddleware, profile.SearchProductsByTitleAndCategory)
-	router.Post("/admin-product-search", NotAuthMiddleware, profile.SearchAdminProductsByTitle)
-	router.Post("/admin-order-search", NotAuthMiddleware, profile.SearchAdminOrderByTitle)
-	router.Post("/transaction/date", NotAuthMiddleware, profile.GetTransactionHistoryByDate)
-	router.Post("/place-order", NotAuthMiddleware, order.AddOrder)
-	router.Get("/get-order/:orderID", NotAuthMiddleware, order.GetOrder)
+	// router.Get("/next-product/:id", NotAuthMiddleware, profile.GetNextProductID)
+	// router.Get("/previous-product/:id", NotAuthMiddleware, profile.GetPreviousProductID)
+	// router.Get("/search-products", NotAuthMiddleware, profile.SearchProductsByTitleAndCategory)
+	// router.Post("/admin-product-search", NotAuthMiddleware, profile.SearchAdminProductsByTitle)
+	// router.Post("/admin-order-search", NotAuthMiddleware, profile.SearchAdminOrderByTitle)
+	// router.Post("/transaction/date", NotAuthMiddleware, profile.GetTransactionHistoryByDate)
+	// router.Post("/place-order", NotAuthMiddleware, order.AddOrder)
+	// router.Get("/get-order/:orderID", NotAuthMiddleware, order.GetOrder)
 
 	// get dorng home products
 	router.Get("/business-connect-product-home", NotAuthMiddleware, profile.GetBusinessConnectHomePageProducts)
@@ -289,16 +289,16 @@ func Routers() *fiber.App {
 	router.Post("/upload-profile-photo", NotAuthMiddleware, mid.WebRequireAuth, upload.UpdateProfilePhoto)
 
 	// set shipping fee
-	router.Post("/set-shipping-fee", mid.WebRequireAuth, order.SetShippingPricePerKm)
-	router.Get("/get-shipping-fee", NotAuthMiddleware, order.GetShippingPricePerKm)
+	// router.Post("/set-shipping-fee", mid.WebRequireAuth, order.SetShippingPricePerKm)
+	// router.Get("/get-shipping-fee", NotAuthMiddleware, order.GetShippingPricePerKm)
 
 	// AI GENERATION FOR PAYUEE VENDORS
-	router.Post("/ai-description", NotAuthMiddleware, mid.WebRequireAuth, ai.GetVendorProductDescriptionAI)
-	router.Post("/ai-tag", NotAuthMiddleware, mid.WebRequireAuth, ai.GetVendorProductTagAI)
+	// router.Post("/ai-description", NotAuthMiddleware, mid.WebRequireAuth, ai.GetVendorProductDescriptionAI)
+	// router.Post("/ai-tag", NotAuthMiddleware, mid.WebRequireAuth, ai.GetVendorProductTagAI)
 
 	// update BusinessConnect product and status
-	router.Post("/update-dorng-product", mid.WebRequireAuth, order.UpdateBusinessConnectProduct)
-	router.Post("/update-dorng-status", mid.WebRequireAuth, order.UpdateBusinessConnectOrderStatus)
+	// router.Post("/update-dorng-product", mid.WebRequireAuth, order.UpdateBusinessConnectProduct)
+	// router.Post("/update-dorng-status", mid.WebRequireAuth, order.UpdateBusinessConnectOrderStatus)
 
 	// get all products and product by id
 	router.Get("/product/:id", NotAuthMiddleware, profile.GetBusinessConnectProductByID)
@@ -332,24 +332,24 @@ func Routers() *fiber.App {
 	router.Get("/get-profile-open/:name", NotAuthMiddleware, profile.GetProfileOpen)
 
 	// blog post, retrieval and updating
-	router.Post("/publish-blog", mid.WebRequireAuth, upload.BlogPost)
-	router.Post("/update-dorng-blog", mid.WebRequireAuth, blog.UpdateBusinessConnectBlog)
-	router.Get("/delete-dorng-blog/:blogID", mid.WebRequireAuth, blog.DeleteBusinessConnectBlog)
-	router.Post("/blog-comment", NotAuthMiddleware, blog.AddBusinessConnectBlogComment)
-	router.Get("/get-blog-comment/:idLimit/:proId", NotAuthMiddleware, blog.GetBusinessConnectBlogCommentsByLimit)
+	// router.Post("/publish-blog", mid.WebRequireAuth, upload.BlogPost)
+	// router.Post("/update-dorng-blog", mid.WebRequireAuth, blog.UpdateBusinessConnectBlog)
+	// router.Get("/delete-dorng-blog/:blogID", mid.WebRequireAuth, blog.DeleteBusinessConnectBlog)
+	// router.Post("/blog-comment", NotAuthMiddleware, blog.AddBusinessConnectBlogComment)
+	// router.Get("/get-blog-comment/:idLimit/:proId", NotAuthMiddleware, blog.GetBusinessConnectBlogCommentsByLimit)
 
 	// send emails and analytics
 	router.Get("/business-connect-analytics", NotAuthMiddleware, profile.AddSiteVisit)
-	router.Get("/dorng-user-fingerprint/:fingerprint", NotAuthMiddleware, profile.GetBusinessConnectUserByFingerprint)
-	router.Post("/dorng-user-analytics", NotAuthMiddleware, profile.AddClickHistory)
-	router.Post("/send-dorng-email", mid.WebRequireAuth, email.SendEmails)
+	// router.Get("/dorng-user-fingerprint/:fingerprint", NotAuthMiddleware, profile.GetBusinessConnectUserByFingerprint)
+	// router.Post("/dorng-user-analytics", NotAuthMiddleware, profile.AddClickHistory)
+	// router.Post("/send-dorng-email", mid.WebRequireAuth, email.SendEmails)
 
 	// delete dorng product
-	router.Get("/delete-dorng-product/:productID", mid.WebRequireAuth, order.DeleteBusinessConnectProduct)
+	// router.Get("/delete-dorng-product/:productID", mid.WebRequireAuth, order.DeleteBusinessConnectProduct)
 
 	// get dorng order
-	router.Get("/get-dorng-order/:orderID", NotAuthMiddleware, order.GetBusinessConnectOrder)
-	router.Get("/get-orders/:orderLimit", NotAuthMiddleware, order.GetBusinessConnectOrdersByLimit)
+	// router.Get("/get-dorng-order/:orderID", NotAuthMiddleware, order.GetBusinessConnectOrder)
+	// router.Get("/get-orders/:orderLimit", NotAuthMiddleware, order.GetBusinessConnectOrdersByLimit)
 
 	// router.Get("/send-sms/:phone", NotAuthMiddleware, order.SendSmsBusinessConnect)
 
@@ -357,8 +357,8 @@ func Routers() *fiber.App {
 	router.Get("/auth-status", mid.WebRequireAuth, profile.CheckAuthStatus)
 
 	// AI GENERATION FOR DORNG GLOBAL
-	router.Post("/ai-description", NotAuthMiddleware, mid.WebRequireAuth, ai.GetVendorProductDescriptionAI)
-	router.Post("/ai-tag", NotAuthMiddleware, mid.WebRequireAuth, ai.GetVendorProductTagAI)
+	// router.Post("/ai-description", NotAuthMiddleware, mid.WebRequireAuth, ai.GetVendorProductDescriptionAI)
+	// // router.Post("/ai-tag", NotAuthMiddleware, mid.WebRequireAuth, ai.GetVendorProductTagAI)
 
 	// Handle preflight requests (OPTIONS)
 	router.Options("/*", func(c *fiber.Ctx) error {
