@@ -146,6 +146,7 @@ func ConnectFriend(ctx *fiber.Ctx) error {
 	if !allowed {
 		return ctx.Status(403).JSON(fiber.Map{
 			"status":  "limit_reached",
+			"name":  user.UniqueName,
 			"message": "Daily connect limit reached. Refer a friend to unlock 5 more connects.",
 		})
 	}
