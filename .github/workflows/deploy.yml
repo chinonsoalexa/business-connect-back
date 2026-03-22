@@ -1,21 +1,29 @@
-name: Deploy Payuee to Oracle Server
+name: Deploy Business Connect
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: 84.8.135.142
-          username: ubuntu
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            bash /home/ubuntu/deploy.sh
+    - name: Checkout code
+      uses: actions/checkout@v3
 
+    - name: Set up SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H 129.151.188.51 >> ~/.ssh/known_hosts
+
+    - name: Deploy to server
+      run: |
+        ssh -i ~/.ssh/id_rsa ubuntu@<YOUR_INSTANCE_IP> '
+          cd ~/app/business-connect &&
+          git pull origin main &&
+          docker compose down &&
+          docker compose up -d --build
+        '
