@@ -10,16 +10,16 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 )
 
 func ShopsphereConfirmationEmail(OrderHistoryBody Data.OrderHistory, RowEmailDataProducts []Data.ProductOrder) error {
 
-	envErr := godotenv.Load(".env")
-	if envErr != nil {
-		fmt.Println(envErr)
-		return fmt.Errorf("failed to load .env file: %w", envErr)
-	}
+	// envErr := godotenv.Load(".env")
+	// if envErr != nil {
+	// 	fmt.Println(envErr)
+	// 	return fmt.Errorf("failed to load .env file: %w", envErr)
+	// }
 
 	if OrderHistoryBody.CustomerStreetAddress2 == "" {
 		OrderHistoryBody.CustomerStreetAddress2 = OrderHistoryBody.CustomerStreetAddress1

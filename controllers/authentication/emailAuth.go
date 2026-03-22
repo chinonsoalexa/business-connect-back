@@ -14,7 +14,7 @@ import (
 	dbFunc "business-connect/database/dbHelpFunc"
 	Data "business-connect/models"
 
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 	"github.com/jordan-wright/email"
 )
 
@@ -89,12 +89,12 @@ func EmailVerification(name, sendTo string) error {
 		newOTP Data.OTP
 	)
 
-	if os.Getenv("RENDER") == "" {
-		// Local development only
-		if err := godotenv.Load(".env"); err != nil {
-			log.Printf("Failed to load .env file: %v\n", err)
-		}
-	}
+	// if os.Getenv("RENDER") == "" {
+	// 	// Local development only
+	// 	if err := godotenv.Load(".env"); err != nil {
+	// 		log.Printf("Failed to load .env file: %v\n", err)
+	// 	}
+	// }
 
 	config := EmailConfig{
 		Name:              mustEnv("EMAIL_SENDER_NAME"),
@@ -229,12 +229,12 @@ func ForgotPasswordEmailVerification(name, sendTo string) error {
 		newOTP Data.OTP
 	)
 
-	if os.Getenv("RENDER") == "" {
-		// Local development only
-		if err := godotenv.Load(".env"); err != nil {
-			log.Printf("Failed to load .env file: %v\n", err)
-		}
-	}
+	// if os.Getenv("RENDER") == "" {
+	// 	// Local development only
+	// 	if err := godotenv.Load(".env"); err != nil {
+	// 		log.Printf("Failed to load .env file: %v\n", err)
+	// 	}
+	// }
 
 	config := EmailConfig{
 		Name:              mustEnv("EMAIL_SENDER_NAME"),
@@ -406,12 +406,12 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 		newOTP Data.OTP
 	)
 
-	if os.Getenv("RENDER") == "" {
-		// Local development only
-		if err := godotenv.Load(".env"); err != nil {
-			log.Printf("Failed to load .env file: %v\n", err)
-		}
-	}
+	// if os.Getenv("RENDER") == "" {
+	// 	// Local development only
+	// 	if err := godotenv.Load(".env"); err != nil {
+	// 		log.Printf("Failed to load .env file: %v\n", err)
+	// 	}
+	// }
 
 	config := EmailConfig{
 		Name:              mustEnv("EMAIL_SENDER_NAME"),
@@ -528,11 +528,11 @@ func MagicLinkEmailVerification(name, sendTo string) error {
 
 func SendEmailToSubscribers(Subject, content, sendTo string) error {
 
-	envErr := godotenv.Load(".env")
-	if envErr != nil {
-		fmt.Println(envErr)
-		return fmt.Errorf("failed to load .env file: %w", envErr)
-	}
+	// envErr := godotenv.Load(".env")
+	// if envErr != nil {
+	// 	fmt.Println(envErr)
+	// 	return fmt.Errorf("failed to load .env file: %w", envErr)
+	// }
 
 	config := EmailConfig{
 		// Name:              os.Getenv("ADMIN_EMAIL_SENDER_NAME"),

@@ -7,11 +7,10 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 )
 
 // Pad data to make its length a multiple of blockSize
@@ -34,12 +33,12 @@ func UnpadJwtToken(data []byte) ([]byte, error) {
 }
 
 func EncryptJwtToken(data string) (string, error) {
-	envErr := godotenv.Load(".env")
+	// envErr := godotenv.Load(".env")
 
-	if envErr != nil {
-		fmt.Printf("Failed to load .env file: %v\n", envErr)
-		return "", errors.New("error loading .env file")
-	}
+	// if envErr != nil {
+	// 	fmt.Printf("Failed to load .env file: %v\n", envErr)
+	// 	return "", errors.New("error loading .env file")
+	// }
 
 	key := os.Getenv("JWT_ENCRYPTION_KEY")
 
@@ -67,12 +66,12 @@ func EncryptJwtToken(data string) (string, error) {
 }
 
 func DecryptJwtToken(binaryText string) ([]byte, error) {
-	envErr := godotenv.Load(".env")
+	// envErr := godotenv.Load(".env")
 
-	if envErr != nil {
-		fmt.Printf("Failed to load .env file: %v\n", envErr)
-		return nil, errors.New("error loading .env file")
-	}
+	// if envErr != nil {
+	// 	fmt.Printf("Failed to load .env file: %v\n", envErr)
+	// 	return nil, errors.New("error loading .env file")
+	// }
 
 	key := os.Getenv("JWT_ENCRYPTION_KEY")
 

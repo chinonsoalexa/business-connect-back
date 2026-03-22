@@ -5,12 +5,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 )
 
 func SendTransactionalSMS(
@@ -29,11 +28,11 @@ func SendTransactionalSMS(
 		return nil, err
 	}
 
-	if os.Getenv("RENDER") == "" { // assume in local dev
-		if err := godotenv.Load(".env"); err != nil {
-			log.Printf("Failed to load .env file: %v\n", err)
-		}
-	}
+	// if os.Getenv("RENDER") == "" { // assume in local dev
+	// 	if err := godotenv.Load(".env"); err != nil {
+	// 		log.Printf("Failed to load .env file: %v\n", err)
+	// 	}
+	// }
 
 	// Then just use os.Getenv("SMS_KEY") as usual
 	apiKey := os.Getenv("SMS_KEY")

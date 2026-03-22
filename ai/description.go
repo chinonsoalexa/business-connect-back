@@ -15,7 +15,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/generative-ai-go/genai"
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 	"google.golang.org/api/option"
 )
 
@@ -71,11 +71,11 @@ func GetVendorProductTagAI(ctx *fiber.Ctx) error {
 
 func SendUserQuestion(productTitle string) (response string, err error) {
 	ctx := context.Background()
-	envErr := godotenv.Load(".env")
+	// envErr := godotenv.Load(".env")
 
-	if envErr != nil {
-		fmt.Printf("Failed to load .env file: %v\n", envErr)
-	}
+	// if envErr != nil {
+	// 	fmt.Printf("Failed to load .env file: %v\n", envErr)
+	// }
 
 	apiKey := os.Getenv("AI_API_KEY")
 
@@ -153,11 +153,11 @@ func RegisteredTrainingDataTag(productTitle, productDescription string) string {
 
 func SendUserQuestionTag(productTitle, productDescription string) (response string, err error) {
 	ctx := context.Background()
-	envErr := godotenv.Load(".env")
+	// envErr := godotenv.Load(".env")
 
-	if envErr != nil {
-		fmt.Printf("Failed to load .env file: %v\n", envErr)
-	}
+	// if envErr != nil {
+	// 	fmt.Printf("Failed to load .env file: %v\n", envErr)
+	// }
 
 	apiKey := os.Getenv("AI_API_KEY")
 

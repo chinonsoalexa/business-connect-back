@@ -16,7 +16,7 @@ import (
 
 	Data "business-connect/models"
 
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 	"github.com/kurin/blazer/b2"
 )
 
@@ -53,12 +53,12 @@ func UploadFiles(fileHeader []*multipart.FileHeader) ([]Data.PostImage, error) {
 	)
 
 	// Load environment variables from the .env file
-	if os.Getenv("RENDER") == "" {
-		// Local development only
-		if err := godotenv.Load(".env"); err != nil {
-			log.Printf("Failed to load .env file: %v\n", err)
-		}
-	}
+	// if os.Getenv("RENDER") == "" {
+	// 	// Local development only
+	// 	if err := godotenv.Load(".env"); err != nil {
+	// 		log.Printf("Failed to load .env file: %v\n", err)
+	// 	}
+	// }
 
 	// Get B2 credentials from environment variables
 	bucketName = os.Getenv("B2_BUCKET_NAME")
@@ -172,12 +172,12 @@ func UploadStatusFiles(fileHeader []*multipart.FileHeader) ([]Data.StatusImage, 
 	)
 
 	// Load environment variables from the .env file
-	if os.Getenv("RENDER") == "" {
-		// Local development only
-		if err := godotenv.Load(".env"); err != nil {
-			log.Printf("Failed to load .env file: %v\n", err)
-		}
-	}
+	// if os.Getenv("RENDER") == "" {
+	// 	// Local development only
+	// 	if err := godotenv.Load(".env"); err != nil {
+	// 		log.Printf("Failed to load .env file: %v\n", err)
+	// 	}
+	// }
 
 	// Get B2 credentials from environment variables
 	bucketName = os.Getenv("B2_BUCKET_NAME")
@@ -288,11 +288,11 @@ func DeleteB2Files(filePaths []string) error {
 	)
 
 	// Load env (local only)
-	if os.Getenv("RENDER") == "" {
-		if err := godotenv.Load(".env"); err != nil {
-			log.Printf("Failed to load .env file: %v\n", err)
-		}
-	}
+	// if os.Getenv("RENDER") == "" {
+	// 	if err := godotenv.Load(".env"); err != nil {
+	// 		log.Printf("Failed to load .env file: %v\n", err)
+	// 	}
+	// }
 
 	// Get credentials
 	bucketName = os.Getenv("B2_BUCKET_NAME")
@@ -332,7 +332,7 @@ func UploadEmailFiles(htmlContent string) (string, error) {
 	var (
 		b2Client       *b2.Client
 		bucket         *b2.Bucket
-		EnvErr         error
+		// EnvErr         error
 		B2LinkErr      error
 		bucketName     string
 		applicationKey string
@@ -340,10 +340,10 @@ func UploadEmailFiles(htmlContent string) (string, error) {
 	)
 
 	// Load environment variables from the .env file
-	EnvErr = godotenv.Load(".env")
-	if EnvErr != nil {
-		return "", errors.New("error loading .env file")
-	}
+	// EnvErr = godotenv.Load(".env")
+	// if EnvErr != nil {
+	// 	return "", errors.New("error loading .env file")
+	// }
 	// log.Println("Loading environment variables")
 
 	// Get B2 credentials from environment variables
@@ -451,7 +451,7 @@ func UploadBlogFiles(fileHeader []*multipart.FileHeader) ([]Data.BlogImage, erro
 		b2Client   *b2.Client
 		bucket     *b2.Bucket
 		results    []Data.BlogImage
-		EnvErr     error
+		// EnvErr     error
 		B2LinkErr  error
 		bucketName string
 		// accountID      string
@@ -460,10 +460,10 @@ func UploadBlogFiles(fileHeader []*multipart.FileHeader) ([]Data.BlogImage, erro
 	)
 
 	// Load environment variables from the .env file
-	EnvErr = godotenv.Load(".env")
-	if EnvErr != nil {
-		return nil, errors.New("error loading .env file")
-	}
+	// EnvErr = godotenv.Load(".env")
+	// if EnvErr != nil {
+	// 	return nil, errors.New("error loading .env file")
+	// }
 
 	// Get B2 credentials from environment variables
 	bucketName = os.Getenv("B2_BUCKET_NAME")
@@ -578,12 +578,12 @@ func UploadProfileFiles(fileHeader []*multipart.FileHeader) ([]Data.ProfileImage
 	)
 
 	// Load environment variables from the .env file
-	if os.Getenv("RENDER") == "" {
-		// Local development only
-		if err := godotenv.Load(".env"); err != nil {
-			log.Printf("Failed to load .env file: %v\n", err)
-		}
-	}
+	// if os.Getenv("RENDER") == "" {
+	// 	// Local development only
+	// 	if err := godotenv.Load(".env"); err != nil {
+	// 		log.Printf("Failed to load .env file: %v\n", err)
+	// 	}
+	// }
 
 	// Get B2 credentials from environment variables
 	bucketName = os.Getenv("B2_BUCKET_NAME")

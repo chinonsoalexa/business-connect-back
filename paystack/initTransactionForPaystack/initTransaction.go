@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -23,7 +22,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 )
 
 // Replace with the actual Paystack API endpoint for verification
@@ -31,11 +30,11 @@ const paystackVerifyURL = "https://api.paystack.co/transaction/verify/%s"
 
 func InitializePaystackTransaction(Email string, TransactionID string, Amount int, Metadata Data.ServiceMetaData) (map[string]interface{}, error) {
 
-	envErr := godotenv.Load(".env")
+	// envErr := godotenv.Load(".env")
 
-	if envErr != nil {
-		log.Printf("Failed to load .env file: %v\n", envErr)
-	}
+	// if envErr != nil {
+	// 	log.Printf("Failed to load .env file: %v\n", envErr)
+	// }
 
 	SECRET_KEY := os.Getenv("PAYSTACK_LIVE_SECRET_KEY")
 	// SECRET_KEY := os.Getenv("PAYSTACK_TEST_SECRET_KEY")
@@ -152,11 +151,11 @@ func PaystackCallbackHandler(ctx *fiber.Ctx) error {
 
 // Function to verify Paystack transaction
 func VerifyPaystackTransaction(reference string) (helperFunc.PaystackVerificationResponse, error) {
-	envErr := godotenv.Load(".env")
+	// envErr := godotenv.Load(".env")
 
-	if envErr != nil {
-		log.Printf("Failed to load .env file: %v\n", envErr)
-	}
+	// if envErr != nil {
+	// 	log.Printf("Failed to load .env file: %v\n", envErr)
+	// }
 
 	SECRET_KEY := os.Getenv("PAYSTACK_LIVE_SECRET_KEY")
 

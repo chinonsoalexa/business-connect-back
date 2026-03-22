@@ -6,18 +6,18 @@ import (
 
 	"business-connect/router"
 
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 
 	myjwt "business-connect/middleware/myjwt"
 	emailValid "business-connect/email"
 )
 
 func LoadEnv() {
-	if os.Getenv("RENDER") == "" {
-		if err := godotenv.Load(".env"); err != nil {
-			log.Println("No .env file found, using system env")
-		}
-	}
+	// if os.Getenv("RENDER") == "" {
+	// 	if err := godotenv.Load(".env"); err != nil {
+	// 		log.Println("No .env file found, using system env")
+	// 	}
+	// }
 
 		// 3️⃣ Disposable email check
 	err := emailValid.LoadDisposableList("fakeEmails.json")

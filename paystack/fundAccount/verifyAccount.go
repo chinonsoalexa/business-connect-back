@@ -3,12 +3,11 @@ package fundAccount
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 )
 
 func VerifyAccountNumberPayuee(c *fiber.Ctx) error {
@@ -29,11 +28,11 @@ func VerifyAccountNumberPayuee(c *fiber.Ctx) error {
 
 func verifyAccountNumberPaystack(accountNumber, bankCode string) (fiber.Map, error) {
 
-	envErr := godotenv.Load(".env")
+	// envErr := godotenv.Load(".env")
 
-	if envErr != nil {
-		log.Printf("Failed to load .env file: %v\n", envErr)
-	}
+	// if envErr != nil {
+	// 	log.Printf("Failed to load .env file: %v\n", envErr)
+	// }
 
 	SECRET_KEY := os.Getenv("PAYSTACK_LIVE_SECRET_KEY")
 

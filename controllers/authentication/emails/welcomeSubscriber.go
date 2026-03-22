@@ -8,16 +8,16 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 )
 
 func TodacWelcomeEmail(subscriberEmail string) error {
 
-	envErr := godotenv.Load(".env")
-	if envErr != nil {
-		fmt.Println(envErr)
-		return fmt.Errorf("failed to load .env file: %w", envErr)
-	}
+	// envErr := godotenv.Load(".env")
+	// if envErr != nil {
+	// 	fmt.Println(envErr)
+	// 	return fmt.Errorf("failed to load .env file: %w", envErr)
+	// }
 
 	config := OrderEmail.EmailConfig{
 		Name:              os.Getenv("ADMIN_EMAIL_SENDER_NAME"),

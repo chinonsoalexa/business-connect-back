@@ -27,16 +27,16 @@ import (
 
 	mid "business-connect/middleware"
 
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 )
 
 func NotAuthMiddleware(c *fiber.Ctx) error {
 
-	envErr := godotenv.Load(".env")
+	// envErr := godotenv.Load(".env")
 
-	if envErr != nil {
-		fmt.Printf("Failed to load .env file: %v\n", envErr)
-	}
+	// if envErr != nil {
+	// 	fmt.Printf("Failed to load .env file: %v\n", envErr)
+	// }
 
 	allowedOrigins := map[string]bool{
 		"https://business-connect-eta.vercel.app/": true,
@@ -87,11 +87,11 @@ func NotAuthMiddleware(c *fiber.Ctx) error {
 }
 
 func AuthMiddleware(c *fiber.Ctx) error {
-	envErr := godotenv.Load(".env")
+	// envErr := godotenv.Load(".env")
 
-	if envErr != nil {
-		fmt.Printf("Failed to load .env file: %v\n", envErr)
-	}
+	// if envErr != nil {
+	// 	fmt.Printf("Failed to load .env file: %v\n", envErr)
+	// }
 	allowedOrigins := map[string]bool{
 		"https://business-connect-eta.vercel.app/": true,
 		"https://businessconnectt.com":             true,
