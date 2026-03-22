@@ -21,7 +21,7 @@ jobs:
 
     - name: Deploy to server
       run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@<YOUR_INSTANCE_IP> '
+        ssh -i ~/.ssh/id_rsa ubuntu@129.151.188.51 '
           cd ~/app/business-connect &&
           git pull origin main &&
           docker compose down &&
