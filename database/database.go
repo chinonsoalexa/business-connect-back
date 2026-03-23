@@ -54,7 +54,7 @@ func init() {
 
 	sqlDB, err := DB.DB()
 	if err != nil {
-		panic("❌ failed to get DB connection: " + err.Error())
+		fmt.Println("❌ failed to get DB connection: " + err.Error())
 	}
 
 	// Pooling config

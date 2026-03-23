@@ -1,4 +1,4 @@
-name: Deploy Payuee to Oracle Server
+name: Deploy Business Connect to Oracle Server
 
 on:
   push:

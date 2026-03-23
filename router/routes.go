@@ -156,7 +156,7 @@ func Routers() *fiber.App {
 		// BodyLimit: 4 * 1024 * 1024, // 16 KB, for example
 		ReadBufferSize:  50 * 4096,
 		WriteBufferSize: 2 * 4096,
-		Prefork:         true, // Enable prefork mode for better performance
+		Prefork:         false, // Enable prefork mode for better performance
 		AppName:         "Business Connect API",
 	})
 
