@@ -31,6 +31,7 @@ WORKDIR /app
 COPY --from=builder /app/business-api .
 COPY --from=builder /app/.env .
 COPY --from=builder /app/keys ./keys
+COPY --from=builder /app/fakeEmails.json ./fakeEmails.json
 
 # Use non-root user
 USER nonroot:nonroot
