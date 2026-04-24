@@ -1492,7 +1492,7 @@ func (d *DatabaseHelperImpl) GetRecommendedUsersWithFallback(
 
 	// 2️⃣ Same country fallback
 	if len(result) < limit {
-		l2, _ := d.getUsersSameCountry(user, limit-len(result))
+		l2, _ := d.getUsersSameCountry(user, limit-len(result), offset)
 		for _, u := range l2 {
 			if len(result) >= limit {
 				break
@@ -1509,6 +1509,7 @@ func (d *DatabaseHelperImpl) GetRecommendedUsersWithFallback(
 		l3, _ := d.getGlobalPopularUsersExcludingConnections(
 			user.ID,
 			limit-len(result),
+			offset,
 		)
 		for _, u := range l3 {
 			if len(result) >= limit {
@@ -1558,11 +1559,12 @@ func (d *DatabaseHelperImpl) getUsersSameState(
 func (d *DatabaseHelperImpl) getUsersSameCountry(
 	user Data.User,
 	limit int,
+	offset int,
 ) ([]UserSummary, error) {
 
 	var users []UserSummary
 
-	conn.DB.
+	result := conn.DB.
 		Model(&Data.User{}).
 		Select(`
 			id, full_name, unique_name, business_name,
@@ -1572,22 +1574,26 @@ func (d *DatabaseHelperImpl) getUsersSameCountry(
 		Where(`
 			country = ?
 			AND id != ?
-			AND id NOT IN (
-				SELECT connected_user_id
-				FROM connections
-				WHERE user_id = ?
+			AND NOT EXISTS (
+				SELECT 1 FROM connections c
+				WHERE 
+					(c.user_id = ? AND c.connected_user_id = users.id)
+					OR
+					(c.connected_user_id = ? AND c.user_id = users.id)
 			)
-		`, user.Country, user.ID, user.ID).
+		`, user.Country, user.ID, user.ID, user.ID).
 		Order("followers_count DESC").
 		Limit(limit).
+		Offset(offset).
 		Find(&users)
 
-	return users, nil
+return users, result.Error
 }
 
 func (d *DatabaseHelperImpl) getGlobalPopularUsersExcludingConnections(
 	userID uint,
 	limit int,
+	offset int,
 ) ([]UserSummary, error) {
 
 	var users []UserSummary
@@ -1602,13 +1608,14 @@ func (d *DatabaseHelperImpl) getGlobalPopularUsersExcludingConnections(
 		Where(`
 			id != ?
 			AND id NOT IN (
-				SELECT connected_user_id
-				FROM connections
-				WHERE user_id = ?
+				SELECT connected_user_id FROM connections WHERE user_id = ?
+				UNION
+				SELECT user_id FROM connections WHERE connected_user_id = ?
 			)
-		`, userID, userID).
+		`, userID, userID, userID).
 		Order("followers_count DESC").
 		Limit(limit).
+		Offset(offset).
 		Find(&users)
 
 	return users, nil
@@ -1884,7 +1891,7 @@ func (d *DatabaseHelperImpl) CanAndConsumeConnect(userID uint) (bool, int, error
 
 	resetDailyIfNeeded(limit)
 
-	dailyRemaining := 15 - limit.DailyCount
+	dailyRemaining := 5 - limit.DailyCount
 	totalAvailable := dailyRemaining + limit.ReferralCredits
 
 	if totalAvailable <= 0 {
