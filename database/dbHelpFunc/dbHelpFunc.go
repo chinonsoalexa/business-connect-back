@@ -77,7 +77,8 @@ type DatabaseHelper interface {
 		preferredLanguage, preferredCurrency, profilePhotoURL, coverPhotoURL string,
 	) error
 	GetBusinessConnectProductsByLimit(limit, offset int) ([]Data.Post, bool, error)
-	GetRecommendedPostsWithFallback(user Data.User, limit, offset int) ([]Data.Post, bool, error)
+	CreatePostImpression(userID uint, postID uint)
+	GetRecommendedPostsWithFallback(user Data.User, limit, lastID int) ([]Data.Post, bool, error)
 	GetBusinessConnectProductsByLimitOpen(limit, offset int) ([]Data.Post, bool, error)
 	GetSuggestedBusinesses(limit int) ([]UserSummary, error)
 	GetPopularWhatsAppGroups(limit int) ([]GroupFeedItem, error)
@@ -1016,6 +1017,14 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
 	return posts, hasMore, nil
 }
 
+func (d *DatabaseHelperImpl) CreatePostImpression(userID uint, postID uint) {
+	conn.DB.Create(&Data.PostImpression{
+		UserID: userID,
+		PostID: postID,
+		SeenAt: time.Now(),
+	})
+}
+
 // +40  same state
 // +25  same country
 // +20  business category match
@@ -1024,14 +1033,14 @@ func (d *DatabaseHelperImpl) GetBusinessConnectProductsByLimit(
 
 func (d *DatabaseHelperImpl) GetRecommendedPostsWithFallback(
 	user Data.User,
-	limit, offset int,
+	limit, lastID int,
 ) ([]Data.Post, bool, error) {
 
 	var posts []Data.Post
 	seen := make(map[uint]bool)
 
 	// 1️⃣ Personalized
-	personalized, _, _ := d.getPersonalizedPosts(user, limit, offset)
+	personalized, _, _ := d.getPersonalizedPosts(user, limit, lastID)
 
 	for _, p := range personalized {
 		posts = append(posts, p)
@@ -1072,28 +1081,57 @@ func (d *DatabaseHelperImpl) GetRecommendedPostsWithFallback(
 
 func (d *DatabaseHelperImpl) getPersonalizedPosts(
 	user Data.User,
-	limit, offset int,
+	limit int,
+	lastID int,
 ) ([]Data.Post, bool, error) {
 
 	var posts []Data.Post
 
-	conn.DB.
+	since := time.Now().Add(-24 * time.Hour)
+
+	query := conn.DB.
+		Model(&Data.Post{}).
 		Preload("Images").
 		Select(`
 			posts.*,
 			(
 				CASE WHEN location = ? THEN 40 ELSE 0 END +
-				CASE WHEN location = ? THEN 25 ELSE 0 END +
+				CASE WHEN country = ? THEN 25 ELSE 0 END +
 				LOG(views + clicks + 1)
 			) AS score
 		`, user.State, user.Country).
-		Where("is_active = true AND approved = true").
-		Order("score DESC").
-		Limit(limit).
-		Offset(offset).
-		Find(&posts)
+		Where(`
+			posts.is_active = true
+			AND posts.approved = true
+			AND posts.id NOT IN (
+				SELECT post_id
+				FROM post_impressions
+				WHERE user_id = ?
+				AND seen_at >= ?
+			)
+		`, user.ID, since)
 
-	return posts, false, nil
+	// ✅ CURSOR PAGINATION (THE FIX)
+	if lastID > 0 {
+		query = query.Where("posts.id < ?", lastID)
+	}
+
+	err := query.
+		Order("posts.id DESC").
+		Limit(limit + 1). // fetch one extra to detect hasMore
+		Find(&posts).Error
+
+	if err != nil {
+		return nil, false, err
+	}
+
+	hasMore := false
+	if len(posts) > limit {
+		hasMore = true
+		posts = posts[:limit]
+	}
+
+	return posts, hasMore, nil
 }
 
 func (d *DatabaseHelperImpl) getTrendingPostsByCountry(

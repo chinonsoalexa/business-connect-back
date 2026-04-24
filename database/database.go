@@ -131,10 +131,10 @@ func DbMigration() {
 		fmt.Println("failed to migrate the StatusImage database")
 	}
 
-	// err = DB.AutoMigrate(&Data.BusinessConnectEmailSubscriber{})
-	// if err != nil {
-	// 	fmt.Println("failed to migrate the BusinessConnectEmailSubscriber database")
-	// }
+	err = DB.AutoMigrate(&Data.PostImpression{})
+	if err != nil {
+		fmt.Println("failed to migrate the PostImpression database")
+	}
 
 	// err = DB.AutoMigrate(&Data.Email{})
 	// if err != nil {

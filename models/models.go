@@ -277,6 +277,14 @@ type (
 	}
 )
 
+type PostImpression struct {
+	gorm.Model
+
+	UserID    uint      `gorm:"index"`
+	PostID    uint      `gorm:"index"`
+	SeenAt    time.Time `gorm:"index"`
+}
+
 type Notification struct {
 	ID        uint   `gorm:"primaryKey"`
 	UserID    uint   `gorm:"index"`   // recipient
