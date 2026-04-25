@@ -98,20 +98,21 @@ func GetPostsPaginated(ctx *fiber.Ctx) error {
 
 func GetPostsPaginatedOpen(ctx *fiber.Ctx) error {
 	// Default pagination values
-	page := ctx.QueryInt("page", 1)
+	// page := ctx.QueryInt("page", 1)
 	limit := ctx.QueryInt("limit", 10)
+	lastID := ctx.QueryInt("last_id", 0)
 
-	if page < 1 {
-		page = 1
-	}
+	// if page < 1 {
+	// 	page = 1
+	// }
 	if limit < 1 || limit > 50 {
 		limit = 20
 	}
 
-	offset := (page - 1) * limit
+	// offset := (page - 1) * limit
 
 	// Fetch posts using limit+1 for hasMore
-	posts, hasMore, postErr := dbFunc.DBHelper.GetOpenRecommendedPosts(limit, offset)
+	posts, hasMore, postErr := dbFunc.DBHelper.GetOpenRecommendedPosts(limit, lastID)
 	if postErr != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to fetch posts",
@@ -134,7 +135,7 @@ func GetPostsPaginatedOpen(ctx *fiber.Ctx) error {
 
 	// Return JSON
 	return ctx.JSON(fiber.Map{
-		"page":     page,
+		// "page":     page,
 		"limit":    limit,
 		"posts":    posts,
 		"business": business,
