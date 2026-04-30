@@ -1697,7 +1697,39 @@ func (d *DatabaseHelperImpl) GetUsersToConnectOpen(
 	return users, hasMore, nil
 }
 
-func (d *DatabaseHelperImpl) GetOpenRecommendedUsers(
+func (d *DatabaseHelperImpl) GetOpenRecommendedUsers(limit, offset int) ([]UserSummary, bool, error) {
+
+	var users []UserSummary
+
+	err := conn.DB.Model(&Data.User{}).
+		Select(`
+			id, full_name, unique_name, business_name,
+			profile_photo_url, cover_photo_url,
+			state, city, verified, user_type, bio_description
+		`).
+		Order(`
+			verified DESC,
+			(user_type = 'business') DESC,
+			followers_count DESC,
+			created_at DESC
+		`).
+		Limit(limit + 1).
+		Offset(offset).
+		Find(&users).Error
+
+	if err != nil {
+		return nil, false, err
+	}
+
+	hasMore := len(users) > limit
+	if hasMore {
+		users = users[:limit]
+	}
+
+	return users, hasMore, nil
+}
+
+func (d *DatabaseHelperImpl) GetOpenRecommendedUsersOld(
 	limit, offset int,
 ) ([]UserSummary, bool, error) {
 
