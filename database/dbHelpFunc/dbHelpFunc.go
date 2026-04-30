@@ -1714,6 +1714,7 @@ func (d *DatabaseHelperImpl) GetOpenRecommendedUsers(
 		`).
 		Order("followers_count DESC").
 		Limit(limit).
+		Offset(offset).
 		Find(&trending)
 
 	for _, u := range trending {
@@ -1735,6 +1736,7 @@ func (d *DatabaseHelperImpl) GetOpenRecommendedUsers(
 			Where("verified = true OR user_type = ?", "business").
 			Order("followers_count DESC").
 			Limit(limit).
+			Offset(offset).
 			Find(&popular)
 
 		for _, u := range popular {
@@ -1759,6 +1761,7 @@ func (d *DatabaseHelperImpl) GetOpenRecommendedUsers(
 			`).
 			Order("created_at DESC").
 			Limit(limit).
+			Offset(offset).
 			Find(&fresh)
 
 		for _, u := range fresh {
